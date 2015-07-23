@@ -1,4 +1,17 @@
 {
-  "ImportPath": "github.com/parkr/auto-reply",
-  "GoVersion": "go1.4.2"
+	"ImportPath": "github.com/parkr/auto-reply",
+	"GoVersion": "go1.4.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/google/go-github/github",
+			"Rev": "34fb8ee07214d23c3035c95691fe9069705814d6"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "8914e5017ca260f2a3a1575b1e6868874050d95e"
+		}
+	]
 }
