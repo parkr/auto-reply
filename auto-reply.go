@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 )
@@ -18,6 +19,10 @@ func deprecatedReposHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	var port string
+	flag.StringVar(&port, "port", "8080", "The port to serve to")
+	flag.Parse()
 	http.HandleFunc("/_github/repos/deprecated", deprecatedReposHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("Listening on :%s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
