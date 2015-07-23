@@ -14,7 +14,7 @@ var deprecatedRepos = map[string]string{
 func deprecatedReposHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	log.Println(r.Form)
-	w.Write([]byte{`hi`})
+	w.Write([]byte(`hi`))
 }
 
 func main() {
