@@ -1,1 +1,1 @@
-web: ./auto-reply -port=$PORT
+web: auto-reply -port=$PORT
