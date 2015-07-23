@@ -10,6 +10,14 @@
 			"Rev": "34fb8ee07214d23c3035c95691fe9069705814d6"
 		},
 		{
+			"ImportPath": "github.com/google/go-querystring/query",
+			"Rev": "547ef5ac979778feb2f760cdb5f4eae1a2207b86"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "446d52dd4018303a13b36097e26d0888aca5d6ef"
+		},
+		{
 			"ImportPath": "golang.org/x/oauth2",
 			"Rev": "8914e5017ca260f2a3a1575b1e6868874050d95e"
 		}

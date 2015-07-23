@@ -15,8 +15,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/net/context"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2/internal"
-	"golang.org/x/net/context"
 )
 
 // NoContext is the default context you should supply if not using

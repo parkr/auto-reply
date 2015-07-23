@@ -14,9 +14,9 @@ import (
 	"path/filepath"
 	"runtime"
 
+	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/net/context"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2/jwt"
-	"golang.org/x/net/context"
 	"google.golang.org/cloud/compute/metadata"
 )
 

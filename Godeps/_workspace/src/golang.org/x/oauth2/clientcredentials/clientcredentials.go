@@ -18,9 +18,9 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/net/context"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2/internal"
-	"golang.org/x/net/context"
 )
 
 // tokenFromInternal maps an *internal.Token struct into

@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/net/context"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2/internal"
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2/jws"
-	"golang.org/x/net/context"
 )
 
 var (

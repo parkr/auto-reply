@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"golang.org/x/net/context"
+	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/net/context"
 )
 
 type mockTransport struct {
