@@ -41,7 +41,7 @@ func deprecatedReposHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *issue.Action != "opened" {
-		http.Error(w, "irrelevant issue action", 400)
+		http.Error(w, "ignored", 200)
 		return
 	}
 
