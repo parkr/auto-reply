@@ -12,7 +12,10 @@ import (
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2"
 )
 
-const deprecatedJekyllMessage = `This repository is no longer maintained. If you're still experiencing this problem, please search for your issue on [Jekyll Talk](https://talk.jekyllrb.com/), our new community forum. If it isn't there, feel free to post to the Help category and someone will assist you. Thanks!`
+const (
+	closedState             = `closed`
+	deprecatedJekyllMessage = `This repository is no longer maintained. If you're still experiencing this problem, please search for your issue on [Jekyll Talk](https://talk.jekyllrb.com/), our new community forum. If it isn't there, feel free to post to the Help category and someone will assist you. Thanks!`
+)
 
 var (
 	client          *github.Client
@@ -47,11 +50,22 @@ func deprecatedReposHandler(w http.ResponseWriter, r *http.Request) {
 			*issue.Repo.Owner.Login,
 			*issue.Repo.Name,
 			*issue.Issue.Number,
-			&github.IssueComment{Body: &msg},
+			&github.IssueComment{Body: github.String(msg)},
 		)
 		if err != nil {
 			log.Println("error leaving comment:", err)
 			http.Error(w, "couldnt leave comment", 500)
+			return
+		}
+		_, _, err = client.Issues.Edit(
+			*issue.Repo.Owner.Login,
+			*issue.Repo.Name,
+			*issue.Issue.Number,
+			&github.IssueRequest{State: github.String(closedState)},
+		)
+		if err != nil {
+			log.Println("error closing comment:", err)
+			http.Error(w, "couldnt close comment", 500)
 			return
 		}
 	} else {
