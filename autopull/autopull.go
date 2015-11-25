@@ -3,6 +3,7 @@ package autopull
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -53,6 +54,8 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&push)
 	if err != nil {
 		log.Println("error unmarshalling issue stuffs:", err)
+		body, err := ioutil.ReadAll(r.Body)
+		log.Println("ioutil.ReadAll:", body, err)
 		http.Error(w, "bad json", 400)
 		return
 	}
@@ -61,8 +64,8 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		pr := newPRForPush(push)
 		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Login, *push.Repo.Name, pr)
 		if err != nil {
-			log.Println("error unmarshalling issue stuffs:", err)
-			http.Error(w, "bad json", 400)
+			log.Printf("error creating pull request for %s/%s: %v", *push.Repo.Owner.Login, *push.Repo.Name, err)
+			http.Error(w, "pr could not be created", 500)
 			return
 		}
 
