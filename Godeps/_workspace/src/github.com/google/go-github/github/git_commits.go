@@ -34,9 +34,10 @@ func (c Commit) String() string {
 // CommitAuthor represents the author or committer of a commit.  The commit
 // author may not correspond to a GitHub User.
 type CommitAuthor struct {
-	Date  *time.Time `json:"date,omitempty"`
-	Name  *string    `json:"name,omitempty"`
-	Email *string    `json:"email,omitempty"`
+	Date     *time.Time `json:"date,omitempty"`
+	Name     *string    `json:"name,omitempty"`
+	Email    *string    `json:"email,omitempty"`
+	Username *string    `json:"username,omitempty"`
 }
 
 func (c CommitAuthor) String() string {

@@ -29,7 +29,7 @@ func branchFromRef(ref string) string {
 func prBodyForPush(push github.PushEvent) string {
 	return fmt.Sprintf(
 		"PR automatically created for @%s.\n\n%s",
-		*push.Commits[0].Author.Name,
+		*push.Commits[0].Author.Username,
 		*push.Commits[0].Message,
 	)
 }
