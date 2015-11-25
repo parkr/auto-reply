@@ -60,7 +60,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, ok := h.repos[*push.Repo.FullName]; ok && strings.HasPrefix(*push.Ref, "pull/") {
+	if _, ok := h.repos[*push.Repo.FullName]; ok && strings.HasPrefix(*push.Ref, "refs/heads/pull/") {
 		pr := newPRForPush(push)
 		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Login, *push.Repo.Name, pr)
 		if err != nil {
