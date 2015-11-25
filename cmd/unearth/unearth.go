@@ -10,7 +10,11 @@ import (
 	"github.com/parkr/auto-reply/common"
 )
 
-var defaultListOptions = &github.ListOptions{Page: 0, PerPage: 200}
+var (
+	client *github.Client
+
+	defaultListOptions = &github.ListOptions{Page: 0, PerPage: 200}
+)
 
 func haltIfError(err error) {
 	if err != nil {
@@ -28,17 +32,13 @@ func repoNameFromURL(url string) string {
 	)
 }
 
-func main() {
-	flag.Parse()
-	client := common.NewClient()
-	query := "state:open comments:0 user:jekyll"
+func issuesForQuery(query string) {
 	result, _, err := client.Search.Issues(query, &github.SearchOptions{
 		Sort:        "created",
 		ListOptions: *defaultListOptions,
 	})
 	haltIfError(err)
-	log.Println(result)
-	fmt.Printf("%d Issues:\n", *result.Total)
+	fmt.Printf("Query '%s' found %d issues:\n", query, *result.Total)
 	for _, issue := range result.Issues {
 		fmt.Printf("%-20s %-4d %s | %s\n",
 			repoNameFromURL(*issue.HTMLURL),
@@ -46,5 +46,20 @@ func main() {
 			issue.CreatedAt.Format("2006-01-02"),
 			*issue.Title,
 		)
+	}
+}
+
+func main() {
+	flag.Parse()
+	client = common.NewClient()
+
+	if flag.NArg() < 1 {
+		// Default queries.
+		issuesForQuery("state:open comments:0 user:jekyll")
+		fmt.Print("\n\n")
+		issuesForQuery("state:open comments:>10 user:jekyll")
+	} else {
+		// User-specified query.
+		issuesForQuery(strings.Join(flag.Args(), " "))
 	}
 }

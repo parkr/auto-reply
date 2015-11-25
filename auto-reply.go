@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/common"
 	"github.com/parkr/auto-reply/deprecate"
 )
@@ -29,6 +30,9 @@ func main() {
 
 	deprecationHandler := deprecate.NewHandler(client, deprecatedRepos)
 	http.Handle("/_github/repos/deprecated", deprecationHandler)
+
+	autoPullHandler := autopull.NewHandler(client, []string{"jekyll/jekyll"})
+	http.Handle("/_github/repos/autopull", autoPullHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

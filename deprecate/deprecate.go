@@ -2,7 +2,6 @@ package deprecate
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -46,15 +45,8 @@ func NewHandler(client *github.Client, deprecations []RepoDeprecation) *Deprecat
 }
 
 func (dh *DeprecateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	data, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Println("error reading in body:", err)
-		http.Error(w, "no req body", 400)
-		return
-	}
-
 	var issue github.IssueActivityEvent
-	err = json.Unmarshal(data, &issue)
+	err := json.NewDecoder(r.Body).Decode(&issue)
 	if err != nil {
 		log.Println("error unmarshalling issue stuffs:", err)
 		http.Error(w, "bad json", 400)

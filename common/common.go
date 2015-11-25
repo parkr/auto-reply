@@ -27,3 +27,11 @@ func NewClient() *github.Client {
 		return nil
 	}
 }
+
+func SliceLookup(data []string) map[string]bool {
+	mapping := map[string]bool{}
+	for _, datum := range data {
+		mapping[datum] = true
+	}
+	return mapping
+}
