@@ -1,6 +1,7 @@
 package common
 
 import (
+	"io"
 	"log"
 	"os"
 
@@ -34,4 +35,22 @@ func SliceLookup(data []string) map[string]bool {
 		mapping[datum] = true
 	}
 	return mapping
+}
+
+func ClearJSONRepoOrgField(reader io.Reader) []byte {
+	// workaround for https://github.com/google/go-github/issues/131
+	var o map[string]interface{}
+	dec := json.NewDecoder(reader)
+	dec.UseNumber()
+	dec.Decode(&o)
+	if o != nil {
+		repo := o["repository"]
+		if repo != nil {
+			if repo, ok := repo.(map[string]interface{}); ok {
+				delete(repo, "organization")
+			}
+		}
+	}
+	b, _ := json.MarshalIndent(o, "", "  ")
+	return b
 }

@@ -51,7 +51,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var push github.PushEvent
-	err := json.NewDecoder(r.Body).Decode(&push)
+	err := json.Unmarshal(common.ClearJSONRepoOrgField(r.Body), &push)
 	if err != nil {
 		log.Println("error unmarshalling issue stuffs:", err)
 		body, err := ioutil.ReadAll(r.Body)
