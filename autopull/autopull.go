@@ -63,7 +63,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println(push)
 	if _, ok := h.repos[*push.Repo.FullName]; ok && strings.HasPrefix(*push.Ref, "refs/heads/pull/") {
 		pr := newPRForPush(push)
-		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Login, *push.Repo.Name, pr)
+		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Name, *push.Repo.Name, pr)
 		if err != nil {
 			log.Printf("error creating pull request for %s/%s: %v", *push.Repo.Owner.Login, *push.Repo.Name, err)
 			http.Error(w, "pr could not be created", 500)
