@@ -4,10 +4,9 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2"
+	"github.com/parkr/auto-reply/common"
 	"github.com/parkr/auto-reply/deprecate"
 )
 
@@ -22,25 +21,11 @@ var (
 	}
 )
 
-func newClient() *github.Client {
-	if token := os.Getenv("GITHUB_ACCESS_TOKEN"); token != "" {
-		return github.NewClient(oauth2.NewClient(
-			oauth2.NoContext,
-			oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: os.Getenv("GITHUB_ACCESS_TOKEN")},
-			),
-		))
-	} else {
-		log.Fatal("GITHUB_ACCESS_TOKEN required")
-		return nil
-	}
-}
-
 func main() {
 	var port string
 	flag.StringVar(&port, "port", "8080", "The port to serve to")
 	flag.Parse()
-	client = newClient()
+	client = common.NewClient()
 
 	deprecationHandler := deprecate.NewHandler(client, deprecatedRepos)
 	http.Handle("/_github/repos/deprecated", deprecationHandler)

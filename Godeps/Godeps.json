@@ -1,13 +1,13 @@
 {
 	"ImportPath": "github.com/parkr/auto-reply",
-	"GoVersion": "go1.4.2",
+	"GoVersion": "go1.5.1",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "34fb8ee07214d23c3035c95691fe9069705814d6"
+			"Rev": "47f2593dad1971eec2f0a0971aa007fef5edbc50"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
