@@ -27,9 +27,19 @@ func branchFromRef(ref string) string {
 }
 
 func prBodyForPush(push github.PushEvent) string {
+	var mention string
+	if author := push.Commits[0].Author; author != nil {
+		if author.Username != nil {
+			mention = *author.Username
+		} else {
+			mention = *author.Name
+		}
+	} else {
+		mention = "unknown"
+	}
 	return fmt.Sprintf(
 		"PR automatically created for @%s.\n\n%s",
-		*push.Commits[0].Author.Username,
+		mention,
 		*push.Commits[0].Message,
 	)
 }
