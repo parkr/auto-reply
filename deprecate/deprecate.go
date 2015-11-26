@@ -45,6 +45,12 @@ func NewHandler(client *github.Client, deprecations []RepoDeprecation) *Deprecat
 }
 
 func (dh *DeprecateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("X-GitHub-Event") != "issues" {
+		log.Println("received non-issues event for deprecate. sending pong.")
+		http.Error(w, "ignored this one.", 200)
+		return
+	}
+
 	var issue github.IssueActivityEvent
 	err := json.NewDecoder(r.Body).Decode(&issue)
 	if err != nil {
@@ -73,7 +79,7 @@ func (dh *DeprecateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		log.Printf("looks like '%s' repo isn't deprecated", *issue.Repo.FullName)
-		http.Error(w, "non-deprecated repo", 404)
+		http.Error(w, "non-deprecated repo", 200)
 		return
 	}
 
