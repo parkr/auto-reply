@@ -38,7 +38,7 @@ func prBodyForPush(push github.PushEvent) string {
 		mention = "unknown"
 	}
 	return fmt.Sprintf(
-		"PR automatically created for @%s.\n\n%s",
+		"PR automatically created for @%s.\n\n```text\n%s```",
 		mention,
 		*push.Commits[0].Message,
 	)
