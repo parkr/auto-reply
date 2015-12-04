@@ -21,6 +21,10 @@ type AutoPullHandler struct {
 	repos  map[string]bool
 }
 
+func shortMessage(message string) string {
+	return strings.SplitN(message, "\n", 1)[0]
+}
+
 // branchFromRef takes "refs/heads/pull/my-pull" and returns "pull/my-pull"
 func branchFromRef(ref string) string {
 	return strings.Replace(ref, "refs/heads/", "", 1)
@@ -46,7 +50,7 @@ func prBodyForPush(push github.PushEvent) string {
 
 func newPRForPush(push github.PushEvent) *github.NewPullRequest {
 	return &github.NewPullRequest{
-		Title: push.Commits[0].Message,
+		Title: github.String(shortMessage(*push.Commits[0].Message)),
 		Head:  github.String(branchFromRef(*push.Ref)),
 		Base:  github.String("master"),
 		Body:  github.String(prBodyForPush(push)),
