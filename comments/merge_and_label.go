@@ -3,6 +3,7 @@ package comments
 import (
 	"errors"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 
@@ -26,6 +27,8 @@ var (
 			return errors.New("not a merge request comment")
 		}
 
+		owner, repo, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
+
 		// Does the user have merge/label abilities?
 		if !isAuthorizedCommenter(event.Comment.User) {
 			return errors.New("commenter isn't allowed to merge")
@@ -37,12 +40,7 @@ var (
 			changeSectionLabel = sectionForLabel(labelFromComment)
 		} else {
 			// Get changeSectionLabel from issue labels!
-			labels, _, err := client.Issues.ListLabelsForMilestone(
-				*event.Repo.Owner.Login,
-				*event.Repo.Name,
-				*event.Issue.Number,
-				nil,
-			)
+			labels, _, err := client.Issues.ListLabelsForMilestone(owner, repo, number, nil)
 			if err != nil {
 				return err
 			}
@@ -51,10 +49,22 @@ var (
 		}
 		fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
 
-		// What is the label for the change section? E.g. "Major Enhancement," "Minor Enhancement," etc
-
 		// Merge
+		// commitMsg := fmt.Sprintf("Merge pull request %v", number)
+		// _, _, mergeErr := client.PullRequests.Merge(owner, repo, number, commitMsg)
+		// if err != nil {
+		//     fmt.Printf("comments: error merging %v\n", err)
+		//     return err
+		// }
+
+		// Delete branch
+		//ref := fmt.Sprintf("heads/%s", branch)
+		//res, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+
 		// Read History.markdown, add line to appropriate change section
+		historyFileContents := getHistoryContents(client, owner, repo)
+		log.Println(historyFileContents)
+
 		// Commit change to History.markdown
 
 		return nil
@@ -130,4 +140,13 @@ func selectSectionLabel(labels []github.Label) string {
 func containsChangeLabel(commentBody string) bool {
 	_, labelFromComment := parseMergeRequestComment(commentBody)
 	return labelFromComment != ""
+}
+
+func getHistoryContents(client *github.Client, owner, repo string) string {
+	content, _, _, err := client.Repositories.GetContents(owner, repo, "History.markdown", nil)
+	if err != nil {
+		fmt.Printf("comments: error getting History.markdown %v\n", err)
+		return ""
+	}
+	return *content.Content
 }
