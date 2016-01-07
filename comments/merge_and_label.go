@@ -27,6 +27,8 @@ var (
 			return errors.New("not a merge request comment")
 		}
 
+		log.Println(event)
+
 		owner, repo, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
 
 		// Does the user have merge/label abilities?
