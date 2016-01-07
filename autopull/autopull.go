@@ -49,6 +49,9 @@ func prBodyForPush(push github.PushEvent) string {
 }
 
 func newPRForPush(push github.PushEvent) *github.NewPullRequest {
+	if push.Commits == nil || len(*push.Commits) == 0 {
+		return nil
+	}
 	return &github.NewPullRequest{
 		Title: github.String(shortMessage(*push.Commits[0].Message)),
 		Head:  github.String(branchFromRef(*push.Ref)),
@@ -77,6 +80,11 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Println(push)
 	if _, ok := h.repos[*push.Repo.FullName]; ok && strings.HasPrefix(*push.Ref, "refs/heads/pull/") {
 		pr := newPRForPush(push)
+		if pr == nil {
+			http.Error(w, "ignoring", 200)
+			return
+		}
+
 		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Name, *push.Repo.Name, pr)
 		if err != nil {
 			log.Printf("error creating pull request for %s/%s: %v", *push.Repo.Owner.Login, *push.Repo.Name, err)
