@@ -49,7 +49,7 @@ func prBodyForPush(push github.PushEvent) string {
 }
 
 func newPRForPush(push github.PushEvent) *github.NewPullRequest {
-	if push.Commits == nil || len(*push.Commits) == 0 {
+	if push.Commits == nil || len(push.Commits) == 0 {
 		return nil
 	}
 	return &github.NewPullRequest{
