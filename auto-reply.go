@@ -7,6 +7,7 @@ import (
 
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/autopull"
+	"github.com/parkr/auto-reply/comments"
 	"github.com/parkr/auto-reply/common"
 	"github.com/parkr/auto-reply/deprecate"
 )
@@ -33,6 +34,11 @@ func main() {
 
 	autoPullHandler := autopull.NewHandler(client, []string{"jekyll/jekyll"})
 	http.Handle("/_github/repos/autopull", autoPullHandler)
+
+	commentsHandler := comments.NewHandler(client, []comments.CommentHandler{}, []comments.CommentHandler{
+		comments.HandlerMergeAndLabel,
+	})
+	http.Handle("/_github/repos/comments", commentsHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
