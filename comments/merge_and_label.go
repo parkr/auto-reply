@@ -50,16 +50,16 @@ var (
 		fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
 
 		// Merge
-		// commitMsg := fmt.Sprintf("Merge pull request %v", number)
-		// _, _, mergeErr := client.PullRequests.Merge(owner, repo, number, commitMsg)
-		// if err != nil {
-		//     fmt.Printf("comments: error merging %v\n", err)
-		//     return err
-		// }
+		commitMsg := fmt.Sprintf("Merge pull request %v", number)
+		_, _, mergeErr := client.PullRequests.Merge(owner, repo, number, commitMsg)
+		if mergeErr != nil {
+			fmt.Printf("comments: error merging %v\n", mergeErr)
+			return mergeErr
+		}
 
 		// Delete branch
-		//ref := fmt.Sprintf("heads/%s", branch)
-		//res, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+		// ref := fmt.Sprintf("heads/%s", branch)
+		// res, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
 
 		// Read History.markdown, add line to appropriate change section
 		historyFileContents := getHistoryContents(client, owner, repo)
