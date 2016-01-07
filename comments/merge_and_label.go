@@ -77,13 +77,15 @@ func isAuthorizedCommenter(user *github.User) bool {
 
 func parseMergeRequestComment(commentBody string) (bool, string) {
 	matches := mergeCommentRegexp.FindAllStringSubmatch(commentBody, -1)
-	if matches == nil {
+	if matches == nil || matches[0] == nil {
 		return false, ""
 	}
 
 	var label string
-	if labelFromComment := matches[0][3]; labelFromComment != "" {
-		label = downcaseAndHyphenize(labelFromComment)
+	if len(matches[0]) >= 4 {
+		if labelFromComment := matches[0][3]; labelFromComment != "" {
+			label = downcaseAndHyphenize(labelFromComment)
+		}
 	}
 
 	return true, normalizeLabel(label)
