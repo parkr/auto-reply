@@ -16,8 +16,8 @@ func TestParseMergeRequestComment(t *testing.T) {
 		{"@jekyllbot: merge", true, ""},
 		{"@jekyllbot: :shipit:", true, ""},
 		{"@jekyllbot: :ship:", true, ""},
-		{"@jekyllbot: merge +minor-enhancement", true, "minor-enhancement"},
-		{"@jekyllbot: merge +Bug Fix\n", true, "bug-fix"},
+		{"@jekyllbot: merge +minor-enhancement", true, "minor-enhancements"},
+		{"@jekyllbot: merge +Bug Fix\n", true, "bug-fixes"},
 	}
 	for _, c := range comments {
 		isReq, label := parseMergeRequestComment(c.comment)

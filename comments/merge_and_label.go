@@ -34,14 +34,25 @@ var (
 		// Should it be labeled?
 		if labelFromComment != "" {
 			// Apply label
-			changeSectionLabel = labelFromComment
+			changeSectionLabel = sectionForLabel(labelFromComment)
 		} else {
 			// Get changeSectionLabel from issue labels!
-			changeSectionLabel = ""
+			labels, _, err := client.Issues.ListLabelsForMilestone(
+				*event.Repo.Owner.Login,
+				*event.Repo.Name,
+				*event.Issue.Number,
+				nil,
+			)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("labels from GitHub = %v\n", labels)
+			changeSectionLabel = sectionForLabel(selectSectionLabel(labels))
 		}
-		fmt.Println(changeSectionLabel)
+		fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
 
 		// What is the label for the change section? E.g. "Major Enhancement," "Minor Enhancement," etc
+
 		// Merge
 		// Read History.markdown, add line to appropriate change section
 		// Commit change to History.markdown
@@ -54,23 +65,66 @@ func isAuthorizedCommenter(user *github.User) bool {
 	return *user.Login == "parkr"
 }
 
-func parseMergeRequestComment(commentBody string) (isRequest bool, label string) {
+func parseMergeRequestComment(commentBody string) (bool, string) {
 	matches := mergeCommentRegexp.FindAllStringSubmatch(commentBody, -1)
 	if matches == nil {
-		return
+		return false, ""
 	}
 
-	isRequest = true
-
+	var label string
 	if labelFromComment := matches[0][3]; labelFromComment != "" {
 		label = downcaseAndHyphenize(labelFromComment)
 	}
 
-	return
+	return true, normalizeLabel(label)
 }
 
 func downcaseAndHyphenize(label string) string {
 	return strings.Replace(strings.ToLower(label), " ", "-", -1)
+}
+
+func normalizeLabel(label string) string {
+	if strings.HasPrefix(label, "major") {
+		return "major-enhancements"
+	}
+
+	if strings.HasPrefix(label, "minor") {
+		return "minor-enhancements"
+	}
+
+	if strings.HasPrefix(label, "bug") {
+		return "bug-fixes"
+	}
+
+	if strings.HasPrefix(label, "development") {
+		return "development-fixes"
+	}
+
+	return label
+}
+
+func sectionForLabel(label string) string {
+	switch label {
+	case "major-enhancements":
+		return "Major Enhancements"
+	case "minor-enhancements":
+		return "Minor Enhancements"
+	case "bug-fixes":
+		return "Bug Fixes"
+	case "development-fixes":
+		return "Development Fixes"
+	default:
+		return label
+	}
+}
+
+func selectSectionLabel(labels []github.Label) string {
+	for _, label := range labels {
+		if sectionForLabel(*label.Name) != *label.Name {
+			return *label.Name
+		}
+	}
+	return ""
 }
 
 func containsChangeLabel(commentBody string) bool {
