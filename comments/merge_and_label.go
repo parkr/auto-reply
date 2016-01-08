@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/parkr/changelog"
 )
 
 var (
@@ -77,9 +78,11 @@ var (
 		historyFileContents := getHistoryContents(client, owner, repo)
 		log.Println(historyFileContents)
 
-		// Commit change to History.markdown
+		// Add to
+		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
 
-		return nil
+		// Commit change to History.markdown
+		return commitHistoryFile(client, owner, repo, number, newHistoryFileContents)
 	}
 )
 
@@ -177,4 +180,67 @@ func base64Decode(encoded string) string {
 		return ""
 	}
 	return string(decoded)
+}
+
+func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, number int) string {
+	changes, err := changelog.NewChangelogFromReader(strings.NewReader(historyFileContents))
+	if historyFileContents == "" {
+		err = nil
+		changes = &changelog.Changelog{
+			Versions: []*changelog.Version{},
+		}
+	}
+	if err != nil {
+		fmt.Printf("comments: error %v\n", err)
+		return historyFileContents
+	}
+	reference := fmt.Sprintf("#%d", number)
+
+	// Find HEAD, or create
+	var version *changelog.Version
+	for _, v := range changes.Versions {
+		if v.Version == "HEAD" {
+			version = v
+		}
+	}
+	if version == nil {
+		version = &changelog.Version{
+			Version:     "HEAD",
+			Subsections: []*changelog.Subsection{},
+		}
+		changes.Versions = append([]*changelog.Version{version}, changes.Versions...)
+	}
+
+	// Find Subsection, or create
+	var subsection *changelog.Subsection
+	for _, s := range version.Subsections {
+		if s.Name == changeSectionLabel {
+			subsection = s
+		}
+	}
+	if subsection == nil {
+		subsection = &changelog.Subsection{
+			Name:    changeSectionLabel,
+			History: []*changelog.ChangeLine{},
+		}
+		version.Subsections = append([]*changelog.Subsection{subsection}, version.Subsections...)
+	}
+
+	// Find changeline, only create if does not exist.
+	for _, c := range subsection.History {
+		if c.Reference == reference {
+			return historyFileContents
+		}
+	}
+	changeLine := &changelog.ChangeLine{
+		Summary:   prTitle,
+		Reference: reference,
+	}
+	subsection.History = append(subsection.History, changeLine)
+
+	return changes.String()
+}
+
+func commitHistoryFile(client *github.Client, owner, repo string, number int, newHistoryFileContents string) error {
+	return nil
 }
