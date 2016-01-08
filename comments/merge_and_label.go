@@ -123,8 +123,12 @@ func normalizeLabel(label string) string {
 		return "bug-fixes"
 	}
 
-	if strings.HasPrefix(label, "development") {
+	if strings.HasPrefix(label, "dev") {
 		return "development-fixes"
+	}
+
+	if strings.HasPrefix(label, "site") {
+		return "site-enhancements"
 	}
 
 	return label
@@ -140,6 +144,8 @@ func sectionForLabel(label string) string {
 		return "Bug Fixes"
 	case "development-fixes":
 		return "Development Fixes"
+	case "site-enhancements":
+		return "Site Enhancements"
 	default:
 		return label
 	}

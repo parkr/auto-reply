@@ -17,6 +17,7 @@ func TestParseMergeRequestComment(t *testing.T) {
 		{"@jekyllbot: merge", true, ""},
 		{"@jekyllbot: :shipit:", true, ""},
 		{"@jekyllbot: :ship:", true, ""},
+		{"@jekyllbot: merge +Site", true, "site-enhancements"},
 		{"@jekyllbot: merge +minor-enhancement", true, "minor-enhancements"},
 		{"@jekyllbot: merge +Bug Fix\n", true, "bug-fixes"},
 	}
