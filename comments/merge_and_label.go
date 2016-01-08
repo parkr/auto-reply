@@ -267,6 +267,10 @@ func commitHistoryFile(client *github.Client, owner, repo string, number int, ne
 		},
 	}
 	updateResponse, _, err := client.Repositories.UpdateFile(owner, repo, "History.markdown", repositoryContentsOptions)
-	fmt.Printf("comments: %s\n", updateResponse)
-	return err
+	if err != nil {
+		fmt.Printf("comments: error committing History.markdown: %v\n", err)
+		return err
+	}
+	fmt.Printf("comments: updateResponse: %s\n", updateResponse)
+	return nil
 }
