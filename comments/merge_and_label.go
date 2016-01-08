@@ -70,8 +70,7 @@ var (
 		ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
 		_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
 		if deleteBranchErr != nil {
-			fmt.Printf("comments: error merging %v\n", mergeErr)
-			//return deleteBranchErr
+			fmt.Printf("comments: error deleting branch %v\n", mergeErr)
 		}
 
 		// Read History.markdown, add line to appropriate change section
@@ -82,7 +81,11 @@ var (
 		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
 
 		// Commit change to History.markdown
-		return commitHistoryFile(client, historySHA, owner, repo, number, newHistoryFileContents)
+		commitErr := commitHistoryFile(client, historySHA, owner, repo, number, newHistoryFileContents)
+		if commitErr != nil {
+			fmt.Printf("comments: error committing updated history %v\n", mergeErr)
+		}
+		return commitErr
 	}
 )
 
