@@ -254,7 +254,7 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 func commitHistoryFile(client *github.Client, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
 	repositoryContentsOptions := &github.RepositoryContentFileOptions{
 		Message: github.String(fmt.Sprintf("Update history to reflect merge of #%d [ci skip]", number)),
-		Content: base64Encode(newHistoryFileContents),
+		Content: []byte(newHistoryFileContents),
 		SHA:     github.String(historySHA),
 		Committer: &github.CommitAuthor{
 			Name:  github.String("jekyllbot"),
