@@ -1,6 +1,7 @@
 package comments
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -56,7 +57,7 @@ var (
 		_, _, mergeErr := client.PullRequests.Merge(owner, repo, number, commitMsg)
 		if mergeErr != nil {
 			fmt.Printf("comments: error merging %v\n", mergeErr)
-			return mergeErr
+			//return mergeErr
 		}
 
 		// Delete branch
@@ -69,7 +70,7 @@ var (
 		_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
 		if deleteBranchErr != nil {
 			fmt.Printf("comments: error merging %v\n", mergeErr)
-			return deleteBranchErr
+			//return deleteBranchErr
 		}
 
 		// Read History.markdown, add line to appropriate change section
@@ -156,10 +157,24 @@ func containsChangeLabel(commentBody string) bool {
 }
 
 func getHistoryContents(client *github.Client, owner, repo string) string {
-	content, _, _, err := client.Repositories.GetContents(owner, repo, "History.markdown", nil)
+	content, _, _, err := client.Repositories.GetContents(
+		owner,
+		repo,
+		"History.markdown",
+		&github.RepositoryContentGetOptions{Ref: "heads/master"},
+	)
 	if err != nil {
 		fmt.Printf("comments: error getting History.markdown %v\n", err)
 		return ""
 	}
-	return *content.Content
+	return base64Decode(*content.Content)
+}
+
+func base64Decode(encoded string) string {
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		fmt.Printf("comments: error decoding string: %v\n", err)
+		return ""
+	}
+	return string(decoded)
 }
