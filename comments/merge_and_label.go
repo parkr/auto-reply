@@ -191,10 +191,6 @@ func base64Decode(encoded string) string {
 	return string(decoded)
 }
 
-func base64Encode(decoded string) []byte {
-	return []byte(base64.StdEncoding.EncodeToString([]byte(decoded)))
-}
-
 func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, number int) string {
 	changes, err := changelog.NewChangelogFromReader(strings.NewReader(historyFileContents))
 	if historyFileContents == "" {

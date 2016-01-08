@@ -54,8 +54,3 @@ func TestAddMergeReference(t *testing.T) {
 	historyFile = addMergeReference(string(jekyllHistory), "Development Fixes", "A marvelous change.", 41526)
 	assert.Contains(t, historyFile, "* A marvelous change. (#41526)\n\n### Site Enhancements")
 }
-
-func TestBase64Encode(t *testing.T) {
-	enc := base64Encode("hi")
-	assert.Equal(t, "aGk=", string(enc))
-}
