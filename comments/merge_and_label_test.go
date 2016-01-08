@@ -48,4 +48,14 @@ func TestAddMergeReference(t *testing.T) {
 		"## HEAD\n\n### Development Fixes\n\n  * Some great change (#1)\n",
 		"Development Fixes", "Another great change!!!!!!!", 1)
 	assert.Equal(t, "## HEAD\n\n### Development Fixes\n\n  * Some great change (#1)\n  * Another great change!!!!!!! (#1)\n", historyFile)
+
+	jekyllHistory, err := ioutil.ReadFile("History.markdown")
+	assert.NoError(t, err)
+	historyFile = addMergeReference(string(jekyllHistory), "Development Fixes", "A marvelous change.", 41526)
+	assert.Contains(t, historyFile, "* A marvelous change. (#41526)\n\n### Site Enhancements")
+}
+
+func TestBase64Encode(t *testing.T) {
+	enc := base64Encode("hi")
+	assert.Equal(t, "aGk=", string(enc))
 }
