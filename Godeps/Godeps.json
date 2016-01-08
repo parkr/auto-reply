@@ -20,6 +20,10 @@
 		{
 			"ImportPath": "golang.org/x/oauth2",
 			"Rev": "8914e5017ca260f2a3a1575b1e6868874050d95e"
+		},
+		{
+			"ImportPath": "github.com/parkr/changelog",
+			"Rev": "67b910a0b1c6b8355d4b99dbcbe4a1283c079f42"
 		}
 	]
 }
