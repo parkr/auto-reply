@@ -79,10 +79,10 @@ var (
 		log.Println(historyFileContents)
 
 		// Add to
-		newHistoryFileContents := addMergeReference(historyFileContents, historySHA, changeSectionLabel, *repoInfo.Title, number)
+		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
 
 		// Commit change to History.markdown
-		return commitHistoryFile(client, owner, repo, number, newHistoryFileContents)
+		return commitHistoryFile(client, historySHA, owner, repo, number, newHistoryFileContents)
 	}
 )
 
@@ -174,7 +174,7 @@ func getHistoryContents(client *github.Client, owner, repo string) (content, sha
 	)
 	if err != nil {
 		fmt.Printf("comments: error getting History.markdown %v\n", err)
-		return ""
+		return "", ""
 	}
 	return base64Decode(*contents.Content), *contents.SHA
 }
