@@ -182,6 +182,10 @@ func base64Decode(encoded string) string {
 	return string(decoded)
 }
 
+func base64Encode(decoded string) []byte {
+	return []byte(base64.StdEncoding.EncodeToString([]byte(decoded)))
+}
+
 func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, number int) string {
 	changes, err := changelog.NewChangelogFromReader(strings.NewReader(historyFileContents))
 	if historyFileContents == "" {
@@ -242,5 +246,21 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 }
 
 func commitHistoryFile(client *github.Client, owner, repo string, number int, newHistoryFileContents string) error {
-	return nil
+	ref, _, err := client.Git.GetRef(owner, repo, "heads/master")
+	if err != nil {
+		fmt.Printf("comments: error getting heads/master %v\n", err)
+		return err
+	}
+	repositoryContentsOptions := &github.RepositoryContentFileOptions{
+		Message: github.String(fmt.Sprintf("Update history to reflect merge of #%d [ci skip]", number)),
+		Content: base64Encode(newHistoryFileContents),
+		SHA:     ref.Object.SHA,
+		Committer: &github.CommitAuthor{
+			Name:  github.String("jekyllbot"),
+			Email: github.String("jekyllbot@jekyllrb.com"),
+		},
+	}
+	updateResponse, _, err := client.Repositories.UpdateFile(owner, repo, "History.markdown", repositoryContentsOptions)
+	fmt.Printf("comments: %s\n", updateResponse)
+	return err
 }
