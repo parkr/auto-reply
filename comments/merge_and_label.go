@@ -75,11 +75,11 @@ var (
 		}
 
 		// Read History.markdown, add line to appropriate change section
-		historyFileContents := getHistoryContents(client, owner, repo)
+		historyFileContents, historySHA := getHistoryContents(client, owner, repo)
 		log.Println(historyFileContents)
 
 		// Add to
-		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
+		newHistoryFileContents := addMergeReference(historyFileContents, historySHA, changeSectionLabel, *repoInfo.Title, number)
 
 		// Commit change to History.markdown
 		return commitHistoryFile(client, owner, repo, number, newHistoryFileContents)
@@ -165,8 +165,8 @@ func containsChangeLabel(commentBody string) bool {
 	return labelFromComment != ""
 }
 
-func getHistoryContents(client *github.Client, owner, repo string) string {
-	content, _, _, err := client.Repositories.GetContents(
+func getHistoryContents(client *github.Client, owner, repo string) (content, sha string) {
+	contents, _, _, err := client.Repositories.GetContents(
 		owner,
 		repo,
 		"History.markdown",
@@ -176,7 +176,7 @@ func getHistoryContents(client *github.Client, owner, repo string) string {
 		fmt.Printf("comments: error getting History.markdown %v\n", err)
 		return ""
 	}
-	return base64Decode(*content.Content)
+	return base64Decode(*contents.Content), *contents.SHA
 }
 
 func base64Decode(encoded string) string {
@@ -251,16 +251,11 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 	return changes.String()
 }
 
-func commitHistoryFile(client *github.Client, owner, repo string, number int, newHistoryFileContents string) error {
-	ref, _, err := client.Git.GetRef(owner, repo, "heads/master")
-	if err != nil {
-		fmt.Printf("comments: error getting heads/master %v\n", err)
-		return err
-	}
+func commitHistoryFile(client *github.Client, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
 	repositoryContentsOptions := &github.RepositoryContentFileOptions{
 		Message: github.String(fmt.Sprintf("Update history to reflect merge of #%d [ci skip]", number)),
 		Content: base64Encode(newHistoryFileContents),
-		SHA:     ref.Object.SHA,
+		SHA:     github.String(historySHA),
 		Committer: &github.CommitAuthor{
 			Name:  github.String("jekyllbot"),
 			Email: github.String("jekyllbot@jekyllrb.com"),
