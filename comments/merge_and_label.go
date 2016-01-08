@@ -60,8 +60,17 @@ var (
 		}
 
 		// Delete branch
-		// ref := fmt.Sprintf("heads/%s", branch)
-		// res, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+		repoInfo, _, getRepoErr := client.PullRequests.Get(owner, repo, number)
+		if getRepoErr != nil {
+			fmt.Printf("comments: error fetching pull request: %v\n", getRepoErr)
+			return getRepoErr
+		}
+		ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
+		_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+		if deleteBranchErr != nil {
+			fmt.Printf("comments: error merging %v\n", mergeErr)
+			return deleteBranchErr
+		}
 
 		// Read History.markdown, add line to appropriate change section
 		historyFileContents := getHistoryContents(client, owner, repo)
