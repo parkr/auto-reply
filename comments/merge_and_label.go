@@ -58,7 +58,7 @@ var (
 		_, _, mergeErr := client.PullRequests.Merge(owner, repo, number, commitMsg)
 		if mergeErr != nil {
 			fmt.Printf("comments: error merging %v\n", mergeErr)
-			//return mergeErr
+			return mergeErr
 		}
 
 		// Delete branch
