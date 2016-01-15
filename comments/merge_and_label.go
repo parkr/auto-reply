@@ -67,10 +67,14 @@ var (
 			fmt.Printf("comments: error fetching pull request: %v\n", getRepoErr)
 			return getRepoErr
 		}
-		ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
-		_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
-		if deleteBranchErr != nil {
-			fmt.Printf("comments: error deleting branch %v\n", mergeErr)
+
+		// Delete branch
+		if deletableRef(repoInfo, owner) {
+			ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
+			_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+			if deleteBranchErr != nil {
+				fmt.Printf("comments: error deleting branch %v\n", mergeErr)
+			}
 		}
 
 		// Read History.markdown, add line to appropriate change section
@@ -248,6 +252,10 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 	subsection.History = append(subsection.History, changeLine)
 
 	return changes.String()
+}
+
+func deletableRef(pr *github.PullRequest, owner string) bool {
+	return *pr.Head.Repo.Owner.Login == owner && *pr.Head.Ref != "master" && *pr.Head.Ref != "gh-pages"
 }
 
 func commitHistoryFile(client *github.Client, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
