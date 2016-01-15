@@ -79,7 +79,6 @@ var (
 
 		// Read History.markdown, add line to appropriate change section
 		historyFileContents, historySHA := getHistoryContents(client, owner, repo)
-		log.Println(historyFileContents)
 
 		// Add to
 		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
