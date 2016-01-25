@@ -93,7 +93,7 @@ var (
 )
 
 func isAuthorizedCommenter(user *github.User) bool {
-	return *user.Login == "parkr"
+	return *user.Login == "parkr" || *user.Login == "envygeeks"
 }
 
 func parseMergeRequestComment(commentBody string) (bool, string) {
