@@ -2,9 +2,7 @@
 	"ImportPath": "github.com/parkr/auto-reply",
 	"GoVersion": "go1.6",
 	"Packages": [
-		"github.com/parkr/changelog",
-		"golang.org/x/oauth2",
-		"github.com/google/go-github/github"
+		"./..."
 	],
 	"Deps": [
 		{
