@@ -44,12 +44,13 @@ var (
 			changeSectionLabel = sectionForLabel(labelFromComment)
 		} else {
 			// Get changeSectionLabel from issue labels!
-			labels, _, err := client.Issues.ListLabelsForMilestone(owner, repo, number, nil)
-			if err != nil {
-				return err
-			}
-			fmt.Printf("labels from GitHub = %v\n", labels)
-			changeSectionLabel = sectionForLabel(selectSectionLabel(labels))
+			//labels, _, err := client.Issues.ListLabelsForMilestone(owner, repo, number, nil)
+			//if err != nil {
+			//	return err
+			//}
+			//fmt.Printf("labels from GitHub = %v\n", labels)
+			//changeSectionLabel = sectionForLabel(selectSectionLabel(labels))
+			changeSectionLabel = "none"
 		}
 		fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
 
@@ -204,49 +205,18 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 		fmt.Printf("comments: error %v\n", err)
 		return historyFileContents
 	}
-	reference := fmt.Sprintf("#%d", number)
 
-	// Find HEAD, or create
-	var version *changelog.Version
-	for _, v := range changes.Versions {
-		if v.Version == "HEAD" {
-			version = v
-		}
-	}
-	if version == nil {
-		version = &changelog.Version{
-			Version:     "HEAD",
-			Subsections: []*changelog.Subsection{},
-		}
-		changes.Versions = append([]*changelog.Version{version}, changes.Versions...)
-	}
-
-	// Find Subsection, or create
-	var subsection *changelog.Subsection
-	for _, s := range version.Subsections {
-		if s.Name == changeSectionLabel {
-			subsection = s
-		}
-	}
-	if subsection == nil {
-		subsection = &changelog.Subsection{
-			Name:    changeSectionLabel,
-			History: []*changelog.ChangeLine{},
-		}
-		version.Subsections = append([]*changelog.Subsection{subsection}, version.Subsections...)
-	}
-
-	// Find changeline, only create if does not exist.
-	for _, c := range subsection.History {
-		if c.Reference == reference {
-			return historyFileContents
-		}
-	}
 	changeLine := &changelog.ChangeLine{
 		Summary:   prTitle,
-		Reference: reference,
+		Reference: fmt.Sprintf("#%d", number),
 	}
-	subsection.History = append(subsection.History, changeLine)
+
+	// Put either directly in the version history or in a subsection.
+	if changeSectionLabel == "none" {
+		changes.AddLineToVersion("HEAD", changeLine)
+	} else {
+		changes.AddLineToSubsection("HEAD", changeSectionLabel, changeLine)
+	}
 
 	return changes.String()
 }
