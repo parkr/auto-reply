@@ -3,6 +3,11 @@ all: deps build test
 deps:
 	go get github.com/tools/godep
 
+updatedeps:
+	godep save github.com/parkr/changelog \
+	  golang.org/x/oauth2 \
+	  github.com/google/go-github/github
+
 build:
 	godep go build
 	godep go build ./cmd/unearth

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/comments"
 	"github.com/parkr/auto-reply/common"

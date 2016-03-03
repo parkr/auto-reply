@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/common"
 )
 
@@ -33,8 +33,8 @@ func branchFromRef(ref string) string {
 func prBodyForPush(push github.PushEvent) string {
 	var mention string
 	if author := push.Commits[0].Author; author != nil {
-		if author.Username != nil {
-			mention = *author.Username
+		if author.Login != nil {
+			mention = *author.Login
 		} else {
 			mention = *author.Name
 		}
@@ -68,7 +68,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var push github.PushEvent
-	err := json.Unmarshal(common.ClearJSONRepoOrgField(r.Body), &push)
+	err := json.NewDecoder(r.Body).Decode(&push)
 	if err != nil {
 		log.Println("error unmarshalling issue stuffs:", err)
 		body, err := ioutil.ReadAll(r.Body)
@@ -87,7 +87,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Name, *push.Repo.Name, pr)
 		if err != nil {
-			log.Printf("error creating pull request for %s/%s: %v", *push.Repo.Owner.Login, *push.Repo.Name, err)
+			log.Printf("error creating pull request for %s/%s: %v", *push.Repo.Owner.Name, *push.Repo.Name, err)
 			http.Error(w, "pr could not be created", 500)
 			return
 		}

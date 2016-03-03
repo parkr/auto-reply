@@ -1,29 +1,48 @@
 {
 	"ImportPath": "github.com/parkr/auto-reply",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.6",
 	"Packages": [
-		"./..."
+		"github.com/parkr/changelog",
+		"golang.org/x/oauth2",
+		"github.com/google/go-github/github"
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/davecgh/go-spew/spew",
+			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
+		},
+		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "47f2593dad1971eec2f0a0971aa007fef5edbc50"
+			"Rev": "5f4a113632721ba57574522ed9bc7e0f63b48bb2"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
-			"Rev": "547ef5ac979778feb2f760cdb5f4eae1a2207b86"
-		},
-		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "446d52dd4018303a13b36097e26d0888aca5d6ef"
-		},
-		{
-			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "8914e5017ca260f2a3a1575b1e6868874050d95e"
+			"Rev": "2a60fc2ba6c19de80291203597d752e9ba58e4c0"
 		},
 		{
 			"ImportPath": "github.com/parkr/changelog",
-			"Rev": "67b910a0b1c6b8355d4b99dbcbe4a1283c079f42"
+			"Rev": "e79109bd3146c8813bfffb3430cd1e6723741a1a"
+		},
+		{
+			"ImportPath": "github.com/pmezard/go-difflib/difflib",
+			"Rev": "e8554b8641db39598be7f6342874b958f12ae1d4"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Comment": "v1.0-91-g5b9da39",
+			"Rev": "5b9da39b66e8e994455c2525c4421c8cc00a7f93"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "7f88271ea9913b72aca44fa7fc8af919eacc17ce"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "8a57ed94ffd43444c0879fe75701732a38afc985"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/internal",
+			"Rev": "8a57ed94ffd43444c0879fe75701732a38afc985"
 		}
 	]
 }

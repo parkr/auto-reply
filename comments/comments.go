@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 type CommentHandler func(client *github.Client, comment github.IssueCommentEvent) error

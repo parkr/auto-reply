@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/parkr/changelog"
+	"github.com/google/go-github/github"
+	"github.com/parkr/changelog"
 )
 
 var (
@@ -198,9 +198,7 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 	changes, err := changelog.NewChangelogFromReader(strings.NewReader(historyFileContents))
 	if historyFileContents == "" {
 		err = nil
-		changes = &changelog.Changelog{
-			Versions: []*changelog.Version{},
-		}
+		changes = changelog.NewChangelog()
 	}
 	if err != nil {
 		fmt.Printf("comments: error %v\n", err)

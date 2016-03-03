@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParseMergeRequestComment(t *testing.T) {

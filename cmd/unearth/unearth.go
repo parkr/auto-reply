@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/common"
 )
 

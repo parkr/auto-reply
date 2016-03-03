@@ -1,13 +1,11 @@
 package common
 
 import (
-	"encoding/json"
-	"io"
 	"log"
 	"os"
 
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/github.com/google/go-github/github"
-	"github.com/parkr/auto-reply/Godeps/_workspace/src/golang.org/x/oauth2"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 )
 
 const accessTokenEnvVar = "GITHUB_ACCESS_TOKEN"
@@ -36,22 +34,4 @@ func SliceLookup(data []string) map[string]bool {
 		mapping[datum] = true
 	}
 	return mapping
-}
-
-func ClearJSONRepoOrgField(reader io.Reader) []byte {
-	// workaround for https://github.com/google/go-github/issues/131
-	var o map[string]interface{}
-	dec := json.NewDecoder(reader)
-	dec.UseNumber()
-	dec.Decode(&o)
-	if o != nil {
-		repo := o["repository"]
-		if repo != nil {
-			if repo, ok := repo.(map[string]interface{}); ok {
-				delete(repo, "organization")
-			}
-		}
-	}
-	b, _ := json.MarshalIndent(o, "", "  ")
-	return b
 }
