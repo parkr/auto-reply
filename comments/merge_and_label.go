@@ -31,7 +31,9 @@ var (
 
 		log.Println(event)
 
-		owner, repo, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
+		owner := *event.Repo.Owner.Login
+		repo := *event.Repo.Name
+		number := *event.Issue.Number
 
 		// Does the user have merge/label abilities?
 		if !isAuthorizedCommenter(event.Comment.User) {
@@ -40,16 +42,8 @@ var (
 
 		// Should it be labeled?
 		if labelFromComment != "" {
-			// Apply label
 			changeSectionLabel = sectionForLabel(labelFromComment)
 		} else {
-			// Get changeSectionLabel from issue labels!
-			//labels, _, err := client.Issues.ListLabelsForMilestone(owner, repo, number, nil)
-			//if err != nil {
-			//	return err
-			//}
-			//fmt.Printf("labels from GitHub = %v\n", labels)
-			//changeSectionLabel = sectionForLabel(selectSectionLabel(labels))
 			changeSectionLabel = "none"
 		}
 		fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
