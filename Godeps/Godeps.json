@@ -19,7 +19,7 @@
 		},
 		{
 			"ImportPath": "github.com/parkr/changelog",
-			"Rev": "e79109bd3146c8813bfffb3430cd1e6723741a1a"
+			"Rev": "c7e04214b4a56e22d518f942c9eadb0599661825"
 		},
 		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",
