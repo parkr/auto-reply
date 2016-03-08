@@ -749,7 +749,7 @@
   * Patch a couple show-stopping security vulnerabilities (#1946)
   * Sanitize paths uniformly, in a Windows-friendly way (#2065, #2109)
   * Update gem build steps to work correctly on Windows (#2118)
-  * Remove obsolete `normalize_options` method call from `bin/jekyll` (#2121).
+  * Remove obsolete `normalize_options` method call from `bin/jekyll` (#2121)
   * Remove `+` characters from Pygments lexer names when adding as a CSS class (#994)
   * Remove some code that caused Ruby interpreter warnings (#2178)
   * Only strip the drive name if it begins the string (#2175)
@@ -1615,7 +1615,7 @@
 
   * Bug Fixes
   * Fix pagination % 0 bug (#78)
-  * Ensure all posts are processed first (#71) ## NOTE
+  * Ensure all posts are processed first (#71)
   * After this point I will no longer be giving credit in the history; that is what the commit log is for.
 
 ## 0.5.4 / 2009-08-23
