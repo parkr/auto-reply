@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 
@@ -29,7 +30,9 @@ var (
 			return errors.New("not a merge request comment")
 		}
 
-		log.Println(event)
+		if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
+			log.Println("received event:", event)
+		}
 
 		owner := *event.Repo.Owner.Login
 		repo := *event.Repo.Name

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/google/go-github/github"
@@ -76,7 +77,9 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(push)
+	if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
+		log.Println("received push:", push)
+	}
 	if _, ok := h.repos[*push.Repo.FullName]; ok && strings.HasPrefix(*push.Ref, "refs/heads/pull/") {
 		pr := newPRForPush(push)
 		if pr == nil {
