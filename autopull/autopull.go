@@ -62,7 +62,6 @@ func newPRForPush(push github.PushEvent) *github.NewPullRequest {
 
 func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get("X-GitHub-Event") != "push" {
-		log.Println("received non-push event for autopull. sending pong.")
 		http.Error(w, "pong. ignored this one.", 200)
 		return
 	}
