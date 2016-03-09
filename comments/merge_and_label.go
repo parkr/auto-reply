@@ -36,7 +36,8 @@ var (
 		number := *event.Issue.Number
 
 		// Does the user have merge/label abilities?
-		if !isAuthorizedCommenter(event.Comment.User) {
+		if !isAuthorizedCommenter(client, event) {
+			log.Printf("%s isn't authenticated to merge anything on %s", *event.Comment.User.Login, *event.Repo.FullName)
 			return errors.New("commenter isn't allowed to merge")
 		}
 
@@ -86,10 +87,6 @@ var (
 		return commitErr
 	}
 )
-
-func isAuthorizedCommenter(user *github.User) bool {
-	return *user.Login == "parkr" || *user.Login == "envygeeks"
-}
 
 func parseMergeRequestComment(commentBody string) (bool, string) {
 	matches := mergeCommentRegexp.FindAllStringSubmatch(commentBody, -1)

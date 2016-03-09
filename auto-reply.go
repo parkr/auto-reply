@@ -35,9 +35,12 @@ func main() {
 	autoPullHandler := autopull.NewHandler(client, []string{"jekyll/jekyll"})
 	http.Handle("/_github/repos/autopull", autoPullHandler)
 
-	commentsHandler := comments.NewHandler(client, []comments.CommentHandler{}, []comments.CommentHandler{
-		comments.HandlerMergeAndLabel,
-	})
+	commentsHandler := comments.NewHandler(client,
+		[]comments.CommentHandler{},
+		[]comments.CommentHandler{
+			comments.HandlerMergeAndLabel,
+		},
+	)
 	http.Handle("/_github/repos/comments", commentsHandler)
 
 	log.Printf("Listening on :%s", port)
