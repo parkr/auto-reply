@@ -93,8 +93,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		http.Error(w, "pr created: "+*pull.HTMLURL, 201)
 	} else {
-		log.Println("ignoring - ref doesn't match pull/* or not supported repo.")
-		http.Error(w, "ignoring", 200)
+		http.Error(w, "ignoring due to bad ref or repo", 200)
 	}
 }
 
