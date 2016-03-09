@@ -22,7 +22,7 @@ func isAuthorizedCommenter(client *github.Client, event github.IssueCommentEvent
 	orgTeams := auth.teamsForOrg(*event.Repo.Owner.Login)
 	for _, team := range orgTeams {
 		if auth.isTeamMember(*team.ID, *event.Comment.User.Login) &&
-			auth.teamHasPushAccess(*team.ID, *event.Repo.Owner.Name, *event.Repo.Name) {
+			auth.teamHasPushAccess(*team.ID, *event.Repo.Owner.Login, *event.Repo.Name) {
 			return true
 		}
 	}
