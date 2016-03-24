@@ -17,7 +17,7 @@ var (
 			log.Println("received event:", event)
 		}
 
-		if hasLabel(event.Issue.Labels, pendingFeedbackLabel) && *event.Sender.ID == *event.Issue.User.ID {
+		if *event.Sender.ID == *event.Issue.User.ID && hasLabel(event.Issue.Labels, pendingFeedbackLabel) {
 			owner, name, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
 			_, err := client.Issues.RemoveLabelForIssue(owner, name, number, pendingFeedbackLabel)
 			if err != nil {
