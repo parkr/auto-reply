@@ -2,6 +2,7 @@ package comments
 
 import (
 	"log"
+	"os"
 
 	"github.com/google/go-github/github"
 )
