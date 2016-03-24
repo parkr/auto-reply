@@ -36,7 +36,9 @@ func main() {
 	http.Handle("/_github/repos/autopull", autoPullHandler)
 
 	commentsHandler := comments.NewHandler(client,
-		[]comments.CommentHandler{},
+		[]comments.CommentHandler{
+			comments.HandlerPendingFeedbackLabel,
+		},
 		[]comments.CommentHandler{
 			comments.HandlerMergeAndLabel,
 		},
