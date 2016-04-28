@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/changelog"
@@ -33,6 +34,8 @@ var (
 		if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
 			log.Println("received event:", event)
 		}
+
+		var wg sync.WaitGroup
 
 		owner := *event.Repo.Owner.Login
 		repo := *event.Repo.Name
@@ -69,25 +72,39 @@ var (
 
 		// Delete branch
 		if deletableRef(repoInfo, owner) {
-			ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
-			_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
-			if deleteBranchErr != nil {
-				fmt.Printf("comments: error deleting branch %v\n", mergeErr)
-			}
+			wg.Add(1)
+			go func() {
+				ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
+				_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+				if deleteBranchErr != nil {
+					fmt.Printf("comments: error deleting branch %v\n", mergeErr)
+				}
+				wg.Done()
+			}()
 		}
 
 		// Read History.markdown, add line to appropriate change section
 		historyFileContents, historySHA := getHistoryContents(client, owner, repo)
 
-		// Add to
-		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
+		wg.Add(1)
+		go func() {
+			// Read History.markdown, add line to appropriate change section
+			historyFileContents, historySHA := getHistoryContents(client, owner, repo)
 
-		// Commit change to History.markdown
-		commitErr := commitHistoryFile(client, historySHA, owner, repo, number, newHistoryFileContents)
-		if commitErr != nil {
-			fmt.Printf("comments: error committing updated history %v\n", mergeErr)
-		}
-		return commitErr
+			// Add to
+			newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
+
+			// Commit change to History.markdown
+			commitErr := commitHistoryFile(client, historySHA, owner, repo, number, newHistoryFileContents)
+			if commitErr != nil {
+				fmt.Printf("comments: error committing updated history %v\n", mergeErr)
+			}
+			wg.Done()
+		}()
+
+		wg.Wait()
+
+		return nil
 	}
 )
 
