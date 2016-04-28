@@ -83,8 +83,14 @@ var (
 			}()
 		}
 
-		// Read History.markdown, add line to appropriate change section
-		historyFileContents, historySHA := getHistoryContents(client, owner, repo)
+		wg.Add(1)
+		go func() {
+			err := addLabelsForSubsection(client, owner, repo, number, changeSectionLabel)
+			if err != nil {
+				fmt.Printf("comments: error applying labels: %v\n", err)
+			}
+			wg.Done()
+		}()
 
 		wg.Add(1)
 		go func() {
@@ -181,6 +187,38 @@ func selectSectionLabel(labels []github.Label) string {
 func containsChangeLabel(commentBody string) bool {
 	_, labelFromComment := parseMergeRequestComment(commentBody)
 	return labelFromComment != ""
+}
+
+func labelsForSubsection(changeSectionLabel string) []string {
+	labels := []string{}
+
+	switch changeSectionLabel {
+	case "Major Enhancements":
+		labels = append(labels, "feature")
+	case "Minor Enhancements":
+		labels = append(labels, "enhancement")
+	case "Bug Fixes":
+		labels = append(labels, "bug")
+		labels = append(labels, "fix")
+	case "Development Fixes":
+		labels = append(labels, "internal")
+		labels = append(labels, "fix")
+	case "Site Enhancements":
+		labels = append(labels, "documentation")
+	}
+
+	return labels
+}
+
+func addLabelsForSubsection(client *github.Client, owner, repo string, number int, changeSectionLabel string) error {
+	labels := labelsForSubsection(changeSectionLabel)
+
+	if len(labels) < 1 {
+		return fmt.Errorf("no labels for changeSectionLabel='%s'", changeSectionLabel)
+	}
+
+	_, _, err := client.Issues.AddLabelsToIssue(owner, repo, number, labels)
+	return err
 }
 
 func getHistoryContents(client *github.Client, owner, repo string) (content, sha string) {
