@@ -14,7 +14,7 @@ var (
 		// if the comment is from the issue author & issue has the "pending-feedback", remove the label
 
 		if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
-			log.Println("received event:", event)
+			log.Println("[pending_feedback_label]: received event:", event)
 		}
 
 		if *event.Sender.ID == *event.Issue.User.ID && hasLabel(event.Issue.Labels, pendingFeedbackLabel) {
