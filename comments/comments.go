@@ -57,7 +57,7 @@ func (h *CommentsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func isPullRequest(event github.IssueCommentEvent) bool {
-	return event.Issue.PullRequestLinks != nil
+	return &event != nil && event.Issue != nil && event.Issue.PullRequestLinks != nil
 }
 
 func isComment(eventType string) bool {
