@@ -28,7 +28,7 @@ func NewHandler(client *github.Client, issuesHandlers []CommentHandler, pullRequ
 }
 
 func (h *CommentsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if eventType := r.Header.Get("X-GitHub-Event"); eventType != "issue_comment" {
+	if eventType := r.Header.Get("X-GitHub-Event"); !isComment(eventType) {
 		log.Printf("received invalid event of type X-GitHub-Event: %s", eventType)
 		http.Error(w, "not an issue_comment event.", 200)
 		return
@@ -58,4 +58,8 @@ func (h *CommentsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func isPullRequest(event github.IssueCommentEvent) bool {
 	return event.Issue.PullRequestLinks != nil
+}
+
+func isComment(eventType string) bool {
+	return eventType == "issue_comment" || eventType == "pull_request"
 }
