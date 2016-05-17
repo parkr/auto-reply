@@ -32,7 +32,7 @@ var (
 		}
 
 		if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
-			log.Println("received event:", event)
+			log.Println("[merge_and_label]: received event:", event)
 		}
 
 		var wg sync.WaitGroup
