@@ -40,6 +40,7 @@ func main() {
 			comments.HandlerPendingFeedbackLabel,
 		},
 		[]comments.CommentHandler{
+			comments.HandlerPendingFeedbackLabel,
 			comments.HandlerMergeAndLabel,
 		},
 	)
