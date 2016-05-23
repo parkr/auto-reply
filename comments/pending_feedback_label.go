@@ -17,7 +17,7 @@ var (
 			log.Println("[pending_feedback_label]: received event:", event)
 		}
 
-		if *event.Sender.ID == *event.Issue.User.ID && hasLabel(event.Issue.Labels, pendingFeedbackLabel) {
+		if senderAndCreatorEqual(event) && hasLabel(event.Issue.Labels, pendingFeedbackLabel) {
 			owner, name, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
 			_, err := client.Issues.RemoveLabelForIssue(owner, name, number, pendingFeedbackLabel)
 			if err != nil {
@@ -29,6 +29,10 @@ var (
 		return nil
 	}
 )
+
+func senderAndCreatorEqual(event github.IssueCommentEvent) bool {
+	return event.Sender != nil && even.Issue != nil && event.Issue.User != nil && *event.Sender.ID == *event.Issue.User.ID
+}
 
 func hasLabel(labels []github.Label, desiredLabel string) bool {
 	for _, label := range labels {
