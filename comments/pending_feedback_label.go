@@ -31,7 +31,7 @@ var (
 )
 
 func senderAndCreatorEqual(event github.IssueCommentEvent) bool {
-	return event.Sender != nil && even.Issue != nil && event.Issue.User != nil && *event.Sender.ID == *event.Issue.User.ID
+	return event.Sender != nil && event.Issue != nil && event.Issue.User != nil && *event.Sender.ID == *event.Issue.User.ID
 }
 
 func hasLabel(labels []github.Label, desiredLabel string) bool {
