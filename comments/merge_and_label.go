@@ -14,8 +14,53 @@ import (
 	"github.com/parkr/changelog"
 )
 
+// changelogCategory is a changelog category, like "Site Enhancements" and such.
+type changelogCategory struct {
+	Prefix, Slug, Section string
+	Labels                []string
+}
+
 var (
 	mergeCommentRegexp = regexp.MustCompile("@[a-zA-Z-_]+: (merge|:shipit:|:ship:)( \\+([a-zA-Z-_ ]+))?")
+
+	categories = []changelogCategory{
+		changelogCategory{
+			Prefix:  "major",
+			Slug:    "major-enhancements",
+			Section: "Major Enhancements",
+			Labels:  []string{"feature"},
+		},
+		changelogCategory{
+			Prefix:  "minor",
+			Slug:    "minor-enhancements",
+			Section: "Minor Enhancements",
+			Labels:  []string{"enhancement"},
+		},
+		changelogCategory{
+			Prefix:  "bug",
+			Slug:    "bug-fixes",
+			Section: "Bug Fixes",
+			Labels:  []string{"bug", "fix"},
+		},
+		changelogCategory{
+			Prefix:  "dev",
+			Slug:    "development-fixes",
+			Section: "Development Fixes",
+			Labels:  []string{"internal", "fix"},
+		},
+		changelogCategory{
+			Prefix:  "port",
+			Slug:    "forward-ports",
+			Section: "Forward Ports",
+			Labels:  []string{"forward-port"},
+		},
+		changelogCategory{
+			Prefix:  "site",
+			Slug:    "site-enhancements",
+			Section: "Site Enhancements",
+			Labels:  []string{"documentation"},
+		},
+	}
 
 	HandlerMergeAndLabel = func(client *github.Client, event github.IssueCommentEvent) error {
 		// Is this a pull request?
@@ -135,44 +180,33 @@ func downcaseAndHyphenize(label string) string {
 }
 
 func normalizeLabel(label string) string {
-	if strings.HasPrefix(label, "major") {
-		return "major-enhancements"
-	}
-
-	if strings.HasPrefix(label, "minor") {
-		return "minor-enhancements"
-	}
-
-	if strings.HasPrefix(label, "bug") {
-		return "bug-fixes"
-	}
-
-	if strings.HasPrefix(label, "dev") {
-		return "development-fixes"
-	}
-
-	if strings.HasPrefix(label, "site") {
-		return "site-enhancements"
+	for _, category := range categories {
+		if strings.HasPrefix(label, category.Prefix) {
+			return category.Slug
+		}
 	}
 
 	return label
 }
 
-func sectionForLabel(label string) string {
-	switch label {
-	case "major-enhancements":
-		return "Major Enhancements"
-	case "minor-enhancements":
-		return "Minor Enhancements"
-	case "bug-fixes":
-		return "Bug Fixes"
-	case "development-fixes":
-		return "Development Fixes"
-	case "site-enhancements":
-		return "Site Enhancements"
-	default:
-		return label
+func sectionForLabel(slug string) string {
+	for _, category := range categories {
+		if slug == category.Slug {
+			return category.Section
+		}
 	}
+
+	return slug
+}
+
+func labelsForSubsection(changeSectionLabel string) []string {
+	for _, category := range categories {
+		if changeSectionLabel == category.Section {
+			return category.Labels
+		}
+	}
+
+	return []string{}
 }
 
 func selectSectionLabel(labels []github.Label) string {
@@ -187,27 +221,6 @@ func selectSectionLabel(labels []github.Label) string {
 func containsChangeLabel(commentBody string) bool {
 	_, labelFromComment := parseMergeRequestComment(commentBody)
 	return labelFromComment != ""
-}
-
-func labelsForSubsection(changeSectionLabel string) []string {
-	labels := []string{}
-
-	switch changeSectionLabel {
-	case "Major Enhancements":
-		labels = append(labels, "feature")
-	case "Minor Enhancements":
-		labels = append(labels, "enhancement")
-	case "Bug Fixes":
-		labels = append(labels, "bug")
-		labels = append(labels, "fix")
-	case "Development Fixes":
-		labels = append(labels, "internal")
-		labels = append(labels, "fix")
-	case "Site Enhancements":
-		labels = append(labels, "documentation")
-	}
-
-	return labels
 }
 
 func addLabelsForSubsection(client *github.Client, owner, repo string, number int, changeSectionLabel string) error {
