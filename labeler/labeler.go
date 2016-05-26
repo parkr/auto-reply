@@ -28,13 +28,13 @@ func NewHandler(client *github.Client, pushHandlers []PushHandler, pullRequestHa
 	}
 }
 
-func (h *LabelerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
 	eventType := r.Header.Get("X-GitHub-Event")
 
 	switch eventType {
 	case "pull_request":
 		var event github.PullRequestEvent
-		err := json.NewDecoder(r.Body).Decode(&event)
+		err := json.Unmarshal(payload, &event)
 		if err != nil {
 			log.Println("error unmarshalling pull request event:", err)
 			http.Error(w, "bad json", 400)
@@ -47,7 +47,7 @@ func (h *LabelerHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	case "push":
 		var event github.PushEvent
-		err := json.NewDecoder(r.Body).Decode(&event)
+		err := json.Unmarshal(payload, &event)
 		if err != nil {
 			log.Println("error unmarshalling pull request event:", err)
 			http.Error(w, "bad json", 400)

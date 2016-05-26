@@ -27,7 +27,7 @@ func NewHandler(client *github.Client, issuesHandlers []CommentHandler, pullRequ
 	}
 }
 
-func (h *CommentsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *CommentsHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
 	if eventType := r.Header.Get("X-GitHub-Event"); !isComment(eventType) {
 		log.Printf("received invalid event of type X-GitHub-Event: %s", eventType)
 		http.Error(w, "not an issue_comment event.", 200)
@@ -35,9 +35,10 @@ func (h *CommentsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var event github.IssueCommentEvent
-	err := json.NewDecoder(r.Body).Decode(&event)
+	err := json.Unmarshal(payload, &event)
 	if err != nil {
-		log.Println("error unmarshalling issue comment stuffs:", err)
+		log.Println("error unmarshalling IssueCommentEvent:", err)
+		log.Println("payload:", payload)
 		http.Error(w, "bad json", 400)
 		return
 	}

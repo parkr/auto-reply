@@ -44,16 +44,17 @@ func NewHandler(client *github.Client, deprecations []RepoDeprecation) *Deprecat
 	}
 }
 
-func (dh *DeprecateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (dh *DeprecateHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
 	if r.Header.Get("X-GitHub-Event") != "issues" {
 		http.Error(w, "ignored this one.", 200)
 		return
 	}
 
 	var issue github.IssueActivityEvent
-	err := json.NewDecoder(r.Body).Decode(&issue)
+	err := json.Unmarshal(payload, &issue)
 	if err != nil {
-		log.Println("error unmarshalling issue stuffs:", err)
+		log.Println("error unmarshalling IssueActivityEvent:", err)
+		log.Println("payload:", payload)
 		http.Error(w, "bad json", 400)
 		return
 	}

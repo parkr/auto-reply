@@ -3,7 +3,6 @@ package autopull
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -61,18 +60,17 @@ func newPRForPush(push github.PushEvent) *github.NewPullRequest {
 	}
 }
 
-func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AutoPullHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
 	if r.Header.Get("X-GitHub-Event") != "push" {
 		http.Error(w, "pong. ignored this one.", 200)
 		return
 	}
 
 	var push github.PushEvent
-	err := json.NewDecoder(r.Body).Decode(&push)
+	err := json.Unmarshal(payload, &push)
 	if err != nil {
-		log.Println("error unmarshalling issue stuffs:", err)
-		body, err := ioutil.ReadAll(r.Body)
-		log.Println("ioutil.ReadAll:", body, err)
+		log.Println("error unmarshalling PushEvent:", err)
+		log.Println("payload:", payload)
 		http.Error(w, "bad json", 400)
 		return
 	}
@@ -80,6 +78,7 @@ func (h *AutoPullHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
 		log.Println("received push:", push)
 	}
+
 	if _, ok := h.repos[*push.Repo.FullName]; ok && strings.HasPrefix(*push.Ref, "refs/heads/pull/") {
 		pr := newPRForPush(push)
 		if pr == nil {

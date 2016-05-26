@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/autopull"
@@ -11,6 +12,7 @@ import (
 	"github.com/parkr/auto-reply/common"
 	"github.com/parkr/auto-reply/deprecate"
 	"github.com/parkr/auto-reply/labeler"
+	"github.com/parkr/auto-reply/messages"
 )
 
 var (
@@ -31,10 +33,16 @@ func main() {
 	client = common.NewClient()
 
 	deprecationHandler := deprecate.NewHandler(client, deprecatedRepos)
-	http.Handle("/_github/repos/deprecated", deprecationHandler)
+	http.HandleFunc("/_github/repos/deprecated", verifyPayload(
+		getSecret("DEPRECATE"),
+		deprecationHandler,
+	))
 
 	autoPullHandler := autopull.NewHandler(client, []string{"jekyll/jekyll"})
-	http.Handle("/_github/repos/autopull", autoPullHandler)
+	http.HandleFunc("/_github/repos/autopull", verifyPayload(
+		getSecret("AUTOPULL"),
+		autoPullHandler,
+	))
 
 	commentsHandler := comments.NewHandler(client,
 		[]comments.CommentHandler{
@@ -45,7 +53,10 @@ func main() {
 			comments.HandlerMergeAndLabel,
 		},
 	)
-	http.Handle("/_github/repos/comments", commentsHandler)
+	http.HandleFunc("/_github/repos/comments", verifyPayload(
+		getSecret("COMMENTS"),
+		commentsHandler,
+	))
 
 	labelerHandler := labeler.NewHandler(client,
 		[]labeler.PushHandler{},
@@ -53,15 +64,26 @@ func main() {
 			labeler.PendingRebasePRLabeler,
 		},
 	)
-	http.Handle("/_github/repos/labeler", labelerHandler)
+	http.HandleFunc("/_github/repos/labeler", verifyPayload(
+		getSecret("LABELER"),
+		labelerHandler,
+	))
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func requireSecret(secret string, next http.Handler) http.Handler {
+func getSecret(suffix string) []byte {
+	return []byte(os.Getenv("GH_SECRET_" + suffix))
+}
+
+func verifyPayload(secret []byte, handler messages.PayloadHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Our middleware logic goes here...
-		next.ServeHTTP(w, r)
+		payload, err := messages.ValidatedPayload(r, secret)
+		if err != nil {
+			http.Error(w, "invalid signature", http.StatusForbidden)
+			return
+		}
+		handler.HandlePayload(w, r, payload)
 	})
 }
