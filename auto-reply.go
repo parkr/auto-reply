@@ -58,3 +58,10 @@ func main() {
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
+
+func requireSecret(secret string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Our middleware logic goes here...
+		next.ServeHTTP(w, r)
+	})
+}
