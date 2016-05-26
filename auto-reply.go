@@ -10,6 +10,7 @@ import (
 	"github.com/parkr/auto-reply/comments"
 	"github.com/parkr/auto-reply/common"
 	"github.com/parkr/auto-reply/deprecate"
+	"github.com/parkr/auto-reply/labeler"
 )
 
 var (
@@ -45,6 +46,14 @@ func main() {
 		},
 	)
 	http.Handle("/_github/repos/comments", commentsHandler)
+
+	labelerHandler := labeler.NewHandler(client,
+		[]labeler.PushHandler{},
+		[]labeler.PullRequestHandler{
+			labeler.PendingRebasePRLabeler,
+		},
+	)
+	http.Handle("/_github/repos/labeler", labelerHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
