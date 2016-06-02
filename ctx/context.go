@@ -11,9 +11,24 @@ import (
 
 const githubAccessTokenEnvVar = "GITHUB_ACCESS_TOKEN"
 
+var (
+	countRate float64 = 1
+	noTags            = []string{}
+)
+
 type Context struct {
 	GitHub *github.Client
 	Statsd *statsd.Client
+}
+
+func (c *Context) IncrStat(name string) {
+	c.CountStat(name, 1)
+}
+
+func (c *Context) CountStat(name string, value int64) {
+	if c.Statsd != nil {
+		c.Statsd.Count(name, value, noTags, countRate)
+	}
 }
 
 func NewDefaultContext() *Context {

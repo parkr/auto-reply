@@ -34,6 +34,7 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 
 	switch eventType {
 	case "pull_request":
+		h.context.IncrStat("labeler.pull_request")
 		var event github.PullRequestEvent
 		err := json.Unmarshal(payload, &event)
 		if err != nil {
@@ -47,6 +48,7 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 		fmt.Fprintf(w, "fired %d handlers", len(h.pullRequestHandlers))
 
 	case "push":
+		h.context.IncrStat("labeler.push")
 		var event github.PushEvent
 		err := json.Unmarshal(payload, &event)
 		if err != nil {
@@ -60,7 +62,8 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 		fmt.Fprintf(w, "fired %d handlers", len(h.pushHandlers))
 
 	default:
-		log.Printf("event not supported of type X-GitHub-Event: %s", eventType)
+		h.context.IncrStat("labeler.invalid")
+		log.Printf("labeler supports pull_request and push events, not: %s", eventType)
 		http.Error(w, "not a pull_request or push event.", 200)
 	}
 }
