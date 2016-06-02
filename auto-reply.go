@@ -32,6 +32,10 @@ func main() {
 	flag.Parse()
 	client = common.NewClient()
 
+	http.HandleFunc("/_ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok\n"))
+	}))
+
 	deprecationHandler := deprecate.NewHandler(client, deprecatedRepos)
 	http.HandleFunc("/_github/repos/deprecated", verifyPayload(
 		getSecret("DEPRECATE"),
