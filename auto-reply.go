@@ -33,6 +33,7 @@ func main() {
 	client = common.NewClient()
 
 	http.HandleFunc("/_ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("ok\n"))
 	}))
 
@@ -83,9 +84,10 @@ func getSecret(suffix string) []byte {
 
 func verifyPayload(secret []byte, handler messages.PayloadHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
 		payload, err := messages.ValidatedPayload(r, secret)
 		if err != nil {
-			http.Error(w, "invalid signature", http.StatusForbidden)
+			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}
 		handler.HandlePayload(w, r, payload)

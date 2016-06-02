@@ -20,3 +20,6 @@ server: build
 
 unearth: build
 	source .env && ./unearth
+
+clean:
+	rm auto-reply unearth
