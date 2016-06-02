@@ -25,7 +25,7 @@ var PendingRebasePRLabeler = func(context *ctx.Context, event github.PullRequest
 
 	var err error
 	if isMergeable(context, owner, repo, num) {
-		err = RemoveLabel(context.GitHub, owner, repo, num, "pending-rebase")
+		err = RemoveLabelIfExists(context.GitHub, owner, repo, num, "pending-rebase")
 	} else {
 		err = fmt.Errorf("%s/%s#%d is not mergeable", owner, repo, num)
 	}

@@ -1,6 +1,7 @@
 package labeler
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/google/go-github/github"
@@ -27,4 +28,25 @@ func RemoveLabels(client *github.Client, owner, repo string, number int, labels 
 		}
 	}
 	return anyError
+}
+
+func RemoveLabelIfExists(client *github.Client, owner, repo string, number int, label string) error {
+	if IssueHasLabel(client, owner, repo, number, label) {
+		return RemoveLabel(client, owner, repo, number, label)
+	}
+	return fmt.Errorf("%s/%s#%d doesn't have label: %s", owner, repo, number, label)
+}
+
+func IssueHasLabel(client *github.Client, owner, repo string, number int, label string) bool {
+	labels, res, err := client.Issues.ListLabelsByIssue(owner, repo, number, nil)
+	if err = common.ErrorFromResponse(res, err); err != nil {
+		return false
+	}
+
+	for _, issueLabel := range labels {
+		if *issueLabel.Name == label {
+			return true
+		}
+	}
+	return false
 }
