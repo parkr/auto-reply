@@ -49,7 +49,7 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 		var event github.PushEvent
 		err := json.Unmarshal(payload, &event)
 		if err != nil {
-			log.Println("error unmarshalling pull request event:", err)
+			log.Println("error unmarshalling push event:", err)
 			http.Error(w, "bad json", 400)
 			return
 		}
@@ -59,7 +59,7 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 		fmt.Fprintf(w, "fired %d handlers", len(h.pushHandlers))
 
 	default:
-		log.Printf("received invalid event of type X-GitHub-Event: %s", eventType)
-		http.Error(w, "not an issue_comment event.", 200)
+		log.Printf("event not supported of type X-GitHub-Event: %s", eventType)
+		http.Error(w, "not a pull_request or push event.", 200)
 	}
 }

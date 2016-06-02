@@ -4,16 +4,17 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/common"
 )
 
 func AddLabels(client *github.Client, owner, repo string, number int, labels []string) error {
-	_, _, err := client.Issues.AddLabelsToIssue(owner, repo, number, labels)
-	return err
+	_, res, err := client.Issues.AddLabelsToIssue(owner, repo, number, labels)
+	return common.ErrorFromResponse(res, err)
 }
 
 func RemoveLabel(client *github.Client, owner, repo string, number int, label string) error {
-	_, err := client.Issues.RemoveLabelForIssue(owner, repo, number, label)
-	return err
+	res, err := client.Issues.RemoveLabelForIssue(owner, repo, number, label)
+	return common.ErrorFromResponse(res, err)
 }
 
 func RemoveLabels(client *github.Client, owner, repo string, number int, labels []string) error {

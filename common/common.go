@@ -1,7 +1,9 @@
 package common
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/google/go-github/github"
@@ -34,4 +36,16 @@ func SliceLookup(data []string) map[string]bool {
 		mapping[datum] = true
 	}
 	return mapping
+}
+
+func ErrorFromResponse(res *github.Response, err error) error {
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("unexpected error code: %d", res.StatusCode)
+	}
+
+	return nil
 }

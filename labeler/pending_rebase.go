@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/common"
 )
 
 const repoMergeabilityCheckWaitSec = 2
@@ -35,9 +36,11 @@ var PendingRebasePRLabeler = func(client *github.Client, event github.PullReques
 }
 
 func isMergeable(client *github.Client, owner, repo string, number int) bool {
-	pr, _, err := client.PullRequests.Get(owner, repo, number)
+	pr, res, err := client.PullRequests.Get(owner, repo, number)
+	err = common.ErrorFromResponse(res, err)
 	if err != nil {
 		log.Printf("couldn't determine mergeability of %s/%s#%d: %v", owner, repo, number, err)
+		return false
 	}
 	return *pr.Mergeable
 }
