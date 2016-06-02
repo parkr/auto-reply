@@ -1,10 +1,15 @@
 {
 	"ImportPath": "github.com/parkr/auto-reply",
 	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/DataDog/datadog-go/statsd",
+			"Rev": "cc2f4770f4d61871e19bfee967bc767fe730b0d9"
+		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Rev": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d"
