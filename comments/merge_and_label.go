@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/changelog"
 )
 
@@ -62,7 +63,7 @@ var (
 		},
 	}
 
-	HandlerMergeAndLabel = func(client *github.Client, event github.IssueCommentEvent) error {
+	HandlerMergeAndLabel = func(context *ctx.Context, event github.IssueCommentEvent) error {
 		// Is this a pull request?
 		if !isPullRequest(event) {
 			return errors.New("not a pull request")
@@ -87,7 +88,7 @@ var (
 		number := *event.Issue.Number
 
 		// Does the user have merge/label abilities?
-		if !isAuthorizedCommenter(client, event) {
+		if !isAuthorizedCommenter(context, event) {
 			log.Printf("%s isn't authenticated to merge anything on %s", *event.Comment.User.Login, *event.Repo.FullName)
 			return errors.New("commenter isn't allowed to merge")
 		}
@@ -102,14 +103,14 @@ var (
 
 		// Merge
 		commitMsg := fmt.Sprintf("Merge pull request %v", number)
-		_, _, mergeErr := client.PullRequests.Merge(owner, repo, number, commitMsg)
+		_, _, mergeErr := context.GitHub.PullRequests.Merge(owner, repo, number, commitMsg)
 		if mergeErr != nil {
 			fmt.Printf("comments: error merging %v\n", mergeErr)
 			return mergeErr
 		}
 
 		// Delete branch
-		repoInfo, _, getRepoErr := client.PullRequests.Get(owner, repo, number)
+		repoInfo, _, getRepoErr := context.GitHub.PullRequests.Get(owner, repo, number)
 		if getRepoErr != nil {
 			fmt.Printf("comments: error fetching pull request: %v\n", getRepoErr)
 			return getRepoErr
@@ -120,7 +121,7 @@ var (
 			wg.Add(1)
 			go func() {
 				ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
-				_, deleteBranchErr := client.Git.DeleteRef(owner, repo, ref)
+				_, deleteBranchErr := context.GitHub.Git.DeleteRef(owner, repo, ref)
 				if deleteBranchErr != nil {
 					fmt.Printf("comments: error deleting branch %v\n", mergeErr)
 				}
@@ -130,7 +131,7 @@ var (
 
 		wg.Add(1)
 		go func() {
-			err := addLabelsForSubsection(client, owner, repo, number, changeSectionLabel)
+			err := addLabelsForSubsection(context, owner, repo, number, changeSectionLabel)
 			if err != nil {
 				fmt.Printf("comments: error applying labels: %v\n", err)
 			}
@@ -140,13 +141,13 @@ var (
 		wg.Add(1)
 		go func() {
 			// Read History.markdown, add line to appropriate change section
-			historyFileContents, historySHA := getHistoryContents(client, owner, repo)
+			historyFileContents, historySHA := getHistoryContents(context, owner, repo)
 
 			// Add merge reference to history
 			newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
 
 			// Commit change to History.markdown
-			commitErr := commitHistoryFile(client, historySHA, owner, repo, number, newHistoryFileContents)
+			commitErr := commitHistoryFile(context, historySHA, owner, repo, number, newHistoryFileContents)
 			if commitErr != nil {
 				fmt.Printf("comments: error committing updated history %v\n", mergeErr)
 			}
@@ -223,19 +224,19 @@ func containsChangeLabel(commentBody string) bool {
 	return labelFromComment != ""
 }
 
-func addLabelsForSubsection(client *github.Client, owner, repo string, number int, changeSectionLabel string) error {
+func addLabelsForSubsection(context *ctx.Context, owner, repo string, number int, changeSectionLabel string) error {
 	labels := labelsForSubsection(changeSectionLabel)
 
 	if len(labels) < 1 {
 		return fmt.Errorf("no labels for changeSectionLabel='%s'", changeSectionLabel)
 	}
 
-	_, _, err := client.Issues.AddLabelsToIssue(owner, repo, number, labels)
+	_, _, err := context.GitHub.Issues.AddLabelsToIssue(owner, repo, number, labels)
 	return err
 }
 
-func getHistoryContents(client *github.Client, owner, repo string) (content, sha string) {
-	contents, _, _, err := client.Repositories.GetContents(
+func getHistoryContents(context *ctx.Context, owner, repo string) (content, sha string) {
+	contents, _, _, err := context.GitHub.Repositories.GetContents(
 		owner,
 		repo,
 		"History.markdown",
@@ -287,7 +288,7 @@ func deletableRef(pr *github.PullRequest, owner string) bool {
 	return *pr.Head.Repo.Owner.Login == owner && *pr.Head.Ref != "master" && *pr.Head.Ref != "gh-pages"
 }
 
-func commitHistoryFile(client *github.Client, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
+func commitHistoryFile(context *ctx.Context, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
 	repositoryContentsOptions := &github.RepositoryContentFileOptions{
 		Message: github.String(fmt.Sprintf("Update history to reflect merge of #%d [ci skip]", number)),
 		Content: []byte(newHistoryFileContents),
@@ -297,7 +298,7 @@ func commitHistoryFile(client *github.Client, historySHA, owner, repo string, nu
 			Email: github.String("jekyllbot@jekyllrb.com"),
 		},
 	}
-	updateResponse, _, err := client.Repositories.UpdateFile(owner, repo, "History.markdown", repositoryContentsOptions)
+	updateResponse, _, err := context.GitHub.Repositories.UpdateFile(owner, repo, "History.markdown", repositoryContentsOptions)
 	if err != nil {
 		fmt.Printf("comments: error committing History.markdown: %v\n", err)
 		return err

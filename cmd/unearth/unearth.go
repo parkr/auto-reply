@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/google/go-github/github"
-	"github.com/parkr/auto-reply/common"
+	"github.com/parkr/auto-reply/ctx"
 )
 
 var (
-	client *github.Client
+	context *ctx.Context
 
 	defaultListOptions = &github.ListOptions{Page: 0, PerPage: 200}
 )
@@ -33,7 +33,7 @@ func repoNameFromURL(url string) string {
 }
 
 func issuesForQuery(query string) {
-	result, _, err := client.Search.Issues(query, &github.SearchOptions{
+	result, _, err := context.GitHub.Search.Issues(query, &github.SearchOptions{
 		Sort:        "created",
 		ListOptions: *defaultListOptions,
 	})
@@ -51,7 +51,7 @@ func issuesForQuery(query string) {
 
 func main() {
 	flag.Parse()
-	client = common.NewClient()
+	context = ctx.NewDefaultContext()
 
 	if flag.NArg() < 1 {
 		// Default queries.

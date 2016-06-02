@@ -7,22 +7,23 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/ctx"
 )
 
-type PushHandler func(client *github.Client, event github.PushEvent) error
-type PullRequestHandler func(client *github.Client, event github.PullRequestEvent) error
+type PushHandler func(context *ctx.Context, event github.PushEvent) error
+type PullRequestHandler func(context *ctx.Context, event github.PullRequestEvent) error
 
 type LabelerHandler struct {
-	client              *github.Client
+	context             *ctx.Context
 	pushHandlers        []PushHandler
 	pullRequestHandlers []PullRequestHandler
 }
 
 // NewHandler returns an HTTP handler which deprecates repositories
 // by closing new issues with a comment directing attention elsewhere.
-func NewHandler(client *github.Client, pushHandlers []PushHandler, pullRequestHandlers []PullRequestHandler) *LabelerHandler {
+func NewHandler(context *ctx.Context, pushHandlers []PushHandler, pullRequestHandlers []PullRequestHandler) *LabelerHandler {
 	return &LabelerHandler{
-		client:              client,
+		context:             context,
 		pushHandlers:        pushHandlers,
 		pullRequestHandlers: pullRequestHandlers,
 	}
@@ -41,7 +42,7 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 			return
 		}
 		for _, handler := range h.pullRequestHandlers {
-			go handler(h.client, event)
+			go handler(h.context, event)
 		}
 		fmt.Fprintf(w, "fired %d handlers", len(h.pullRequestHandlers))
 
@@ -54,7 +55,7 @@ func (h *LabelerHandler) HandlePayload(w http.ResponseWriter, r *http.Request, p
 			return
 		}
 		for _, handler := range h.pushHandlers {
-			go handler(h.client, event)
+			go handler(h.context, event)
 		}
 		fmt.Fprintf(w, "fired %d handlers", len(h.pushHandlers))
 

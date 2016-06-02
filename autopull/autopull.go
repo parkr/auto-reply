@@ -10,6 +10,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/common"
+	"github.com/parkr/auto-reply/ctx"
 )
 
 var (
@@ -17,8 +18,8 @@ var (
 )
 
 type AutoPullHandler struct {
-	client *github.Client
-	repos  map[string]bool
+	context *ctx.Context
+	repos   map[string]bool
 }
 
 func shortMessage(message string) string {
@@ -86,7 +87,7 @@ func (h *AutoPullHandler) HandlePayload(w http.ResponseWriter, r *http.Request, 
 			return
 		}
 
-		pull, _, err := h.client.PullRequests.Create(*push.Repo.Owner.Name, *push.Repo.Name, pr)
+		pull, _, err := h.context.GitHub.PullRequests.Create(*push.Repo.Owner.Name, *push.Repo.Name, pr)
 		if err != nil {
 			log.Printf("error creating pull request for %s/%s: %v", *push.Repo.Owner.Name, *push.Repo.Name, err)
 			http.Error(w, "pr could not be created", 500)
@@ -99,9 +100,9 @@ func (h *AutoPullHandler) HandlePayload(w http.ResponseWriter, r *http.Request, 
 	}
 }
 
-func NewHandler(client *github.Client, handledRepos []string) *AutoPullHandler {
+func NewHandler(context *ctx.Context, handledRepos []string) *AutoPullHandler {
 	return &AutoPullHandler{
-		client: client,
-		repos:  common.SliceLookup(handledRepos),
+		context: context,
+		repos:   common.SliceLookup(handledRepos),
 	}
 }

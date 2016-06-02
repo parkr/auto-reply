@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/ctx"
 )
 
 const (
@@ -21,7 +22,7 @@ type RepoDeprecation struct {
 }
 
 type DeprecateHandler struct {
-	client   *github.Client
+	context  *ctx.Context
 	repos    []RepoDeprecation
 	messages map[string]string
 }
@@ -36,9 +37,9 @@ func deprecationsToMap(deprecations []RepoDeprecation) map[string]string {
 
 // NewHandler returns an HTTP handler which deprecates repositories
 // by closing new issues with a comment directing attention elsewhere.
-func NewHandler(client *github.Client, deprecations []RepoDeprecation) *DeprecateHandler {
+func NewHandler(context *ctx.Context, deprecations []RepoDeprecation) *DeprecateHandler {
 	return &DeprecateHandler{
-		client:   client,
+		context:  context,
 		repos:    deprecations,
 		messages: deprecationsToMap(deprecations),
 	}
@@ -87,7 +88,7 @@ func (dh *DeprecateHandler) HandlePayload(w http.ResponseWriter, r *http.Request
 }
 
 func (dh *DeprecateHandler) leaveComment(issue github.IssueActivityEvent, msg string) error {
-	_, _, err := dh.client.Issues.CreateComment(
+	_, _, err := dh.context.GitHub.Issues.CreateComment(
 		*issue.Repo.Owner.Login,
 		*issue.Repo.Name,
 		*issue.Issue.Number,
@@ -97,7 +98,7 @@ func (dh *DeprecateHandler) leaveComment(issue github.IssueActivityEvent, msg st
 }
 
 func (dh *DeprecateHandler) closeIssue(issue github.IssueActivityEvent) error {
-	_, _, err := dh.client.Issues.Edit(
+	_, _, err := dh.context.GitHub.Issues.Edit(
 		*issue.Repo.Owner.Login,
 		*issue.Repo.Name,
 		*issue.Issue.Number,

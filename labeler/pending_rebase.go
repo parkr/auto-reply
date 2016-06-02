@@ -7,11 +7,12 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/common"
+	"github.com/parkr/auto-reply/ctx"
 )
 
 const repoMergeabilityCheckWaitSec = 2
 
-var PendingRebasePRLabeler = func(client *github.Client, event github.PullRequestEvent) error {
+var PendingRebasePRLabeler = func(context *ctx.Context, event github.PullRequestEvent) error {
 	if *event.Action != "synchronize" {
 		return nil
 	}
@@ -23,8 +24,8 @@ var PendingRebasePRLabeler = func(client *github.Client, event github.PullReques
 	time.Sleep(repoMergeabilityCheckWaitSec * time.Second)
 
 	var err error
-	if isMergeable(client, owner, repo, num) {
-		err = RemoveLabel(client, owner, repo, num, "pending-rebase")
+	if isMergeable(context, owner, repo, num) {
+		err = RemoveLabel(context.GitHub, owner, repo, num, "pending-rebase")
 	} else {
 		err = fmt.Errorf("%s/%s#%d is not mergeable", owner, repo, num)
 	}
@@ -35,8 +36,8 @@ var PendingRebasePRLabeler = func(client *github.Client, event github.PullReques
 	return err
 }
 
-func isMergeable(client *github.Client, owner, repo string, number int) bool {
-	pr, res, err := client.PullRequests.Get(owner, repo, number)
+func isMergeable(context *ctx.Context, owner, repo string, number int) bool {
+	pr, res, err := context.GitHub.PullRequests.Get(owner, repo, number)
 	err = common.ErrorFromResponse(res, err)
 	if err != nil {
 		log.Printf("couldn't determine mergeability of %s/%s#%d: %v", owner, repo, number, err)

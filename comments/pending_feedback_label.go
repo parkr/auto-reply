@@ -5,12 +5,13 @@ import (
 	"os"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/ctx"
 )
 
 var (
 	pendingFeedbackLabel = "pending-feedback"
 
-	HandlerPendingFeedbackLabel = func(client *github.Client, event github.IssueCommentEvent) error {
+	HandlerPendingFeedbackLabel = func(context *ctx.Context, event github.IssueCommentEvent) error {
 		// if the comment is from the issue author & issue has the "pending-feedback", remove the label
 
 		if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
@@ -19,7 +20,7 @@ var (
 
 		if senderAndCreatorEqual(event) && hasLabel(event.Issue.Labels, pendingFeedbackLabel) {
 			owner, name, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
-			_, err := client.Issues.RemoveLabelForIssue(owner, name, number, pendingFeedbackLabel)
+			_, err := context.GitHub.Issues.RemoveLabelForIssue(owner, name, number, pendingFeedbackLabel)
 			if err != nil {
 				log.Printf("[pending_feedback_label]: error removing label (%s/%s#%d): %v", owner, name, number, err)
 				return err

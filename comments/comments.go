@@ -7,21 +7,22 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/ctx"
 )
 
-type CommentHandler func(client *github.Client, comment github.IssueCommentEvent) error
+type CommentHandler func(context *ctx.Context, comment github.IssueCommentEvent) error
 
 type CommentsHandler struct {
-	client               *github.Client
+	context              *ctx.Context
 	issueCommentHandlers []CommentHandler
 	pullCommentHandlers  []CommentHandler
 }
 
 // NewHandler returns an HTTP handler which deprecates repositories
 // by closing new issues with a comment directing attention elsewhere.
-func NewHandler(client *github.Client, issuesHandlers []CommentHandler, pullRequestsHandlers []CommentHandler) *CommentsHandler {
+func NewHandler(context *ctx.Context, issuesHandlers []CommentHandler, pullRequestsHandlers []CommentHandler) *CommentsHandler {
 	return &CommentsHandler{
-		client:               client,
+		context:              context,
 		issueCommentHandlers: issuesHandlers,
 		pullCommentHandlers:  pullRequestsHandlers,
 	}
@@ -51,7 +52,7 @@ func (h *CommentsHandler) HandlePayload(w http.ResponseWriter, r *http.Request, 
 	}
 
 	for _, handler := range handlers {
-		go handler(h.client, event)
+		go handler(h.context, event)
 	}
 
 	fmt.Fprintf(w, "fired %d handlers", len(handlers))

@@ -6,17 +6,16 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/comments"
-	"github.com/parkr/auto-reply/common"
+	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/deprecate"
 	"github.com/parkr/auto-reply/labeler"
 	"github.com/parkr/auto-reply/messages"
 )
 
 var (
-	client *github.Client
+	context *ctx.Context
 
 	deprecatedRepos = []deprecate.RepoDeprecation{
 		deprecate.RepoDeprecation{
@@ -30,26 +29,26 @@ func main() {
 	var port string
 	flag.StringVar(&port, "port", "8080", "The port to serve to")
 	flag.Parse()
-	client = common.NewClient()
+	context = ctx.NewDefaultContext()
 
 	http.HandleFunc("/_ping", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Write([]byte("ok\n"))
 	}))
 
-	deprecationHandler := deprecate.NewHandler(client, deprecatedRepos)
+	deprecationHandler := deprecate.NewHandler(context, deprecatedRepos)
 	http.HandleFunc("/_github/repos/deprecated", verifyPayload(
 		getSecret("DEPRECATE"),
 		deprecationHandler,
 	))
 
-	autoPullHandler := autopull.NewHandler(client, []string{"jekyll/jekyll"})
+	autoPullHandler := autopull.NewHandler(context, []string{"jekyll/jekyll"})
 	http.HandleFunc("/_github/repos/autopull", verifyPayload(
 		getSecret("AUTOPULL"),
 		autoPullHandler,
 	))
 
-	commentsHandler := comments.NewHandler(client,
+	commentsHandler := comments.NewHandler(context,
 		[]comments.CommentHandler{
 			comments.HandlerPendingFeedbackLabel,
 		},
@@ -63,7 +62,7 @@ func main() {
 		commentsHandler,
 	))
 
-	labelerHandler := labeler.NewHandler(client,
+	labelerHandler := labeler.NewHandler(context,
 		[]labeler.PushHandler{},
 		[]labeler.PullRequestHandler{
 			labeler.PendingRebasePRLabeler,

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/ctx"
 )
 
 var (
@@ -14,11 +15,11 @@ var (
 )
 
 type authenticator struct {
-	client *github.Client
+	context *ctx.Context
 }
 
-func isAuthorizedCommenter(client *github.Client, event github.IssueCommentEvent) bool {
-	auth := authenticator{client: client}
+func isAuthorizedCommenter(context *ctx.Context, event github.IssueCommentEvent) bool {
+	auth := authenticator{context: context}
 	orgTeams := auth.teamsForOrg(*event.Repo.Owner.Login)
 	for _, team := range orgTeams {
 		if auth.isTeamMember(*team.ID, *event.Comment.User.Login) &&
@@ -32,7 +33,7 @@ func isAuthorizedCommenter(client *github.Client, event github.IssueCommentEvent
 func (auth authenticator) isTeamMember(teamId int, login string) bool {
 	cacheKey := auth.cacheKeyIsTeamMember(teamId, login)
 	if _, ok := teamMembershipCache[cacheKey]; !ok {
-		newOk, _, err := auth.client.Organizations.IsTeamMember(teamId, login)
+		newOk, _, err := auth.context.GitHub.Organizations.IsTeamMember(teamId, login)
 		if err != nil {
 			log.Printf("ERROR performing IsTeamMember(%d, \"%s\"): %v", teamId, login, err)
 			return false
@@ -45,7 +46,7 @@ func (auth authenticator) isTeamMember(teamId int, login string) bool {
 func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool {
 	cacheKey := auth.cacheKeyTeamHashPushAccess(teamId, owner, repo)
 	if _, ok := teamHasPushAccessCache[cacheKey]; !ok {
-		repository, _, err := auth.client.Organizations.IsTeamRepo(teamId, owner, repo)
+		repository, _, err := auth.context.GitHub.Organizations.IsTeamRepo(teamId, owner, repo)
 		if err != nil {
 			log.Printf("ERROR performing IsTeamRepo(%d, \"%s\", \"%s\"): %v", teamId, repo, err)
 			return false
@@ -61,7 +62,7 @@ func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool
 
 func (auth authenticator) teamsForOrg(org string) []github.Team {
 	if _, ok := teamsCache[org]; !ok {
-		teamz, _, err := auth.client.Organizations.ListTeams(org, &github.ListOptions{
+		teamz, _, err := auth.context.GitHub.Organizations.ListTeams(org, &github.ListOptions{
 			PerPage: 100,
 		})
 		if err != nil {
