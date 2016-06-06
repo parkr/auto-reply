@@ -29,4 +29,4 @@ mark-and-sweep: build
 
 .PHONY: clean
 clean:
-	rm auto-reply unearth
+	rm auto-reply unearth mark-and-sweep-stale-issues
