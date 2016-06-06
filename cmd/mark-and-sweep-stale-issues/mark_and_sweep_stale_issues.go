@@ -15,15 +15,21 @@ import (
 
 var (
 	staleableLabels = []string{
+		"bug",
 		"discussion",
+		"documentation",
 		"downstream-issue",
 		"downstream:github-pages",
 		"duplicate",
+		"enhancement",
+		"feature",
+		"suggestion",
 		"needs-work",
 		"not-reproduced",
 		"old-stable",
 		"pending-feedback",
 		"plugin-feature",
+		"question",
 		"stale",
 		"support",
 		"undetermined",
@@ -41,6 +47,46 @@ var (
 			Owner: &github.User{Login: github.String("jekyll")},
 			Name:  github.String("jekyll-import"),
 		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("github-metadata"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-redirect-from"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-feed"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-compose"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-watch"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-sitemap"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-sass-converter"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jemoji"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-gist"),
+		},
+		&github.Repository{
+			Owner: &github.User{Login: github.String("jekyll")},
+			Name:  github.String("jekyll-coffeescript"),
+		},
 	}
 
 	oneMonthAgo = time.Now().AddDate(0, -1, 0)
@@ -49,7 +95,7 @@ var (
 		State:       "open",
 		Sort:        "updated",
 		Direction:   "asc",
-		ListOptions: github.ListOptions{PerPage: 150},
+		ListOptions: github.ListOptions{PerPage: 200},
 	}
 
 	staleIssueComment = &github.IssueComment{
@@ -59,8 +105,13 @@ three months.
 
 The resources of the Jekyll team are limited, and so we are asking for your help.
 
-If you can still reproduce this error on the <pre>3.1-stable</pre> or <pre>master</pre> branch,
+If you can still reproduce this error on the <code>3.1-stable</code> or <code>master</code> branch,
 please reply with all of the information you have about it in order to keep the issue open.
+
+If this is a feature request, please consider building it first as a plugin. Jekyll 3 introduced
+[hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout
+the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be
+built as a plugin, then please provide more information about why in order to keep this issue open.
 
 Thank you for all your contributions.
 `),
@@ -83,7 +134,7 @@ func main() {
 }
 
 func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Repository, actuallyDoIt bool) {
-	owner, name := *repo.Owner.Login, *repo.Name
+	owner, name, nonStaleIssues := *repo.Owner.Login, *repo.Name, 0
 
 	issues, resp, err := client.Issues.ListByRepo(owner, name, staleIssuesListOptions)
 	err = common.ErrorFromResponse(resp, err)
@@ -102,13 +153,18 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 			if hasStaleLabel(issue) {
 				// Close.
 				if actuallyDoIt {
-					log.Printf("%s is stale & notified (closing).", linkify(owner, name, *issue.Number))
-					client.Issues.Edit(
-						*issue.Repository.Owner.Login,
-						*issue.Repository.Name,
-						*issue.Number,
+					number := *issue.Number
+					log.Printf("%s is stale & notified (closing).", linkify(owner, name, number))
+					_, resp, err := client.Issues.Edit(
+						owner,
+						name,
+						number,
 						&github.IssueRequest{State: github.String("closed")},
 					)
+					err = common.ErrorFromResponse(resp, err)
+					if err != nil {
+						log.Fatalf("!!! could not close issue %s: %v", linkify(owner, name, number), err)
+					}
 				} else {
 					log.Printf("%s is stale & notified (dry-run).", linkify(owner, name, *issue.Number))
 				}
@@ -123,9 +179,11 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 				}
 			}
 		} else {
-			log.Printf("%s is not stale.", linkify(owner, name, *issue.Number))
+			nonStaleIssues += 1
 		}
 	}
+
+	log.Printf("%s -- ignored non-stale issues: %d", linkify(owner, name, -1), nonStaleIssues)
 
 	wg.Done()
 }
@@ -148,7 +206,11 @@ func isUpdatedInLastMonth(updatedAt time.Time) bool {
 
 func hasStaleableLabel(issue github.Issue) bool {
 	if issue.Labels == nil {
-		return false
+		return true
+	}
+
+	if len(issue.Labels) == 0 {
+		return true
 	}
 
 	for _, staleableLabel := range staleableLabels {
