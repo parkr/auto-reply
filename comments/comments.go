@@ -30,7 +30,7 @@ func NewHandler(context *ctx.Context, issuesHandlers []CommentHandler, pullReque
 
 func (h *CommentsHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
 	if eventType := r.Header.Get("X-GitHub-Event"); !isComment(eventType) {
-		log.Printf("received invalid event of type X-GitHub-Event: %s", eventType)
+		log.Printf("comments supports pull_request and issue_comment events, not: %s", eventType)
 		http.Error(w, "not an issue_comment event.", 200)
 		return
 	}

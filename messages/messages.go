@@ -30,7 +30,7 @@ const (
 	sha256Prefix = "sha256"
 	sha512Prefix = "sha512"
 	// eventHeader is the Github header key used to pass the event type.
-	eventHeader = "X-Github-Event"
+	eventHeader = "X-GitHub-Event"
 	// signatureHeader is the Github header key used to pass the HMAC hexdigest.
 	signatureHeader = "X-Hub-Signature"
 	// deliveryHeader is the Gihub header key used to pass the globally-unique Github Event ID.
