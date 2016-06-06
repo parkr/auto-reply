@@ -50,6 +50,7 @@ func main() {
 
 	commentsHandler := comments.NewHandler(context,
 		[]comments.CommentHandler{
+			comments.StaleUnlabeler,
 			comments.HandlerPendingFeedbackLabel,
 		},
 		[]comments.CommentHandler{
