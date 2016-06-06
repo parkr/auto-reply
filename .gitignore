@@ -25,4 +25,5 @@ _testmain.go
 
 auto-reply
 unearth
+mark-and-sweep-stale-issues
 .env
