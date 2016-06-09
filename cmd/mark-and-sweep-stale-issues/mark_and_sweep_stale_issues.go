@@ -172,8 +172,8 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 				// Mark as stale.
 				if actuallyDoIt {
 					log.Printf("%s is stale (marking).", linkify(owner, name, *issue.Number))
-					client.Issues.CreateComment(owner, name, *issue.Number, staleIssueComment)
 					labeler.AddLabels(client, owner, name, *issue.Number, []string{"stale"})
+					client.Issues.CreateComment(owner, name, *issue.Number, staleIssueComment)
 				} else {
 					log.Printf("%s is stale (dry-run).", linkify(owner, name, *issue.Number))
 				}
