@@ -101,7 +101,7 @@ var (
 	staleIssueComment = &github.IssueComment{
 		Body: github.String(`
 This issue has been automatically marked as stale because it has not been commented on for at least
-three months.
+one month.
 
 The resources of the Jekyll team are limited, and so we are asking for your help.
 
