@@ -13,6 +13,10 @@ var StaleUnlabeler = func(context *ctx.Context, event github.IssueCommentEvent) 
 		return nil
 	}
 
+	if *event.Sender.Login == "jekyllbot" {
+		return nil // heh.
+	}
+
 	owner, repo, num := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
 	err := labeler.RemoveLabelIfExists(context.GitHub, owner, repo, num, "stale")
 	if err != nil {
