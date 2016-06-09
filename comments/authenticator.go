@@ -48,7 +48,7 @@ func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool
 	if _, ok := teamHasPushAccessCache[cacheKey]; !ok {
 		repository, _, err := auth.context.GitHub.Organizations.IsTeamRepo(teamId, owner, repo)
 		if err != nil {
-			log.Printf("ERROR performing IsTeamRepo(%d, \"%s\", \"%s\"): %v", teamId, repo, err)
+			log.Printf("ERROR performing IsTeamRepo(%d, \"%s\", \"%s\"): %v", teamId, owner, repo, err)
 			return false
 		}
 		if repository == nil {
