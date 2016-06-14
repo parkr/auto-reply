@@ -1,6 +1,8 @@
 package ctx
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"os"
 
@@ -29,6 +31,12 @@ func (c *Context) CountStat(name string, value int64) {
 	if c.Statsd != nil {
 		c.Statsd.Count(name, value, noTags, countRate)
 	}
+}
+
+func (c *Context) NewError(format string, args ...interface{}) error {
+	message := fmt.Sprintf(format, args...)
+	log.Println(message)
+	return errors.New(message)
 }
 
 func NewDefaultContext() *Context {

@@ -9,21 +9,13 @@ import (
 	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/comments"
 	"github.com/parkr/auto-reply/ctx"
-	"github.com/parkr/auto-reply/deprecate"
+	"github.com/parkr/auto-reply/hooks"
+	"github.com/parkr/auto-reply/jekyll"
 	"github.com/parkr/auto-reply/labeler"
 	"github.com/parkr/auto-reply/messages"
 )
 
-var (
-	context *ctx.Context
-
-	deprecatedRepos = []deprecate.RepoDeprecation{
-		deprecate.RepoDeprecation{
-			Nwo:     "jekyll/jekyll-help",
-			Message: `This repository is no longer maintained. If you're still experiencing this problem, please search for your issue on [Jekyll Talk](https://talk.jekyllrb.com/), our new community forum. If it isn't there, feel free to post to the Help category and someone will assist you. Thanks!`,
-		},
-	}
-)
+var context *ctx.Context
 
 func main() {
 	var port string
@@ -36,10 +28,10 @@ func main() {
 		w.Write([]byte("ok\n"))
 	}))
 
-	deprecationHandler := deprecate.NewHandler(context, deprecatedRepos)
-	http.HandleFunc("/_github/repos/deprecated", verifyPayload(
-		getSecret("DEPRECATE"),
-		deprecationHandler,
+	jekyllOrgHandler := jekyll.NewJekyllOrgHandler(context)
+	http.HandleFunc("/_github/jekyll", verifyPayload(
+		getSecret("JEKYLL"),
+		jekyllOrgHandler,
 	))
 
 	autoPullHandler := autopull.NewHandler(context, []string{"jekyll/jekyll"})
@@ -82,7 +74,7 @@ func getSecret(suffix string) []byte {
 	return []byte(os.Getenv("GH_SECRET_" + suffix))
 }
 
-func verifyPayload(secret []byte, handler messages.PayloadHandler) http.HandlerFunc {
+func verifyPayload(secret []byte, handler hooks.HookHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		payload, err := messages.ValidatedPayload(r, secret)

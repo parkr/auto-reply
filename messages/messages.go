@@ -116,7 +116,3 @@ func ValidateSignature(signature string, payload, secretKey []byte) error {
 	}
 	return nil
 }
-
-type PayloadHandler interface {
-	HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte)
-}
