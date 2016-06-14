@@ -12,7 +12,7 @@ import (
 
 const repoMergeabilityCheckWaitSec = 2
 
-var PendingRebasePRLabeler = func(context *ctx.Context, event github.PullRequestEvent) error {
+var PendingRebaseNeedsWorkPRUnlabeler = func(context *ctx.Context, event github.PullRequestEvent) error {
 	if *event.Action != "synchronize" {
 		return nil
 	}
@@ -26,12 +26,16 @@ var PendingRebasePRLabeler = func(context *ctx.Context, event github.PullRequest
 	var err error
 	if isMergeable(context, owner, repo, num) {
 		err = RemoveLabelIfExists(context.GitHub, owner, repo, num, "pending-rebase")
+		if err != nil {
+			log.Printf("error removing the pending-rebase label: %v", err)
+		}
+		err = RemoveLabelIfExists(context.GitHub, owner, repo, num, "needs-work")
 	} else {
 		err = fmt.Errorf("%s/%s#%d is not mergeable", owner, repo, num)
 	}
 
 	if err != nil {
-		log.Printf("error removing the pending-rebase label: %v", err)
+		log.Printf("error removing the pending-rebase & needs-work labels: %v", err)
 	}
 	return err
 }

@@ -66,7 +66,7 @@ func main() {
 	labelerHandler := labeler.NewHandler(context,
 		[]labeler.PushHandler{},
 		[]labeler.PullRequestHandler{
-			labeler.PendingRebasePRLabeler,
+			labeler.PendingRebaseNeedsWorkPRUnlabeler,
 		},
 	)
 	http.HandleFunc("/_github/repos/labeler", verifyPayload(
