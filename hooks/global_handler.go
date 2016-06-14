@@ -31,7 +31,7 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 		h.Context.IncrStat("handler.invalid")
 		errMessage := fmt.Sprintf("unhandled event type: %s", eventType)
 		log.Printf("%s; handled events: %+v", errMessage, h.AcceptedEventTypes())
-		http.Error(w, "unhandled event type: %s.", 200)
+		http.Error(w, errMessage, 200)
 	}
 }
 
