@@ -15,6 +15,7 @@ var (
 	MemberEvent                   EventType = "member"
 	MembershipEvent               EventType = "membership"
 	PageBuildEvent                EventType = "page_build"
+	PingEvent                     EventType = "ping"
 	PublicEvent                   EventType = "public"
 	PullRequestEvent              EventType = "pull_request"
 	PullRequestReviewCommentEvent EventType = "pull_request_review_comment"
@@ -28,4 +29,8 @@ var (
 
 func (e EventType) String() string {
 	return string(e)
+}
+
+type PingEventPayload struct {
+	Zen string `json:"zen"`
 }
