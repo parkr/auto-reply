@@ -33,18 +33,31 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 	}
 
 	if handlers, ok := h.EventHandlers[EventType(eventType)]; ok {
-		h.Context.IncrStat("handler." + eventType)
-		event := structFromPayload(eventType, payload)
-		for _, handler := range handlers {
-			go handler(h.Context, event)
+		numHandlers := h.FireHandlers(handlers, eventType, payload)
+
+		issueCommentHandlers, ok := h.EventHandlers[EventType(eventType)]
+		if ok && EventType(eventType) == PullRequestEvent {
+			numHandlers += h.FireHandlers(issueCommentHandlers, "issue_comment", payload)
 		}
-		fmt.Fprintf(w, "fired %d handlers", len(handlers))
+
+		fmt.Fprintf(w, "fired %d handlers", numHandlers)
 	} else {
 		h.Context.IncrStat("handler.invalid")
 		errMessage := fmt.Sprintf("unhandled event type: %s", eventType)
 		log.Printf("%s; handled events: %+v", errMessage, h.AcceptedEventTypes())
 		http.Error(w, errMessage, 200)
 	}
+
+	return
+}
+
+func (h *GlobalHandler) FireHandlers(handlers []EventHandler, eventType string, payload []byte) int {
+	h.Context.IncrStat("handler." + eventType)
+	event := structFromPayload(eventType, payload)
+	for _, handler := range handlers {
+		go handler(h.Context, event)
+	}
+	return len(handlers)
 }
 
 // AcceptedEventTypes returns an array of all event types the GlobalHandler
