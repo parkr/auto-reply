@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/parkr/auto-reply/autopull"
-	"github.com/parkr/auto-reply/comments"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/jekyll"
@@ -38,21 +37,6 @@ func main() {
 	http.HandleFunc("/_github/repos/autopull", verifyPayload(
 		getSecret("AUTOPULL"),
 		autoPullHandler,
-	))
-
-	commentsHandler := comments.NewHandler(context,
-		[]comments.CommentHandler{
-			comments.StaleUnlabeler,
-			comments.HandlerPendingFeedbackLabel,
-		},
-		[]comments.CommentHandler{
-			comments.HandlerPendingFeedbackLabel,
-			comments.HandlerMergeAndLabel,
-		},
-	)
-	http.HandleFunc("/_github/repos/comments", verifyPayload(
-		getSecret("COMMENTS"),
-		commentsHandler,
 	))
 
 	labelerHandler := labeler.NewHandler(context,

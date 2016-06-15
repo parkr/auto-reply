@@ -1,4 +1,4 @@
-package comments
+package issuecomment
 
 import (
 	"encoding/base64"
@@ -63,103 +63,107 @@ var (
 			Labels:  []string{"documentation"},
 		},
 	}
-
-	HandlerMergeAndLabel = func(context *ctx.Context, event github.IssueCommentEvent) error {
-		// Is this a pull request?
-		if !isPullRequest(event) {
-			return errors.New("not a pull request")
-		}
-
-		var changeSectionLabel string
-		isReq, labelFromComment := parseMergeRequestComment(*event.Comment.Body)
-
-		// Is It a merge request comment?
-		if !isReq {
-			return errors.New("not a merge request comment")
-		}
-
-		if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
-			log.Println("[merge_and_label]: received event:", event)
-		}
-
-		var wg sync.WaitGroup
-
-		owner := *event.Repo.Owner.Login
-		repo := *event.Repo.Name
-		number := *event.Issue.Number
-
-		// Does the user have merge/label abilities?
-		if !auth.CommenterHasPushAccess(context, event) {
-			log.Printf("%s isn't authenticated to merge anything on %s", *event.Comment.User.Login, *event.Repo.FullName)
-			return errors.New("commenter isn't allowed to merge")
-		}
-
-		// Should it be labeled?
-		if labelFromComment != "" {
-			changeSectionLabel = sectionForLabel(labelFromComment)
-		} else {
-			changeSectionLabel = "none"
-		}
-		fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
-
-		// Merge
-		commitMsg := fmt.Sprintf("Merge pull request %v", number)
-		_, _, mergeErr := context.GitHub.PullRequests.Merge(owner, repo, number, commitMsg)
-		if mergeErr != nil {
-			fmt.Printf("comments: error merging %v\n", mergeErr)
-			return mergeErr
-		}
-
-		// Delete branch
-		repoInfo, _, getRepoErr := context.GitHub.PullRequests.Get(owner, repo, number)
-		if getRepoErr != nil {
-			fmt.Printf("comments: error fetching pull request: %v\n", getRepoErr)
-			return getRepoErr
-		}
-
-		// Delete branch
-		if deletableRef(repoInfo, owner) {
-			wg.Add(1)
-			go func() {
-				ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
-				_, deleteBranchErr := context.GitHub.Git.DeleteRef(owner, repo, ref)
-				if deleteBranchErr != nil {
-					fmt.Printf("comments: error deleting branch %v\n", mergeErr)
-				}
-				wg.Done()
-			}()
-		}
-
-		wg.Add(1)
-		go func() {
-			err := addLabelsForSubsection(context, owner, repo, number, changeSectionLabel)
-			if err != nil {
-				fmt.Printf("comments: error applying labels: %v\n", err)
-			}
-			wg.Done()
-		}()
-
-		wg.Add(1)
-		go func() {
-			// Read History.markdown, add line to appropriate change section
-			historyFileContents, historySHA := getHistoryContents(context, owner, repo)
-
-			// Add merge reference to history
-			newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
-
-			// Commit change to History.markdown
-			commitErr := commitHistoryFile(context, historySHA, owner, repo, number, newHistoryFileContents)
-			if commitErr != nil {
-				fmt.Printf("comments: error committing updated history %v\n", mergeErr)
-			}
-			wg.Done()
-		}()
-
-		wg.Wait()
-
-		return nil
-	}
 )
+
+func MergeAndLabel(context *ctx.Context, payload interface{}) error {
+	event, ok := payload.(*github.IssueCommentEvent)
+	if !ok {
+		return context.NewError("MergeAndLabel: not an issue comment event")
+	}
+
+	// Is this a pull request?
+	if event.Issue != nil && event.Issue.PullRequestLinks != nil {
+		return context.NewError("MergeAndLabel: not a pull request")
+	}
+
+	var changeSectionLabel string
+	isReq, labelFromComment := parseMergeRequestComment(*event.Comment.Body)
+
+	// Is It a merge request comment?
+	if !isReq {
+		return context.NewError("MergeAndLabel: not a merge request comment")
+	}
+
+	if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
+		log.Println("MergeAndLabel: received event:", event)
+	}
+
+	var wg sync.WaitGroup
+
+	owner := *event.Repo.Owner.Login
+	repo := *event.Repo.Name
+	number := *event.Issue.Number
+	ref := fmt.Sprintf("%s/%s#%d", owner, repo, number)
+
+	// Does the user have merge/label abilities?
+	if !auth.CommenterHasPushAccess(context, *event) {
+		log.Printf("%s isn't authenticated to merge anything on %s", *event.Comment.User.Login, *event.Repo.FullName)
+		return errors.New("commenter isn't allowed to merge")
+	}
+
+	// Should it be labeled?
+	if labelFromComment != "" {
+		changeSectionLabel = sectionForLabel(labelFromComment)
+	} else {
+		changeSectionLabel = "none"
+	}
+	fmt.Printf("changeSectionLabel = '%s'\n", changeSectionLabel)
+
+	// Merge
+	commitMsg := fmt.Sprintf("Merge pull request %v", number)
+	_, _, mergeErr := context.GitHub.PullRequests.Merge(owner, repo, number, commitMsg)
+	if mergeErr != nil {
+		return context.NewError("MergeAndLabel: error merging %s: %v", ref, mergeErr)
+	}
+
+	// Delete branch
+	repoInfo, _, getRepoErr := context.GitHub.PullRequests.Get(owner, repo, number)
+	if getRepoErr != nil {
+		return context.NewError("MergeAndLabel: error getting PR info %s: %v", ref, getRepoErr)
+	}
+
+	// Delete branch
+	if deletableRef(repoInfo, owner) {
+		wg.Add(1)
+		go func() {
+			ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
+			_, deleteBranchErr := context.GitHub.Git.DeleteRef(owner, repo, ref)
+			if deleteBranchErr != nil {
+				fmt.Printf("MergeAndLabel: error deleting branch %v\n", mergeErr)
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		err := addLabelsForSubsection(context, owner, repo, number, changeSectionLabel)
+		if err != nil {
+			fmt.Printf("MergeAndLabel: error applying labels: %v\n", err)
+		}
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		// Read History.markdown, add line to appropriate change section
+		historyFileContents, historySHA := getHistoryContents(context, owner, repo)
+
+		// Add merge reference to history
+		newHistoryFileContents := addMergeReference(historyFileContents, changeSectionLabel, *repoInfo.Title, number)
+
+		// Commit change to History.markdown
+		commitErr := commitHistoryFile(context, historySHA, owner, repo, number, newHistoryFileContents)
+		if commitErr != nil {
+			fmt.Printf("comments: error committing updated history %v\n", mergeErr)
+		}
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	return nil
+}
 
 func parseMergeRequestComment(commentBody string) (bool, string) {
 	matches := mergeCommentRegexp.FindAllStringSubmatch(commentBody, -1)

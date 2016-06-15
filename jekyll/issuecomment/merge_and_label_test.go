@@ -1,4 +1,4 @@
-package comments
+package issuecomment
 
 import (
 	"io/ioutil"

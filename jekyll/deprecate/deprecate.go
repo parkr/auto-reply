@@ -2,7 +2,6 @@ package deprecate
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
@@ -17,7 +16,6 @@ var (
 func DeprecateOldRepos(context *ctx.Context, event interface{}) error {
 	issue, ok := event.(*github.IssuesEvent)
 	if !ok {
-		log.Println(event)
 		return context.NewError("DeprecateOldRepos: not an issue event")
 	}
 
