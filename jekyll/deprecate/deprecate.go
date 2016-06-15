@@ -14,7 +14,7 @@ var (
 )
 
 func DeprecateOldRepos(context *ctx.Context, event interface{}) error {
-	issue, ok := event.(github.IssuesEvent)
+	issue, ok := event.(*github.IssuesEvent)
 	if !ok {
 		return context.NewError("DeprecateOldRepos: not an issue event")
 	}

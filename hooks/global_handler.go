@@ -22,7 +22,7 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 
 	if eventType == "ping" {
 		event := structFromPayload(eventType, payload)
-		ping, ok := event.(pingEventPayload)
+		ping, ok := event.(*pingEventPayload)
 		if !ok {
 			log.Println(string(payload))
 			http.Error(w, "you sure that was a ping message?", 200)
