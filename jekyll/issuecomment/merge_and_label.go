@@ -72,7 +72,7 @@ func MergeAndLabel(context *ctx.Context, payload interface{}) error {
 	}
 
 	// Is this a pull request?
-	if event.Issue != nil && event.Issue.PullRequestLinks != nil {
+	if event.Issue == nil || event.Issue.PullRequestLinks == nil {
 		return context.NewError("MergeAndLabel: not a pull request")
 	}
 
