@@ -2,6 +2,7 @@ package deprecate
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
