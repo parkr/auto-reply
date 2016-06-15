@@ -20,6 +20,13 @@ type GlobalHandler struct {
 func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
 	eventType := r.Header.Get("X-GitHub-Event")
 
+	if eventType == "ping" {
+		event := structFromPayload(eventType, payload)
+		ping := event.(pingEventPayload)
+		http.Error(w, ping.Zen, 200)
+		return
+	}
+
 	if handlers, ok := h.EventHandlers[EventType(eventType)]; ok {
 		h.Context.IncrStat("handler." + eventType)
 		event := structFromPayload(eventType, payload)

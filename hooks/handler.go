@@ -45,7 +45,7 @@ func structFromPayload(eventType string, payload []byte) (event interface{}) {
 	case "PageBuildEvent", "page_build":
 		event = &github.PageBuildEvent{}
 	case "ping":
-		event = PingEventPayload{}
+		event = pingEventPayload{}
 	case "PublicEvent", "public":
 		event = &github.PublicEvent{}
 	case "PullRequestEvent", "pull_request":
