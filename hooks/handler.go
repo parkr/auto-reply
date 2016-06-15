@@ -65,7 +65,7 @@ func structFromPayload(eventType string, payload []byte) (event interface{}) {
 	case "WatchEvent", "watch":
 		event = &github.WatchEvent{}
 	}
-	if err := json.Unmarshal(payload, &event); err != nil {
+	if err := json.Unmarshal(payload, event); err != nil {
 		log.Println("error unmarshalling %s event: %+v", eventType, err)
 		panic(err.Error())
 	}
