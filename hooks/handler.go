@@ -69,5 +69,5 @@ func structFromPayload(eventType string, payload []byte) (event interface{}) {
 		log.Println("error unmarshalling %s event: %+v", eventType, err)
 		panic(err.Error())
 	}
-	return payload
+	return event
 }
