@@ -1,4 +1,4 @@
-package comments
+package auth
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type authenticator struct {
 	context *ctx.Context
 }
 
-func isAuthorizedCommenter(context *ctx.Context, event github.IssueCommentEvent) bool {
+func CommenterHasPushAccess(context *ctx.Context, event github.IssueCommentEvent) bool {
 	auth := authenticator{context: context}
 	orgTeams := auth.teamsForOrg(*event.Repo.Owner.Login)
 	for _, team := range orgTeams {

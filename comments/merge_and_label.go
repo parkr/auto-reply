@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/auth"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/changelog"
 )
@@ -88,7 +89,7 @@ var (
 		number := *event.Issue.Number
 
 		// Does the user have merge/label abilities?
-		if !isAuthorizedCommenter(context, event) {
+		if !auth.CommenterHasPushAccess(context, event) {
 			log.Printf("%s isn't authenticated to merge anything on %s", *event.Comment.User.Login, *event.Repo.FullName)
 			return errors.New("commenter isn't allowed to merge")
 		}
