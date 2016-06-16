@@ -138,9 +138,13 @@ func (s *UsersService) Edit(user *User) (*User, *Response, error) {
 type UserListOptions struct {
 	// ID of the last user seen
 	Since int `url:"since,omitempty"`
+
+	ListOptions
 }
 
 // ListAll lists all GitHub users.
+//
+// To paginate through all users, populate 'Since' with the ID of the last user.
 //
 // GitHub API docs: http://developer.github.com/v3/users/#get-all-users
 func (s *UsersService) ListAll(opt *UserListOptions) ([]User, *Response, error) {

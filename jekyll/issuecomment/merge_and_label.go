@@ -24,6 +24,7 @@ type changelogCategory struct {
 
 var (
 	mergeCommentRegexp = regexp.MustCompile("@[a-zA-Z-_]+: (merge|:shipit:|:ship:)( \\+([a-zA-Z-_ ]+))?")
+	mergeOptions       = &github.PullRequestOptions{Squash: false}
 
 	categories = []changelogCategory{
 		changelogCategory{
@@ -111,7 +112,7 @@ func MergeAndLabel(context *ctx.Context, payload interface{}) error {
 
 	// Merge
 	commitMsg := fmt.Sprintf("Merge pull request %v", number)
-	_, _, mergeErr := context.GitHub.PullRequests.Merge(owner, repo, number, commitMsg)
+	_, _, mergeErr := context.GitHub.PullRequests.Merge(owner, repo, number, commitMsg, mergeOptions)
 	if mergeErr != nil {
 		return context.NewError("MergeAndLabel: error merging %s: %v", ref, mergeErr)
 	}

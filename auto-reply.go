@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/jekyll"
 	"github.com/parkr/auto-reply/labeler"
-	"github.com/parkr/auto-reply/messages"
 )
 
 var context *ctx.Context
@@ -61,8 +61,9 @@ func getSecret(suffix string) []byte {
 func verifyPayload(secret []byte, handler hooks.HookHandler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
-		payload, err := messages.ValidatedPayload(r, secret)
+		payload, err := github.ValidatePayload(r, secret)
 		if err != nil {
+			log.Println("received invalid signature:", err)
 			http.Error(w, err.Error(), http.StatusForbidden)
 			return
 		}

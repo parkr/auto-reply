@@ -1,4 +1,3 @@
-// Remove this when https://github.com/google/go-github/pull/294 is merged
 // Copyright 2016 The go-github AUTHORS. All rights reserved.
 //
 // Use of this source code is governed by a BSD-style
@@ -7,7 +6,7 @@
 // This file provides functions for validating payloads from GitHub Webhooks.
 // GitHub docs: https://developer.github.com/webhooks/securing/#validating-payloads-from-github
 
-package messages
+package github
 
 import (
 	"crypto/hmac"
@@ -24,32 +23,24 @@ import (
 )
 
 const (
-	// sha1Prefix is the prefix used by Github before the HMAC hexdigest.
+	// sha1Prefix is the prefix used by GitHub before the HMAC hexdigest.
 	sha1Prefix = "sha1"
 	// sha256Prefix and sha512Prefix are provided for future compatibility.
 	sha256Prefix = "sha256"
 	sha512Prefix = "sha512"
-	// eventHeader is the Github header key used to pass the event type.
-	eventHeader = "X-GitHub-Event"
-	// signatureHeader is the Github header key used to pass the HMAC hexdigest.
+	// signatureHeader is the GitHub header key used to pass the HMAC hexdigest.
 	signatureHeader = "X-Hub-Signature"
-	// deliveryHeader is the Gihub header key used to pass the globally-unique Github Event ID.
-	deliveryHeader = "X-GitHub-Delivery"
 )
 
-// genMAC generates the HMAC signature for a message provided the secret key and hashFunc.
-// If hashFunc is nil, sha1.New is used.
+// genMAC generates the HMAC signature for a message provided the secret key
+// and hashFunc.
 func genMAC(message, key []byte, hashFunc func() hash.Hash) []byte {
-	if hashFunc == nil {
-		hashFunc = sha1.New
-	}
 	mac := hmac.New(hashFunc, key)
 	mac.Write(message)
 	return mac.Sum(nil)
 }
 
 // checkMAC reports whether messageMAC is a valid HMAC tag for message.
-// If hashFunc is nil, sha1.New is used.
 func checkMAC(message, messageMAC, key []byte, hashFunc func() hash.Hash) bool {
 	expectedMAC := genMAC(message, key, hashFunc)
 	return hmac.Equal(messageMAC, expectedMAC)
@@ -85,28 +76,38 @@ func messageMAC(signature string) ([]byte, func() hash.Hash, error) {
 	return buf, hashFunc, nil
 }
 
-// ValidatedPayload validates an incoming Github Webhook event request
+// ValidatePayload validates an incoming GitHub Webhook event request
 // and returns the (JSON) payload.
 // secretKey is the GitHub Webhook secret message.
-func ValidatedPayload(r *http.Request, secretKey []byte) (payload []byte, err error) {
+//
+// Example usage:
+//
+//     func (s *GitHubEventMonitor) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+//       payload, err := github.ValidatePayload(r, s.webhookSecretKey)
+//       if err != nil { ... }
+//       // Process payload...
+//     }
+//
+func ValidatePayload(r *http.Request, secretKey []byte) (payload []byte, err error) {
 	payload, err = ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
 
 	sig := r.Header.Get(signatureHeader)
-	if err := ValidateSignature(sig, payload, secretKey); err != nil {
+	if err := validateSignature(sig, payload, secretKey); err != nil {
 		return nil, err
 	}
 	return payload, nil
 }
 
-// ValidateSignature validates the signature for the given payload.
+// validateSignature validates the signature for the given payload.
 // signature is the GitHub hash signature delivered in the X-Hub-Signature header.
 // payload is the JSON payload sent by GitHub Webhooks.
 // secretKey is the GitHub Webhook secret message.
+//
 // GitHub docs: https://developer.github.com/webhooks/securing/#validating-payloads-from-github
-func ValidateSignature(signature string, payload, secretKey []byte) error {
+func validateSignature(signature string, payload, secretKey []byte) error {
 	messageMAC, hashFunc, err := messageMAC(signature)
 	if err != nil {
 		return err
