@@ -32,7 +32,7 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 		return
 	}
 
-	log.Printf("payload: %s %s", r.Header().Get("X-GitHub-Event"), string(payload))
+	log.Printf("payload: %s %s", r.Header.Get("X-GitHub-Event"), string(payload))
 
 	if handlers, ok := h.EventHandlers[EventType(eventType)]; ok {
 		numHandlers := h.FireHandlers(handlers, eventType, payload)
