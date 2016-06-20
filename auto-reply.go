@@ -10,7 +10,6 @@ import (
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/jekyll"
-	"github.com/parkr/auto-reply/labeler"
 )
 
 var context *ctx.Context
@@ -30,17 +29,6 @@ func main() {
 	http.HandleFunc("/_github/jekyll", verifyPayload(
 		getSecret("JEKYLL"),
 		jekyllOrgHandler,
-	))
-
-	labelerHandler := labeler.NewHandler(context,
-		[]labeler.PushHandler{},
-		[]labeler.PullRequestHandler{
-			labeler.PendingRebaseNeedsWorkPRUnlabeler,
-		},
-	)
-	http.HandleFunc("/_github/repos/labeler", verifyPayload(
-		getSecret("LABELER"),
-		labelerHandler,
 	))
 
 	log.Printf("Listening on :%s", port)

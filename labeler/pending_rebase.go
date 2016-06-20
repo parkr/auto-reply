@@ -12,7 +12,12 @@ import (
 
 const repoMergeabilityCheckWaitSec = 2
 
-var PendingRebaseNeedsWorkPRUnlabeler = func(context *ctx.Context, event github.PullRequestEvent) error {
+var PendingRebaseNeedsWorkPRUnlabeler = func(context *ctx.Context, payload interface{}) error {
+	event, ok := payload.(*github.PullRequestEvent)
+	if !ok {
+		return context.NewError("PendingRebaseUnlabeler: not a pull request event")
+	}
+
 	if *event.Action != "synchronize" {
 		return nil
 	}
