@@ -1,6 +1,7 @@
 package jekyll
 
 import (
+	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 
@@ -14,6 +15,7 @@ var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 		issuecomment.PendingFeedbackUnlabeler, issuecomment.StaleUnlabeler,
 		issuecomment.MergeAndLabel,
 	},
+	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 }
 
 func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {

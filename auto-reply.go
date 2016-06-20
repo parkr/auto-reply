@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/google/go-github/github"
-	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/jekyll"
@@ -31,12 +30,6 @@ func main() {
 	http.HandleFunc("/_github/jekyll", verifyPayload(
 		getSecret("JEKYLL"),
 		jekyllOrgHandler,
-	))
-
-	autoPullHandler := autopull.NewHandler(context, []string{"jekyll/jekyll"})
-	http.HandleFunc("/_github/repos/autopull", verifyPayload(
-		getSecret("AUTOPULL"),
-		autoPullHandler,
 	))
 
 	labelerHandler := labeler.NewHandler(context,
