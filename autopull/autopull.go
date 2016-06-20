@@ -10,49 +10,6 @@ import (
 	"github.com/parkr/auto-reply/hooks"
 )
 
-var (
-	baseBranch *string = github.String("master")
-)
-
-func shortMessage(message string) string {
-	return strings.SplitN(message, "\n", 1)[0]
-}
-
-// branchFromRef takes "refs/heads/pull/my-pull" and returns "pull/my-pull"
-func branchFromRef(ref string) string {
-	return strings.Replace(ref, "refs/heads/", "", 1)
-}
-
-func prBodyForPush(push *github.PushEvent) string {
-	var mention string
-	if author := push.Commits[0].Author; author != nil {
-		if author.Login != nil {
-			mention = *author.Login
-		} else {
-			mention = *author.Name
-		}
-	} else {
-		mention = "unknown"
-	}
-	return fmt.Sprintf(
-		"PR automatically created for @%s.\n\n```text\n%s\n```",
-		mention,
-		*push.Commits[0].Message,
-	)
-}
-
-func newPRForPush(push *github.PushEvent) *github.NewPullRequest {
-	if push.Commits == nil || len(push.Commits) == 0 {
-		return nil
-	}
-	return &github.NewPullRequest{
-		Title: github.String(shortMessage(*push.Commits[0].Message)),
-		Head:  github.String(branchFromRef(*push.Ref)),
-		Base:  github.String("master"),
-		Body:  github.String(prBodyForPush(push)),
-	}
-}
-
 func AutomaticallyCreatePullRequest(repos ...string) hooks.EventHandler {
 	puller := autoPuller{repos: repos}
 	return puller.Handler
@@ -94,4 +51,43 @@ func (h *autoPuller) Handler(context *ctx.Context, event interface{}) error {
 	}
 
 	return nil
+}
+
+func shortMessage(message string) string {
+	return strings.SplitN(message, "\n", 1)[0]
+}
+
+// branchFromRef takes "refs/heads/pull/my-pull" and returns "pull/my-pull"
+func branchFromRef(ref string) string {
+	return strings.Replace(ref, "refs/heads/", "", 1)
+}
+
+func prBodyForPush(push *github.PushEvent) string {
+	var mention string
+	if author := push.Commits[0].Author; author != nil {
+		if author.Login != nil {
+			mention = *author.Login
+		} else {
+			mention = *author.Name
+		}
+	} else {
+		mention = "unknown"
+	}
+	return fmt.Sprintf(
+		"PR automatically created for @%s.\n\n```text\n%s\n```",
+		mention,
+		*push.Commits[0].Message,
+	)
+}
+
+func newPRForPush(push *github.PushEvent) *github.NewPullRequest {
+	if push.Commits == nil || len(push.Commits) == 0 {
+		return nil
+	}
+	return &github.NewPullRequest{
+		Title: github.String(shortMessage(*push.Commits[0].Message)),
+		Head:  github.String(branchFromRef(*push.Ref)),
+		Base:  github.String("master"),
+		Body:  github.String(prBodyForPush(push)),
+	}
 }
