@@ -32,6 +32,8 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 		return
 	}
 
+	log.Println("payload:", string(payload))
+
 	if handlers, ok := h.EventHandlers[EventType(eventType)]; ok {
 		numHandlers := h.FireHandlers(handlers, eventType, payload)
 
