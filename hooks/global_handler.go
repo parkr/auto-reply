@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/parkr/auto-reply/ctx"
 )
@@ -32,7 +33,9 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 		return
 	}
 
-	log.Printf("payload: %s %s", r.Header.Get("X-GitHub-Event"), string(payload))
+	if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
+		log.Printf("payload: %s %s", r.Header.Get("X-GitHub-Event"), string(payload))
+	}
 
 	if handlers, ok := h.EventHandlers[EventType(eventType)]; ok {
 		numHandlers := h.FireHandlers(handlers, eventType, payload)
