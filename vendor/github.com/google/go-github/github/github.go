@@ -29,7 +29,7 @@ const (
 )
 
 const (
-	libraryVersion = "0.1"
+	libraryVersion = "2"
 	defaultBaseURL = "https://api.github.com/"
 	uploadBaseURL  = "https://uploads.github.com/"
 	userAgent      = "go-github/" + libraryVersion
@@ -78,6 +78,12 @@ const (
 
 	// https://developer.github.com/changes/2016-5-27-multiple-assignees/
 	mediaTypeMultipleAssigneesPreview = "application/vnd.github.cerberus-preview+json"
+
+	// https://developer.github.com/changes/2016-05-23-timeline-preview-api/
+	mediaTypeTimelinePreview = "application/vnd.github.mockingbird-preview+json"
+
+	// https://developer.github.com/changes/2016-06-14-repository-invitations/
+	mediaTypeRepositoryInvitationsPreview = "application/vnd.github.swamp-thing-preview+json"
 )
 
 // A Client manages communication with the GitHub API.

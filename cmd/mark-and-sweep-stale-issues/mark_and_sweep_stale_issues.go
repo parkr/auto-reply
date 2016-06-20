@@ -196,7 +196,7 @@ func linkify(owner, name string, number int) string {
 	}
 }
 
-func isStale(issue github.Issue) bool {
+func isStale(issue *github.Issue) bool {
 	return issue.PullRequestLinks == nil && !isUpdatedInLastMonth(*issue.UpdatedAt) && hasStaleableLabel(issue)
 }
 
@@ -204,7 +204,7 @@ func isUpdatedInLastMonth(updatedAt time.Time) bool {
 	return updatedAt.Unix() >= oneMonthAgo.Unix()
 }
 
-func hasStaleableLabel(issue github.Issue) bool {
+func hasStaleableLabel(issue *github.Issue) bool {
 	if issue.Labels == nil {
 		return true
 	}
@@ -224,7 +224,7 @@ func hasStaleableLabel(issue github.Issue) bool {
 	return false
 }
 
-func hasStaleLabel(issue github.Issue) bool {
+func hasStaleLabel(issue *github.Issue) bool {
 	if issue.Labels == nil {
 		return false
 	}

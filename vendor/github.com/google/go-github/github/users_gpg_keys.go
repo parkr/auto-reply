@@ -43,7 +43,7 @@ type GPGEmail struct {
 // via Basic Auth or via OAuth with at least read:gpg_key scope.
 //
 // GitHub API docs: https://developer.github.com/v3/users/gpg_keys/#list-your-gpg-keys
-func (s *UsersService) ListGPGKeys() ([]GPGKey, *Response, error) {
+func (s *UsersService) ListGPGKeys() ([]*GPGKey, *Response, error) {
 	req, err := s.client.NewRequest("GET", "user/gpg_keys", nil)
 	if err != nil {
 		return nil, nil, err
@@ -52,7 +52,7 @@ func (s *UsersService) ListGPGKeys() ([]GPGKey, *Response, error) {
 	// TODO: remove custom Accept header when this API fully launches.
 	req.Header.Set("Accept", mediaTypeGitSigningPreview)
 
-	var keys []GPGKey
+	var keys []*GPGKey
 	resp, err := s.client.Do(req, &keys)
 	if err != nil {
 		return nil, resp, err
@@ -90,10 +90,8 @@ func (s *UsersService) GetGPGKey(id int) (*GPGKey, *Response, error) {
 // GitHub API docs: https://developer.github.com/v3/users/gpg_keys/#create-a-gpg-key
 func (s *UsersService) CreateGPGKey(armoredPublicKey string) (*GPGKey, *Response, error) {
 	gpgKey := &struct {
-		ArmoredPublicKey *string `json:"armored_public_key,omitempty"`
-	}{
-		ArmoredPublicKey: String(armoredPublicKey),
-	}
+		ArmoredPublicKey string `json:"armored_public_key"`
+	}{ArmoredPublicKey: armoredPublicKey}
 	req, err := s.client.NewRequest("POST", "user/gpg_keys", gpgKey)
 	if err != nil {
 		return nil, nil, err

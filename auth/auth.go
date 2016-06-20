@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	teamsCache             = map[string][]github.Team{}
+	teamsCache             = map[string][]*github.Team{}
 	teamHasPushAccessCache = map[string]*github.Repository{}
 	teamMembershipCache    = map[string]bool{}
 )
@@ -60,7 +60,7 @@ func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool
 	return permissions["push"] || permissions["admin"]
 }
 
-func (auth authenticator) teamsForOrg(org string) []github.Team {
+func (auth authenticator) teamsForOrg(org string) []*github.Team {
 	if _, ok := teamsCache[org]; !ok {
 		teamz, _, err := auth.context.GitHub.Organizations.ListTeams(org, &github.ListOptions{
 			PerPage: 100,
