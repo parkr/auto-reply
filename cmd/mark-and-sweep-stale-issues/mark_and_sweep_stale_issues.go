@@ -14,84 +14,24 @@ import (
 )
 
 var (
-	staleableLabels = []string{
-		"bug",
-		"discussion",
-		"documentation",
-		"downstream-issue",
-		"downstream:github-pages",
-		"duplicate",
-		"enhancement",
-		"feature",
-		"suggestion",
-		"needs-work",
-		"not-reproduced",
-		"old-stable",
-		"pending-feedback",
-		"plugin-feature",
-		"question",
-		"stale",
-		"support",
-		"undetermined",
-		"upstream:issue",
-		"wont-fix",
-		`¯\_(ツ)_/¯`,
-		"★",
-		"★★",
-		"★★★",
-		"★★★★",
-		"★★★★★",
+	nonStaleableLabels = []string{
+		"has-pull-request",
+		"security",
 	}
 
 	repos = []*github.Repository{
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-import"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("github-metadata"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-redirect-from"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-feed"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-compose"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-watch"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-sitemap"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-sass-converter"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jemoji"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-gist"),
-		},
-		&github.Repository{
-			Owner: &github.User{Login: github.String("jekyll")},
-			Name:  github.String("jekyll-coffeescript"),
-		},
+		repo("jekyll", "jekyll"),
+		repo("jekyll", "jekyll-import"),
+		repo("jekyll", "github-metadata"),
+		repo("jekyll", "jekyll-redirect-from"),
+		repo("jekyll", "jekyll-feed"),
+		repo("jekyll", "jekyll-compose"),
+		repo("jekyll", "jekyll-watch"),
+		repo("jekyll", "jekyll-sitemap"),
+		repo("jekyll", "jekyll-sass-converter"),
+		repo("jekyll", "jemoji"),
+		repo("jekyll", "jekyll-gist"),
+		repo("jekyll", "jekyll-coffeescript"),
 	}
 
 	oneMonthAgo = time.Now().AddDate(0, -1, 0)
@@ -105,18 +45,13 @@ var (
 
 	staleIssueComment = &github.IssueComment{
 		Body: github.String(`
-This issue has been automatically marked as stale because it has not been commented on for at least
-one month.
+This issue has been automatically marked as stale because it has not been commented on for at least one month.
 
 The resources of the Jekyll team are limited, and so we are asking for your help.
 
-If you can still reproduce this error on the <code>3.1-stable</code> or <code>master</code> branch,
-please reply with all of the information you have about it in order to keep the issue open.
+If you can still reproduce this error on the <code>3.1-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
 
-If this is a feature request, please consider building it first as a plugin. Jekyll 3 introduced
-[hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout
-the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be
-built as a plugin, then please provide more information about why in order to keep this issue open.
+If this is a feature request, please consider building it first as a plugin. Jekyll 3 introduced [hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be built as a plugin, then please provide more information about why in order to keep this issue open.
 
 Thank you for all your contributions.
 `),
@@ -155,7 +90,7 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 
 	for _, issue := range issues {
 		if isStale(issue) {
-			if hasStaleLabel(issue) {
+			if isStaleable(issue) {
 				// Close.
 				if actuallyDoIt {
 					number := *issue.Number
@@ -202,14 +137,14 @@ func linkify(owner, name string, number int) string {
 }
 
 func isStale(issue *github.Issue) bool {
-	return issue.PullRequestLinks == nil && !isUpdatedInLastMonth(*issue.UpdatedAt) && hasStaleableLabel(issue)
+	return issue.PullRequestLinks == nil && !isUpdatedInLastMonth(*issue.UpdatedAt) && isStaleable(issue)
 }
 
 func isUpdatedInLastMonth(updatedAt time.Time) bool {
 	return updatedAt.Unix() >= oneMonthAgo.Unix()
 }
 
-func hasStaleableLabel(issue *github.Issue) bool {
+func isStaleable(issue *github.Issue) bool {
 	if issue.Labels == nil {
 		return true
 	}
@@ -218,15 +153,15 @@ func hasStaleableLabel(issue *github.Issue) bool {
 		return true
 	}
 
-	for _, staleableLabel := range staleableLabels {
+	for _, staleableLabel := range nonStaleableLabels {
 		for _, issueLabel := range issue.Labels {
 			if *issueLabel.Name == staleableLabel {
-				return true
+				return false
 			}
 		}
 	}
 
-	return false
+	return true
 }
 
 func hasStaleLabel(issue *github.Issue) bool {
@@ -241,4 +176,11 @@ func hasStaleLabel(issue *github.Issue) bool {
 	}
 
 	return false
+}
+
+func repo(owner, name string) *github.Repository {
+	return &github.Repository{
+		Owner: &github.User{Login: github.String(owner)},
+		Name:  github.String(name),
+	}
 }
