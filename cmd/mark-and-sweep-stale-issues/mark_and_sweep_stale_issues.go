@@ -36,6 +36,11 @@ var (
 		"upstream:issue",
 		"wont-fix",
 		`¯\_(ツ)_/¯`,
+		"★",
+		"★★",
+		"★★★",
+		"★★★★",
+		"★★★★★",
 	}
 
 	repos = []*github.Repository{
