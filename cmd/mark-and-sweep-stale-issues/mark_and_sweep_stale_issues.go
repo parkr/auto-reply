@@ -90,7 +90,7 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 
 	for _, issue := range issues {
 		if isStale(issue) {
-			if isStaleable(issue) {
+			if hasStaleLabel(issue) {
 				// Close.
 				if actuallyDoIt {
 					number := *issue.Number
