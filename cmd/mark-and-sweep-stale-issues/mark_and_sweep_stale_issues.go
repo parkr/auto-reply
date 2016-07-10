@@ -34,7 +34,7 @@ var (
 		repo("jekyll", "jekyll-coffeescript"),
 	}
 
-	oneMonthAgo = time.Now().AddDate(0, -1, 0)
+	twoMonthsAgo = time.Now().AddDate(0, -2, 0)
 
 	staleIssuesListOptions = &github.IssueListByRepoOptions{
 		State:       "open",
@@ -43,17 +43,31 @@ var (
 		ListOptions: github.ListOptions{PerPage: 200},
 	}
 
-	staleIssueComment = &github.IssueComment{
+	staleJekyllIssueComment = &github.IssueComment{
 		Body: github.String(`
-This issue has been automatically marked as stale because it has not been commented on for at least one month.
+This issue has been automatically marked as stale because it has not been commented on for at least two months.
 
 The resources of the Jekyll team are limited, and so we are asking for your help.
 
-If you can still reproduce this error on the <code>3.1-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
+If this is a **bug** and you can still reproduce this error on the <code>3.1-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
 
-If this is a feature request, please consider building it first as a plugin. Jekyll 3 introduced [hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be built as a plugin, then please provide more information about why in order to keep this issue open.
+If this is a **feature request**, please consider building it first as a plugin. Jekyll 3 introduced [hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be built as a plugin, then please provide more information about why in order to keep this issue open.
 
-Thank you for all your contributions.
+This issue will automatically be closed in two months if no further activity occurs. Thank you for all your contributions.
+`),
+	}
+
+	staleNonJekyllIssueComment = &github.IssueComment{
+		Body: github.String(`
+This issue has been automatically marked as stale because it has not been commented on for at least two months.
+
+The resources of the Jekyll team are limited, and so we are asking for your help.
+
+If this is a **bug** and you can still reproduce this error on the <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
+
+If this is a feature request, please consider whether it can be accomplished in another way. If it cannot, please elaborate on why it is core to this project and why you feel more than 80% of users would find this beneficial.
+
+This issue will automatically be closed in two months if no further activity occurs. Thank you for all your contributions.
 `),
 	}
 )
@@ -74,7 +88,7 @@ func main() {
 }
 
 func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Repository, actuallyDoIt bool) {
-	owner, name, nonStaleIssues := *repo.Owner.Login, *repo.Name, 0
+	owner, name, nonStaleIssues, failedIssues := *repo.Owner.Login, *repo.Name, 0, 0
 
 	issues, resp, err := client.Issues.ListByRepo(owner, name, staleIssuesListOptions)
 	err = common.ErrorFromResponse(resp, err)
@@ -90,33 +104,9 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 
 	for _, issue := range issues {
 		if isStale(issue) {
-			if hasStaleLabel(issue) {
-				// Close.
-				if actuallyDoIt {
-					number := *issue.Number
-					log.Printf("%s is stale & notified (closing).", linkify(owner, name, number))
-					_, resp, err := client.Issues.Edit(
-						owner,
-						name,
-						number,
-						&github.IssueRequest{State: github.String("closed")},
-					)
-					err = common.ErrorFromResponse(resp, err)
-					if err != nil {
-						log.Fatalf("!!! could not close issue %s: %v", linkify(owner, name, number), err)
-					}
-				} else {
-					log.Printf("%s is stale & notified (dry-run).", linkify(owner, name, *issue.Number))
-				}
-			} else {
-				// Mark as stale.
-				if actuallyDoIt {
-					log.Printf("%s is stale (marking).", linkify(owner, name, *issue.Number))
-					labeler.AddLabels(client, owner, name, *issue.Number, []string{"stale"})
-					client.Issues.CreateComment(owner, name, *issue.Number, staleIssueComment)
-				} else {
-					log.Printf("%s is stale (dry-run).", linkify(owner, name, *issue.Number))
-				}
+			err := handleStaleIssue(client, repo, issue, actuallyDoIt)
+			if err != nil {
+				failedIssues += 1
 			}
 		} else {
 			nonStaleIssues += 1
@@ -124,8 +114,56 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 	}
 
 	log.Printf("%s -- ignored non-stale issues: %d", linkify(owner, name, -1), nonStaleIssues)
+	log.Printf("%s -- failed issues: %d", linkify(owner, name, -1), failedIssues)
 
 	wg.Done()
+}
+
+func handleStaleIssue(client *github.Client, repo *github.Repository, issue *github.Issue, actuallyDoIt bool) error {
+	owner, name, number := *repo.Owner.Login, *repo.Name, *issue.Number
+	issueRef := linkify(owner, name, number)
+
+	if hasStaleLabel(issue) {
+		// Close.
+		if actuallyDoIt {
+			number := *issue.Number
+			log.Printf("%s is stale & notified (closing).", issueRef)
+			_, resp, err := client.Issues.Edit(
+				owner,
+				name,
+				number,
+				&github.IssueRequest{State: github.String("closed")},
+			)
+			err = common.ErrorFromResponse(resp, err)
+			if err != nil {
+				log.Printf("%s !!! could not close issue: %v", issueRef, err)
+				return err
+			}
+		} else {
+			log.Printf("%s is stale & notified (dry-run).", issueRef)
+		}
+	} else {
+		// Mark as stale.
+		if actuallyDoIt {
+			log.Printf("%s is stale (marking).", issueRef)
+			err := labeler.AddLabels(client, owner, name, number, []string{"stale"})
+			if err != nil {
+				log.Printf("%s !!! could not add stale label: %v", issueRef, err)
+				return err
+			}
+
+			_, resp, err := client.Issues.CreateComment(owner, name, number, staleIssueComment(repo))
+			err = common.ErrorFromResponse(resp, err)
+			if err != nil {
+				log.Printf("%s !!! could not leave comment: %v", issueRef, err)
+				return err
+			}
+		} else {
+			log.Printf("%s is stale (dry-run).", issueRef)
+		}
+	}
+
+	return nil
 }
 
 func linkify(owner, name string, number int) string {
@@ -137,11 +175,11 @@ func linkify(owner, name string, number int) string {
 }
 
 func isStale(issue *github.Issue) bool {
-	return issue.PullRequestLinks == nil && !isUpdatedInLastMonth(*issue.UpdatedAt) && isStaleable(issue)
+	return issue.PullRequestLinks == nil && !isUpdatedInLast2Months(*issue.UpdatedAt) && isStaleable(issue)
 }
 
-func isUpdatedInLastMonth(updatedAt time.Time) bool {
-	return updatedAt.Unix() >= oneMonthAgo.Unix()
+func isUpdatedInLast2Months(updatedAt time.Time) bool {
+	return updatedAt.Unix() >= twoMonthsAgo.Unix()
 }
 
 func isStaleable(issue *github.Issue) bool {
@@ -176,6 +214,14 @@ func hasStaleLabel(issue *github.Issue) bool {
 	}
 
 	return false
+}
+
+func staleIssueComment(repo *github.Repository) *github.IssueComment {
+	if *repo.Name == "jekyll" {
+		return staleJekyllIssueComment
+	} else {
+		return staleNonJekyllIssueComment
+	}
 }
 
 func repo(owner, name string) *github.Repository {
