@@ -37,7 +37,7 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "3f122ce3dbbe488b7e6a8bdb26f41edec852a40b"
+			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
