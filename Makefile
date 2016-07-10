@@ -7,9 +7,9 @@ deps:
 
 .PHONY: build
 build:
-	godep go build
-	godep go build ./cmd/unearth
-	godep go build ./cmd/mark-and-sweep-stale-issues
+	godep go build -o ./bin/auto-reply
+	godep go build -o ./bin/unearth ./cmd/unearth
+	godep go build -o ./mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
 
 .PHONY: test
 test:
@@ -17,16 +17,16 @@ test:
 
 .PHONY: server
 server: build
-	source .env && ./auto-reply
+	source .env && ./bin/auto-reply
 
 .PHONY: unearth
 unearth: build
-	source .env && ./unearth
+	source .env && ./bin/unearth
 
 .PHONY: mark-and-sweep
 mark-and-sweep: build
-	source .env && ./mark-and-sweep-stale-issues
+	source .env && ./bin/mark-and-sweep-stale-issues
 
 .PHONY: clean
 clean:
-	rm auto-reply unearth mark-and-sweep-stale-issues
+	rm -r bin
