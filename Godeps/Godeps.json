@@ -41,11 +41,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "8a57ed94ffd43444c0879fe75701732a38afc985"
+			"Rev": "7357e96168422ba1e6e7f21075713b72d58764e7"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "8a57ed94ffd43444c0879fe75701732a38afc985"
+			"Rev": "7357e96168422ba1e6e7f21075713b72d58764e7"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
