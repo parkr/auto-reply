@@ -14,12 +14,11 @@ import (
 // methods of the GitHub API.
 //
 // GitHub API docs: http://developer.github.com/v3/pulls/
-type PullRequestsService struct {
-	client *Client
-}
+type PullRequestsService service
 
 // PullRequest represents a GitHub pull request on a repository.
 type PullRequest struct {
+	ID           *int       `json:"id,omitempty"`
 	Number       *int       `json:"number,omitempty"`
 	State        *string    `json:"state,omitempty"`
 	Title        *string    `json:"title,omitempty"`

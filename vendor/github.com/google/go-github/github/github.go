@@ -55,9 +55,6 @@ const (
 	// https://developer.github.com/changes/2015-11-11-protected-branches-api/
 	mediaTypeProtectedBranchesPreview = "application/vnd.github.loki-preview+json"
 
-	// https://developer.github.com/changes/2016-02-11-issue-locking-api/
-	mediaTypeIssueLockingPreview = "application/vnd.github.the-key-preview+json"
-
 	// https://help.github.com/enterprise/2.4/admin/guides/migrations/exporting-the-github-com-organization-s-repositories/
 	mediaTypeMigrationsPreview = "application/vnd.github.wyandotte-preview+json"
 
@@ -84,6 +81,9 @@ const (
 
 	// https://developer.github.com/changes/2016-06-14-repository-invitations/
 	mediaTypeRepositoryInvitationsPreview = "application/vnd.github.swamp-thing-preview+json"
+
+	// https://developer.github.com/changes/2016-04-21-oauth-authorizations-grants-api-preview/
+	mediaTypeOAuthGrantAuthorizationsPreview = "application/vnd.github.damage-preview+json"
 )
 
 // A Client manages communication with the GitHub API.
@@ -108,6 +108,8 @@ type Client struct {
 	rateLimits [categories]Rate // Rate limits for the client as determined by the most recent API calls.
 	mostRecent rateLimitCategory
 
+	common service // Reuse a single struct instead of allocating one for each service on the heap.
+
 	// Services used for talking to different parts of the GitHub API.
 	Activity       *ActivityService
 	Authorizations *AuthorizationsService
@@ -123,6 +125,10 @@ type Client struct {
 	Licenses       *LicensesService
 	Migrations     *MigrationService
 	Reactions      *ReactionsService
+}
+
+type service struct {
+	client *Client
 }
 
 // ListOptions specifies the optional parameters to various List methods that
@@ -174,20 +180,21 @@ func NewClient(httpClient *http.Client) *Client {
 	uploadURL, _ := url.Parse(uploadBaseURL)
 
 	c := &Client{client: httpClient, BaseURL: baseURL, UserAgent: userAgent, UploadURL: uploadURL}
-	c.Activity = &ActivityService{client: c}
-	c.Authorizations = &AuthorizationsService{client: c}
-	c.Gists = &GistsService{client: c}
-	c.Git = &GitService{client: c}
-	c.Gitignores = &GitignoresService{client: c}
-	c.Issues = &IssuesService{client: c}
-	c.Organizations = &OrganizationsService{client: c}
-	c.PullRequests = &PullRequestsService{client: c}
-	c.Repositories = &RepositoriesService{client: c}
-	c.Search = &SearchService{client: c}
-	c.Users = &UsersService{client: c}
-	c.Licenses = &LicensesService{client: c}
-	c.Migrations = &MigrationService{client: c}
-	c.Reactions = &ReactionsService{client: c}
+	c.common.client = c
+	c.Activity = (*ActivityService)(&c.common)
+	c.Authorizations = (*AuthorizationsService)(&c.common)
+	c.Gists = (*GistsService)(&c.common)
+	c.Git = (*GitService)(&c.common)
+	c.Gitignores = (*GitignoresService)(&c.common)
+	c.Issues = (*IssuesService)(&c.common)
+	c.Licenses = (*LicensesService)(&c.common)
+	c.Migrations = (*MigrationService)(&c.common)
+	c.Organizations = (*OrganizationsService)(&c.common)
+	c.PullRequests = (*PullRequestsService)(&c.common)
+	c.Reactions = (*ReactionsService)(&c.common)
+	c.Repositories = (*RepositoriesService)(&c.common)
+	c.Search = (*SearchService)(&c.common)
+	c.Users = (*UsersService)(&c.common)
 	return c
 }
 
