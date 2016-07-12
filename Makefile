@@ -9,7 +9,7 @@ deps:
 build:
 	godep go build -o ./bin/auto-reply
 	godep go build -o ./bin/unearth ./cmd/unearth
-	godep go build -o ./mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
+	godep go build -o ./bin/mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
 
 .PHONY: test
 test:

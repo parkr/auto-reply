@@ -91,9 +91,7 @@ func MergeAndLabel(context *ctx.Context, payload interface{}) error {
 
 	var wg sync.WaitGroup
 
-	owner := *event.Repo.Owner.Login
-	repo := *event.Repo.Name
-	number := *event.Issue.Number
+	owner, repo, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number
 	ref := fmt.Sprintf("%s/%s#%d", owner, repo, number)
 
 	// Does the user have merge/label abilities?
