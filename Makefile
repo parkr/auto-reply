@@ -7,7 +7,7 @@ deps:
 
 .PHONY: build
 build:
-	godep go build -o ./bin/auto-reply
+	godep go build -o ./bin/jekyllbot ./cmd/jekyllbot
 	godep go build -o ./bin/unearth ./cmd/unearth
 	godep go build -o ./bin/mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
 
