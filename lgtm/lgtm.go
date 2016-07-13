@@ -3,7 +3,6 @@ package lgtm
 import (
 	"fmt"
 	"regexp"
-	"strings"
 	"sync"
 
 	"github.com/google/go-github/github"
@@ -16,17 +15,12 @@ const lgtmContext = "jekyll/lgtm"
 var (
 	lgtmBodyRegexp = regexp.MustCompile(`(?i:\ALGTM\s+|\s+LGTM\.?\z|\ALGTM\.?\z)`)
 
-	statusCache = statusMap{data: make(map[string]*github.RepoStatus)}
+	statusCache = statusMap{data: make(map[string]*statusInfo)}
 )
 
 type statusMap struct {
 	sync.Mutex // protects data
-	data       map[string]*github.RepoStatus
-}
-
-type statusInfo struct {
-	lgtmers    []string
-	repoStatus *github.RepoStatus
+	data       map[string]*statusInfo
 }
 
 type prRef struct {
@@ -65,24 +59,19 @@ func IssueCommentHandler(context *ctx.Context, payload interface{}) error {
 	}
 
 	// Get status
-	status, err := getStatus(context, ref)
+	info, err := getStatus(context, ref)
 	if err != nil {
 		return context.NewError("lgtm.IssueCommentHandler: couldn't get status for %s: %v", ref, err)
 	}
 
-	statusInfo, err := parseStatus(status)
-	if err != nil {
-		return context.NewError("lgtm.IssueCommentHandler: couldn't parse status for %s: %v", ref, err)
-	}
-
 	// Already LGTM'd by you? Exit.
-	if statusInfo.IsLGTMer(lgtmer) {
+	if info.IsLGTMer(lgtmer) {
 		return context.NewError(
 			"lgtm.IssueCommentHandler: no duplicate LGTM allowed for @%s on %s", lgtmer, ref)
 	}
 
-	newStatus := "add lgtmer and generate a new status with that info."
-	if err := setStatus(); err != nil {
+	info.lgtmers = append(info.lgtmers, "@"+lgtmer)
+	if err := setStatus(context, ref, info.sha, info); err != nil {
 		return context.NewError(
 			"lgtm.IssueCommentHandler: had trouble adding lgtmer '%s' on %s: %v",
 			lgtmer, ref, err)
@@ -114,20 +103,20 @@ func PullRequestHandler(context *ctx.Context, payload interface{}) error {
 	return nil
 }
 
-func setStatus(context *ctx.Context, ref prRef, sha string, status *github.RepoStatus) error {
-	newStatus, _, err := context.GitHub.Repositories.CreateStatus(ref.Owner, ref.Name, sha, status)
+func setStatus(context *ctx.Context, ref prRef, sha string, status *statusInfo) error {
+	_, _, err := context.GitHub.Repositories.CreateStatus(ref.Owner, ref.Name, sha, status.NewStatus())
 	if err != nil {
 		return err
 	}
 
 	statusCache.Lock()
-	statusCache.data[ref.String()] = newStatus
+	statusCache.data[ref.String()] = status
 	statusCache.Unlock()
 
 	return nil
 }
 
-func getStatus(context *ctx.Context, ref prRef) (*github.RepoStatus, error) {
+func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
 	statusCache.Lock()
 	cachedStatus, ok := statusCache.data[ref.String()]
 	statusCache.Unlock()
@@ -146,42 +135,26 @@ func getStatus(context *ctx.Context, ref prRef) (*github.RepoStatus, error) {
 	}
 
 	var preExistingStatus *github.RepoStatus
+	var info *statusInfo
 	for _, status := range statuses {
 		if *status.Context == lgtmContext {
 			preExistingStatus = status
+			info = parseStatus(*pr.Head.SHA, status)
 			break
 		}
 	}
 
 	if preExistingStatus == nil {
 		preExistingStatus = newEmptyStatus()
-		setStatus(context, ref, *pr.Head.SHA, preExistingStatus)
+		info = parseStatus(*pr.Head.SHA, preExistingStatus)
+		setStatus(context, ref, *pr.Head.SHA, info)
 	}
 
 	statusCache.Lock()
-	statusCache.data[ref.String()] = preExistingStatus
+	statusCache.data[ref.String()] = info
 	statusCache.Unlock()
 
-	return preExistingStatus, nil
-}
-
-func parseStatus(repoStatus *github.RepoStatus) (statusInfo, error) {
-	return statusInfo{}, fmt.Errorf("lgtm.parseStatus: not implemented yet")
-}
-
-func generateDescription(lgtmers []string) string {
-	switch len(lgtmers) {
-	case 0:
-		return "This pull request has not received any LGTM's."
-	case 1:
-		return fmt.Sprintf("%s has approved this PR.", lgtmers[0])
-	case 2:
-		return fmt.Sprintf("%s and %s have approved this PR.", lgtmers[0], lgtmers[1])
-	default:
-		lastIndex := len(lgtmers) - 1
-		return fmt.Sprintf("%s, and %s have approved this PR.",
-			strings.Join(lgtmers[0:lastIndex], ","), lgtmers[lastIndex])
-	}
+	return info, nil
 }
 
 func newEmptyStatus() *github.RepoStatus {
