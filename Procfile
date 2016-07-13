@@ -1,1 +1,1 @@
-web: auto-reply -port=$PORT
+web: jekyllbot -port=$PORT

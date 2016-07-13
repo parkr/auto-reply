@@ -1,3 +1,4 @@
+// jekyllbot is the server which controls @jekyllbot on GitHub.
 package main
 
 import (
