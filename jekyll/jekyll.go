@@ -11,7 +11,7 @@ import (
 	"github.com/parkr/auto-reply/jekyll/issuecomment"
 )
 
-var lgtmEnabledRepos = []lgtm.Repo{{Owner: "jekyll", Name: "import", Quorum: 1}}
+var lgtmEnabledRepos = []lgtm.Repo{{Owner: "jekyll", Name: "jekyll-import", Quorum: 1}}
 
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	hooks.IssuesEvent: {deprecate.DeprecateOldRepos},
