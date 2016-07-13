@@ -8,6 +8,8 @@ import (
 	"github.com/google/go-github/github"
 )
 
+const descriptionNoLGTMers = "This pull request has received no LGTM's."
+
 var lgtmerExtractor = regexp.MustCompile("@[a-zA-Z0-9_-]+")
 
 type statusInfo struct {
@@ -17,7 +19,7 @@ type statusInfo struct {
 }
 
 func parseStatus(sha string, repoStatus *github.RepoStatus) *statusInfo {
-	status := &statusInfo{sha: sha, repoStatus: repoStatus}
+	status := &statusInfo{sha: sha, repoStatus: repoStatus, lgtmers: []string{}}
 
 	if repoStatus.Description != nil {
 		lgtmersExtracted := lgtmerExtractor.FindAllStringSubmatch(*repoStatus.Description, -1)
@@ -34,16 +36,18 @@ func parseStatus(sha string, repoStatus *github.RepoStatus) *statusInfo {
 }
 
 func (s statusInfo) IsLGTMer(username string) bool {
+	lowerUsername := strings.ToLower(username)
 	for _, lgtmer := range s.lgtmers {
-		if lgtmer == username || lgtmer == "@"+username {
+		lowerLgtmer := strings.ToLower(lgtmer)
+		if lowerLgtmer == lowerUsername || lowerLgtmer == "@"+lowerUsername {
 			return true
 		}
 	}
 	return false
 }
 
-func newState(lgtmers []string) string {
-	if len(lgtmers) >= 2 {
+func newState(lgtmers []string, quorum int) string {
+	if len(lgtmers) >= quorum {
 		return "success"
 	}
 	return "failure"
@@ -52,7 +56,7 @@ func newState(lgtmers []string) string {
 func newDescription(lgtmers []string) string {
 	switch len(lgtmers) {
 	case 0:
-		return "This pull request has not received any LGTM's."
+		return descriptionNoLGTMers
 	case 1:
 		return fmt.Sprintf("%s has approved this PR.", lgtmers[0])
 	case 2:
@@ -60,18 +64,18 @@ func newDescription(lgtmers []string) string {
 	default:
 		lastIndex := len(lgtmers) - 1
 		return fmt.Sprintf("%s, and %s have approved this PR.",
-			strings.Join(lgtmers[0:lastIndex], ","), lgtmers[lastIndex])
+			strings.Join(lgtmers[0:lastIndex], ", "), lgtmers[lastIndex])
 	}
 }
 
-func statusStateAndDescription(lgtmers []string) (state string, description string) {
-	return newState(lgtmers), newDescription(lgtmers)
+func statusStateAndDescription(lgtmers []string, quorum int) (state string, description string) {
+	return newState(lgtmers, quorum), newDescription(lgtmers)
 }
 
-func (s statusInfo) NewStatus() *github.RepoStatus {
-	state, description := statusStateAndDescription(s.lgtmers)
+func (s statusInfo) NewStatus(owner string, quorum int) *github.RepoStatus {
+	state, description := statusStateAndDescription(s.lgtmers, quorum)
 	return &github.RepoStatus{
-		Context:     github.String(lgtmContext),
+		Context:     github.String(lgtmContext(owner)),
 		State:       github.String(state),
 		Description: github.String(description),
 	}

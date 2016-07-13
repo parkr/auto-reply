@@ -3,36 +3,52 @@ package lgtm
 import (
 	"fmt"
 	"regexp"
-	"sync"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/auth"
 	"github.com/parkr/auto-reply/ctx"
+	"github.com/parkr/auto-reply/hooks"
 )
 
-const lgtmContext = "jekyll/lgtm"
+var lgtmBodyRegexp = regexp.MustCompile(`(?i:\ALGTM\s+|\s+LGTM\.?\z|\ALGTM\.?\z)`)
 
-var (
-	lgtmBodyRegexp = regexp.MustCompile(`(?i:\ALGTM\s+|\s+LGTM\.?\z|\ALGTM\.?\z)`)
-
-	statusCache = statusMap{data: make(map[string]*statusInfo)}
-)
-
-type statusMap struct {
-	sync.Mutex // protects data
-	data       map[string]*statusInfo
+func newPRRef(owner, name string, number int) prRef {
+	return prRef{
+		Repo:   Repo{Owner: owner, Name: name},
+		Number: number,
+	}
 }
 
 type prRef struct {
-	Owner, Name string
-	Number      int
+	Repo   Repo
+	Number int
 }
 
 func (r prRef) String() string {
-	return fmt.Sprintf("%s/%s#%d", r.Owner, r.Name, r.Number)
+	return fmt.Sprintf("%s/%s#%d", r.Repo.Owner, r.Repo.Name, r.Number)
 }
 
-func IssueCommentHandler(context *ctx.Context, payload interface{}) error {
+type Repo struct {
+	Owner, Name string
+	// The number of LGTM's a PR must get before going state: "success"
+	Quorum int
+}
+
+type Handler struct {
+	repos []Repo
+}
+
+func (h *Handler) isEnabledFor(owner, name string) bool {
+	for _, repo := range h.repos {
+		if repo.Owner == owner && repo.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (h *Handler) issueCommentHandler(context *ctx.Context, payload interface{}) error {
 	comment, ok := payload.(*github.IssueCommentEvent)
 	if !ok {
 		return context.NewError("lgtm.IssueCommentHandler: not an issue comment event")
@@ -48,14 +64,18 @@ func IssueCommentHandler(context *ctx.Context, payload interface{}) error {
 		return context.NewError("lgtm.IssueCommentHandler: not a pull request")
 	}
 
-	ref := prRef{*comment.Comment.User.Login, *comment.Repo.FullName, *comment.Issue.Number}
+	ref := newPRRef(*comment.Repo.Owner.Login, *comment.Repo.Name, *comment.Issue.Number)
 	lgtmer := *comment.Comment.User.Login
+
+	if !h.isEnabledFor(ref.Repo.Owner, ref.Repo.Name) {
+		return context.NewError("lgtm.issueCommentHandler: not enabled for %s/%s", ref.Repo.Owner, ref.Repo.Name)
+	}
 
 	// Does the user have merge/label abilities?
 	if !auth.CommenterHasPushAccess(context, *comment) {
 		return context.NewError(
 			"%s isn't authenticated to merge anything on %s/%s",
-			*comment.Comment.User.Login, ref.Owner, ref.Name)
+			*comment.Comment.User.Login, ref.Repo.Owner, ref.Repo.Name)
 	}
 
 	// Get status
@@ -79,23 +99,27 @@ func IssueCommentHandler(context *ctx.Context, payload interface{}) error {
 	return nil
 }
 
-func PullRequestHandler(context *ctx.Context, payload interface{}) error {
+func (h *Handler) pullRequestHandler(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.PullRequestEvent)
 	if !ok {
 		return context.NewError("lgtm.PullRequestHandler: not a pull request event")
 	}
 
-	owner, name, number := *event.Repo.Owner.Login, *event.Repo.Name, *event.Number
+	ref := newPRRef(*event.Repo.Owner.Login, *event.Repo.Name, *event.Number)
+
+	if !h.isEnabledFor(ref.Repo.Owner, ref.Repo.Name) {
+		return context.NewError("lgtm.pullRequestHandler: not enabled for %s", ref)
+	}
 
 	if *event.Action == "opened" {
 		_, _, err := context.GitHub.Repositories.CreateStatus(
-			owner, name, *event.PullRequest.Head.SHA,
-			newEmptyStatus(),
+			ref.Repo.Owner, ref.Repo.Name, *event.PullRequest.Head.SHA,
+			newEmptyStatus(ref.Repo.Owner),
 		)
 		if err != nil {
 			return context.NewError(
-				"lgtm.PullRequestHandler: could not create status on %s/%s#%d: %v",
-				owner, name, number, err,
+				"lgtm.PullRequestHandler: could not create status on %s: %v",
+				ref, err,
 			)
 		}
 	}
@@ -103,64 +127,16 @@ func PullRequestHandler(context *ctx.Context, payload interface{}) error {
 	return nil
 }
 
-func setStatus(context *ctx.Context, ref prRef, sha string, status *statusInfo) error {
-	_, _, err := context.GitHub.Repositories.CreateStatus(ref.Owner, ref.Name, sha, status.NewStatus())
-	if err != nil {
-		return err
-	}
-
-	statusCache.Lock()
-	statusCache.data[ref.String()] = status
-	statusCache.Unlock()
-
-	return nil
+func newHandler(enabledRepos []Repo) *Handler {
+	return &Handler{repos: enabledRepos}
 }
 
-func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
-	statusCache.Lock()
-	cachedStatus, ok := statusCache.data[ref.String()]
-	statusCache.Unlock()
-	if ok && cachedStatus != nil {
-		return cachedStatus, nil
-	}
-
-	pr, _, err := context.GitHub.PullRequests.Get(ref.Owner, ref.Name, ref.Number)
-	if err != nil {
-		return nil, err
-	}
-
-	statuses, _, err := context.GitHub.Repositories.ListStatuses(ref.Owner, ref.Name, *pr.Head.SHA, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var preExistingStatus *github.RepoStatus
-	var info *statusInfo
-	for _, status := range statuses {
-		if *status.Context == lgtmContext {
-			preExistingStatus = status
-			info = parseStatus(*pr.Head.SHA, status)
-			break
-		}
-	}
-
-	if preExistingStatus == nil {
-		preExistingStatus = newEmptyStatus()
-		info = parseStatus(*pr.Head.SHA, preExistingStatus)
-		setStatus(context, ref, *pr.Head.SHA, info)
-	}
-
-	statusCache.Lock()
-	statusCache.data[ref.String()] = info
-	statusCache.Unlock()
-
-	return info, nil
+func NewIssueCommentHandler(enabledRepos []Repo) hooks.EventHandler {
+	handler := newHandler(enabledRepos)
+	return handler.issueCommentHandler
 }
 
-func newEmptyStatus() *github.RepoStatus {
-	return &github.RepoStatus{
-		Context:     github.String(lgtmContext),
-		State:       github.String("failure"),
-		Description: github.String("This pull request has not received any LGTM's."),
-	}
+func NewPullRequestHandler(enabledRepos []Repo) hooks.EventHandler {
+	handler := newHandler(enabledRepos)
+	return handler.pullRequestHandler
 }

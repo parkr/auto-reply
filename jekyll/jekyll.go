@@ -11,14 +11,19 @@ import (
 	"github.com/parkr/auto-reply/jekyll/issuecomment"
 )
 
+var lgtmEnabledRepos = []lgtm.Repo{{Owner: "jekyll", Name: "import", Quorum: 1}}
+
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	hooks.IssuesEvent: {deprecate.DeprecateOldRepos},
 	hooks.IssueCommentEvent: {
 		issuecomment.PendingFeedbackUnlabeler, issuecomment.StaleUnlabeler,
-		issuecomment.MergeAndLabel, lgtm.IssueCommentHandler,
+		issuecomment.MergeAndLabel, lgtm.NewIssueCommentHandler(lgtmEnabledRepos),
 	},
-	hooks.PushEvent:        {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
-	hooks.PullRequestEvent: {labeler.PendingRebaseNeedsWorkPRUnlabeler},
+	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
+	hooks.PullRequestEvent: {
+		labeler.PendingRebaseNeedsWorkPRUnlabeler,
+		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
+	},
 }
 
 func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {

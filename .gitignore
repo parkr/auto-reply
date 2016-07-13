@@ -23,7 +23,5 @@ _testmain.go
 *.test
 *.prof
 
-auto-reply
-unearth
-mark-and-sweep-stale-issues
+bin/*
 .env

@@ -19,21 +19,3 @@ func TestLGTMBodyRegexp(t *testing.T) {
 		}
 	}
 }
-
-func TestGenerateDescription(t *testing.T) {
-	cases := []struct {
-		lgtmers     []string
-		description string
-	}{
-		{nil, ""},
-		{[]string{}, ""},
-		{[]string{"parkr"}, ""},
-	}
-	for _, testCase := range cases {
-		actual := generateDescription(testCase.lgtmers)
-		if actual != testCase.description {
-			t.Fatalf("description for %+v should be `%s`, not: `%s`",
-				testCase.lgtmers, testCase.description, actual)
-		}
-	}
-}
