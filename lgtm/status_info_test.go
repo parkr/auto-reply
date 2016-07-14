@@ -91,7 +91,7 @@ func TestNewDescription(t *testing.T) {
 	}
 }
 
-func TestStatusInfoNewStatus(t *testing.T) {
+func TestStatusInfoNewRepoStatus(t *testing.T) {
 	cases := []struct {
 		owner          string
 		lgtmers        []string
@@ -110,7 +110,7 @@ func TestStatusInfoNewStatus(t *testing.T) {
 	}
 	for _, test := range cases {
 		status := statusInfo{lgtmers: test.lgtmers}
-		newStatus := status.NewStatus(test.owner, test.quorum)
+		newStatus := status.NewRepoStatus(test.owner, test.quorum)
 		assert.Equal(t,
 			test.expContext, *newStatus.Context,
 			fmt.Sprintf("with lgtmers: %q and quorum: %d", test.lgtmers, test.quorum))

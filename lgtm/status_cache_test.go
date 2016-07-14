@@ -12,6 +12,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	handler = newHandler([]Repo{{
+		Owner:  "o",
+		Name:   "r",
+		Quorum: 1,
+	}})
+	ref   = handler.newPRRef("o", "r", 273)
+	prSHA = "deadbeef0000000deadbeef"
+
+	pullRequestGET = fmt.Sprintf("/repos/%s/%s/pulls/%d", ref.Repo.Owner, ref.Repo.Name, ref.Number)
+	statusesGET    = fmt.Sprintf("/repos/%s/%s/commits/%s/statuses", ref.Repo.Owner, ref.Repo.Name, prSHA)
+	statusesPOST   = fmt.Sprintf("/repos/%s/%s/statuses/%s", ref.Repo.Owner, ref.Repo.Name, prSHA)
+)
+
 func TestLgtmContext(t *testing.T) {
 	cases := []struct {
 		owner    string
@@ -29,7 +43,6 @@ func TestGetStatusInCache(t *testing.T) {
 	setup() // server & client!
 	defer teardown()
 	context := &ctx.Context{GitHub: client}
-	ref := newPRRef("o", "r", 1)
 	expectedInfo := &statusInfo{
 		lgtmers: []string{"@parkr"},
 	}
@@ -48,18 +61,17 @@ func TestGetStatusAPIPRError(t *testing.T) {
 	defer teardown()
 	statusCache = statusMap{data: make(map[string]*statusInfo)}
 	context := &ctx.Context{GitHub: client}
-	ref := newPRRef("o", "r", 1)
-	handled := false
+	prHandled := false
 
-	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
-		handled = true
+	mux.HandleFunc(pullRequestGET, func(w http.ResponseWriter, r *http.Request) {
+		prHandled = true
 		testMethod(t, r, "GET")
 		http.Error(w, "huh?", http.StatusNotFound)
 	})
 
 	info, err := getStatus(context, ref)
 
-	assert.True(t, handled)
+	assert.True(t, prHandled, "the PR API endpoint should be hit")
 	assert.Error(t, err)
 	assert.Nil(t, info)
 	assert.Nil(t, statusCache.data[ref.String()])
@@ -70,32 +82,31 @@ func TestGetStatusAPIStatusesError(t *testing.T) {
 	defer teardown()
 	statusCache = statusMap{data: make(map[string]*statusInfo)}
 	context := &ctx.Context{GitHub: client}
-	ref := newPRRef("o", "r", 1)
-	expectedSHA := "abcdef"
 	prHandled := false
 	statusesHandled := false
 
-	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(pullRequestGET, func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		json.NewEncoder(w).Encode(&github.PullRequest{
-			Number: github.Int(1),
+			Number: github.Int(ref.Number),
 			Head: &github.PullRequestBranch{
 				Ref: github.String("blah:hi"),
-				SHA: github.String(expectedSHA),
+				SHA: github.String(prSHA),
 			},
 		})
 		prHandled = true
 	})
 
-	mux.HandleFunc("/repos/o/r/commits/"+expectedSHA+"/statuses", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(statusesGET, func(w http.ResponseWriter, r *http.Request) {
 		statusesHandled = true
+		testMethod(t, r, "GET")
 		http.Error(w, "huh?", http.StatusNotFound)
 	})
 
 	info, err := getStatus(context, ref)
 
-	assert.True(t, prHandled, "the pull request should be fetched from the API")
-	assert.True(t, statusesHandled, "the /statuses endpoint should be hit")
+	assert.True(t, prHandled, "the PR API endpoint should be hit")
+	assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.Error(t, err)
 	assert.Nil(t, info)
 	assert.Nil(t, statusCache.data[ref.String()])
@@ -106,25 +117,22 @@ func TestGetStatusAPIStatusesNoneMatch(t *testing.T) {
 	defer teardown()
 	statusCache = statusMap{data: make(map[string]*statusInfo)}
 	context := &ctx.Context{GitHub: client}
-	ref := newPRRef("o", "r", 1)
-	ref.Repo.Quorum = 1
-	expectedSHA := "abcdef"
 	prHandled := false
 	statusesHandled := false
 
-	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(pullRequestGET, func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		json.NewEncoder(w).Encode(&github.PullRequest{
 			Number: github.Int(1),
 			Head: &github.PullRequestBranch{
 				Ref: github.String("blah:hi"),
-				SHA: github.String(expectedSHA),
+				SHA: github.String(prSHA),
 			},
 		})
 		prHandled = true
 	})
 
-	mux.HandleFunc("/repos/o/r/commits/"+expectedSHA+"/statuses", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(statusesGET, func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		json.NewEncoder(w).Encode([]github.RepoStatus{
 			{Context: github.String("other/lgtm")},
@@ -136,12 +144,12 @@ func TestGetStatusAPIStatusesNoneMatch(t *testing.T) {
 
 	expectedStatus := &statusInfo{
 		lgtmers: []string{},
-		sha:     expectedSHA,
+		sha:     prSHA,
 	}
-	expectedStatus.repoStatus = expectedStatus.NewStatus(ref.Repo.Owner, ref.Repo.Quorum)
+	expectedStatus.repoStatus = expectedStatus.NewRepoStatus(ref.Repo.Owner, ref.Repo.Quorum)
 
-	assert.True(t, prHandled, "the pull request should be fetched from the API")
-	assert.True(t, statusesHandled, "the /statuses endpoint should be hit")
+	assert.True(t, prHandled, "the PR API endpoint should be hit")
+	assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStatus, info)
 	assert.Equal(t, info, statusCache.data[ref.String()])
@@ -152,8 +160,6 @@ func TestGetStatusFromAPI(t *testing.T) {
 	defer teardown()
 	statusCache = statusMap{data: make(map[string]*statusInfo)}
 	context := &ctx.Context{GitHub: client}
-	ref := newPRRef("o", "r", 1)
-	expectedSHA := "abcdef"
 	expectedRepoStatus := &github.RepoStatus{
 		Context:     github.String("o/lgtm"),
 		Description: github.String("@parkr, @envygeeks, and @mattr- have approved this PR."),
@@ -161,19 +167,19 @@ func TestGetStatusFromAPI(t *testing.T) {
 	prHandled := false
 	statusesHandled := false
 
-	mux.HandleFunc("/repos/o/r/pulls/1", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(pullRequestGET, func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		json.NewEncoder(w).Encode(&github.PullRequest{
-			Number: github.Int(1),
+			Number: github.Int(ref.Number),
 			Head: &github.PullRequestBranch{
 				Ref: github.String("blah:hi"),
-				SHA: github.String(expectedSHA),
+				SHA: github.String(prSHA),
 			},
 		})
 		prHandled = true
 	})
 
-	mux.HandleFunc("/repos/o/r/commits/"+expectedSHA+"/statuses", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(statusesGET, func(w http.ResponseWriter, r *http.Request) {
 		testMethod(t, r, "GET")
 		json.NewEncoder(w).Encode([]github.RepoStatus{
 			{Context: github.String("other/lgtm"), Description: github.String("no")},
@@ -186,12 +192,12 @@ func TestGetStatusFromAPI(t *testing.T) {
 
 	expectedStatus := &statusInfo{
 		lgtmers: []string{"@parkr", "@envygeeks", "@mattr-"},
-		sha:     expectedSHA,
+		sha:     prSHA,
 	}
 	expectedStatus.repoStatus = expectedRepoStatus
 
-	assert.True(t, prHandled, "the pull request should be fetched from the API")
-	assert.True(t, statusesHandled, "the /statuses endpoint should be hit")
+	assert.True(t, prHandled, "the PR API endpoint should be hit")
+	assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStatus, info)
 	assert.Equal(t, expectedRepoStatus, info.repoStatus)
@@ -205,19 +211,20 @@ func TestSetStatus(t *testing.T) {
 
 	statusCache = statusMap{data: make(map[string]*statusInfo)}
 
-	ref := newPRRef("o", "r", 1)
-	ref.Repo.Quorum = 1
+	statusesHandled := false
 	newStatus := &statusInfo{
 		lgtmers: []string{},
-		sha:     "abcdef",
+		sha:     prSHA,
 	}
-	input := newStatus.NewStatus("o", ref.Repo.Quorum)
+	input := newStatus.NewRepoStatus("o", ref.Repo.Quorum)
 
-	mux.HandleFunc("/repos/o/r/statuses/abcdef", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(statusesPOST, func(w http.ResponseWriter, r *http.Request) {
+        statusesHandled = true
+        testMethod(t, r, "POST")
+        
 		v := new(github.RepoStatus)
 		json.NewDecoder(r.Body).Decode(v)
 
-		testMethod(t, r, "POST")
 		if !reflect.DeepEqual(v, input) {
 			t.Errorf("Request body = %+v, want %+v", v, input)
 		}
@@ -227,9 +234,10 @@ func TestSetStatus(t *testing.T) {
 	assert.NoError(t, setStatus(
 		context,
 		ref,
-		"abcdef",
+		prSHA,
 		newStatus,
 	))
+    assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.Equal(t, newStatus, statusCache.data[ref.String()])
 }
 
@@ -240,23 +248,25 @@ func TestSetStatusHTTPError(t *testing.T) {
 
 	statusCache = statusMap{data: make(map[string]*statusInfo)}
 
-	ref := newPRRef("o", "r", 1)
-	ref.Repo.Quorum = 1
+	statusesHandled := false
 	newStatus := &statusInfo{
 		lgtmers: []string{},
-		sha:     "abcdef",
+		sha:     prSHA,
 	}
 
-	mux.HandleFunc("/repos/o/r/statuses/abcdef", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(statusesPOST, func(w http.ResponseWriter, r *http.Request) {
+        statusesHandled = true
+		testMethod(t, r, "POST")
 		http.Error(w, "No way, Jose!", http.StatusForbidden)
 	})
 
 	assert.Error(t, setStatus(
 		context,
 		ref,
-		"abcdef",
+		prSHA,
 		newStatus,
 	))
+    assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.Nil(t, statusCache.data[ref.String()])
 }
 

@@ -72,7 +72,7 @@ func statusStateAndDescription(lgtmers []string, quorum int) (state string, desc
 	return newState(lgtmers, quorum), newDescription(lgtmers)
 }
 
-func (s statusInfo) NewStatus(owner string, quorum int) *github.RepoStatus {
+func (s statusInfo) NewRepoStatus(owner string, quorum int) *github.RepoStatus {
 	state, description := statusStateAndDescription(s.lgtmers, quorum)
 	return &github.RepoStatus{
 		Context:     github.String(lgtmContext(owner)),
