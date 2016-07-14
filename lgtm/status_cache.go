@@ -65,12 +65,16 @@ func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
 
 	// None of the contexts matched.
 	if preExistingStatus == nil {
-		preExistingStatus = newEmptyStatus(ref.Repo.Owner)
+		preExistingStatus = newEmptyStatus(ref.Repo.Owner, ref.Repo.Quorum)
 		info = parseStatus(*pr.Head.SHA, preExistingStatus)
 		err := setStatus(context, ref, *pr.Head.SHA, info)
 		if err != nil {
 			fmt.Printf("getStatus: couldn't save new empty status to %s for %s: %v\n", ref, *pr.Head.SHA, err)
 		}
+	}
+
+	if ref.Repo.Quorum != 0 {
+		info.quorum = ref.Repo.Quorum
 	}
 
 	statusCache.Lock()
@@ -80,10 +84,10 @@ func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
 	return info, nil
 }
 
-func newEmptyStatus(owner string) *github.RepoStatus {
+func newEmptyStatus(owner string, quorum int) *github.RepoStatus {
 	return &github.RepoStatus{
 		Context:     github.String(lgtmContext(owner)),
 		State:       github.String("failure"),
-		Description: github.String(descriptionNoLGTMers),
+		Description: github.String(statusInfo{quorum: quorum}.newDescription()),
 	}
 }

@@ -8,8 +8,6 @@ import (
 	"github.com/google/go-github/github"
 )
 
-const descriptionNoLGTMers = "This pull request has received no LGTM's."
-
 var lgtmerExtractor = regexp.MustCompile("@[a-zA-Z0-9_-]+")
 
 type statusInfo struct {
@@ -54,18 +52,53 @@ func (s statusInfo) newState() string {
 	return "failure"
 }
 
+// newDescription produces the LGTM status description based on the LGTMers
+// and quorum values specified for this statusInfo.
 func (s statusInfo) newDescription() string {
+	if s.quorum == 0 {
+		return "No approval is required."
+	}
+
+	if len(s.lgtmers) == 0 {
+		message := fmt.Sprintf("Awaiting approval from at least %d maintainer", s.quorum)
+		if s.quorum > 1 {
+			message += "s"
+		}
+		return message + "."
+	}
+
+	if requiredLGTMsDesc := s.newLGTMsRequiredDescription(); requiredLGTMsDesc != "" {
+		return s.newApprovedByDescription() + " " + requiredLGTMsDesc
+	} else {
+		return s.newApprovedByDescription()
+	}
+}
+
+func (s statusInfo) newLGTMsRequiredDescription() string {
+	remaining := s.quorum - len(s.lgtmers)
+
+	switch {
+	case remaining <= 0:
+		return ""
+	case remaining == 1:
+		return "Requires 1 more LGTM."
+	default:
+		return fmt.Sprintf("Requires %d more LGTM's.", remaining)
+	}
+}
+
+func (s statusInfo) newApprovedByDescription() string {
 	switch len(s.lgtmers) {
 	case 0:
-		return descriptionNoLGTMers
+		return "Not yet approved by any maintainers."
 	case 1:
-		return fmt.Sprintf("%s has approved this PR. %d LGTM's are required.", s.lgtmers[0], s.quorum)
+		return fmt.Sprintf("Approved by %s.", s.lgtmers[0])
 	case 2:
-		return fmt.Sprintf("%s and %s have approved this PR. %d LGTM's are required.", s.lgtmers[0], s.lgtmers[1], s.quorum)
+		return fmt.Sprintf("Approved by %s and %s.", s.lgtmers[0], s.lgtmers[1])
 	default:
 		lastIndex := len(s.lgtmers) - 1
-		return fmt.Sprintf("%s, and %s have approved this PR. %d LGTM's are required.",
-			strings.Join(s.lgtmers[0:lastIndex], ", "), s.lgtmers[lastIndex], s.quorum)
+		return fmt.Sprintf("Approved by %s, and %s.",
+			strings.Join(s.lgtmers[0:lastIndex], ", "), s.lgtmers[lastIndex])
 	}
 }
 

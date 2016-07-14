@@ -145,8 +145,9 @@ func TestGetStatusAPIStatusesNoneMatch(t *testing.T) {
 	expectedStatus := &statusInfo{
 		lgtmers: []string{},
 		sha:     prSHA,
+		quorum:  ref.Repo.Quorum,
 	}
-	expectedStatus.repoStatus = expectedStatus.NewRepoStatus(ref.Repo.Owner, ref.Repo.Quorum)
+	expectedStatus.repoStatus = expectedStatus.NewRepoStatus(ref.Repo.Owner)
 
 	assert.True(t, prHandled, "the PR API endpoint should be hit")
 	assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
@@ -162,7 +163,7 @@ func TestGetStatusFromAPI(t *testing.T) {
 	context := &ctx.Context{GitHub: client}
 	expectedRepoStatus := &github.RepoStatus{
 		Context:     github.String("o/lgtm"),
-		Description: github.String("@parkr, @envygeeks, and @mattr- have approved this PR."),
+		Description: github.String("Approved by @parkr, @envygeeks, and @mattr-."),
 	}
 	prHandled := false
 	statusesHandled := false
@@ -193,6 +194,7 @@ func TestGetStatusFromAPI(t *testing.T) {
 	expectedStatus := &statusInfo{
 		lgtmers: []string{"@parkr", "@envygeeks", "@mattr-"},
 		sha:     prSHA,
+		quorum:  ref.Repo.Quorum,
 	}
 	expectedStatus.repoStatus = expectedRepoStatus
 
@@ -215,8 +217,9 @@ func TestSetStatus(t *testing.T) {
 	newStatus := &statusInfo{
 		lgtmers: []string{},
 		sha:     prSHA,
+		quorum:  ref.Repo.Quorum,
 	}
-	input := newStatus.NewRepoStatus("o", ref.Repo.Quorum)
+	input := newStatus.NewRepoStatus("o")
 
 	mux.HandleFunc(statusesPOST, func(w http.ResponseWriter, r *http.Request) {
 		statusesHandled = true
@@ -252,6 +255,7 @@ func TestSetStatusHTTPError(t *testing.T) {
 	newStatus := &statusInfo{
 		lgtmers: []string{},
 		sha:     prSHA,
+		quorum:  ref.Repo.Quorum,
 	}
 
 	mux.HandleFunc(statusesPOST, func(w http.ResponseWriter, r *http.Request) {
@@ -279,9 +283,9 @@ func TestNewEmptyStatus(t *testing.T) {
 		{"jekyll", "jekyll/lgtm"},
 	}
 	for _, test := range cases {
-		status := newEmptyStatus(test.owner)
+		status := newEmptyStatus(test.owner, 1)
 		assert.Equal(t, test.expContext, *status.Context)
 		assert.Equal(t, "failure", *status.State)
-		assert.Equal(t, descriptionNoLGTMers, *status.Description)
+		assert.Equal(t, "Awaiting approval from at least 1 maintainer.", *status.Description)
 	}
 }

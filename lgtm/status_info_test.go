@@ -15,8 +15,8 @@ func TestParseStatus(t *testing.T) {
 		expectedLgtmers []string
 	}{
 		{"deadbeef", "", []string{}},
-		{"deadbeef", "This pull request has not received any LGTM's.", []string{}},
-		{"deadbeef", "@parkr has approved this PR.", []string{"@parkr"}},
+		{"deadbeef", "Waiting for approval from at least %d maintainers.", []string{}},
+		{"deadbeef", "Approved by @parkr.", []string{"@parkr"}},
 		{"deadbeef", "@parkr have approved this PR.", []string{"@parkr"}},
 		{"deadbeef", "@parkr, and @envygeeks have approved this PR.", []string{"@parkr", "@envygeeks"}},
 		{"deadbeef", "@mattr-, @parkr, and @BenBalter have approved this PR.", []string{"@mattr-", "@parkr", "@BenBalter"}},
@@ -69,8 +69,9 @@ func TestNewState(t *testing.T) {
 		{[]string{"@parkr", "@mattr-"}, 2, "success"},
 	}
 	for _, test := range cases {
+		info := statusInfo{lgtmers: test.lgtmers, quorum: test.quorum}
 		assert.Equal(t,
-			test.expected, newState(test.lgtmers, test.quorum),
+			test.expected, info.newState(),
 			fmt.Sprintf("with lgtmers: %q and quorum: %d", test.lgtmers, test.quorum))
 	}
 }
@@ -78,17 +79,46 @@ func TestNewState(t *testing.T) {
 func TestNewDescription(t *testing.T) {
 	cases := []struct {
 		lgtmers     []string
+		quorum      int
 		description string
 	}{
-		{nil, descriptionNoLGTMers},
-		{[]string{}, descriptionNoLGTMers},
-		{[]string{"@parkr"}, "@parkr has approved this PR."},
-		{[]string{"@parkr", "@envygeeks"}, "@parkr and @envygeeks have approved this PR."},
-		{[]string{"@mattr-", "@envygeeks", "@parkr"}, "@mattr-, @envygeeks, and @parkr have approved this PR."},
+		{nil, 0, "No approval is required."},
+		{nil, 1, "Awaiting approval from at least 1 maintainer."},
+		{[]string{}, 2, "Awaiting approval from at least 2 maintainers."},
+		{[]string{"@parkr"}, 2, "Approved by @parkr. Requires 1 more LGTM."},
+		{[]string{"@parkr", "@envygeeks"}, 2, "Approved by @parkr and @envygeeks."},
+		{[]string{"@mattr-", "@envygeeks", "@parkr"}, 5, "Approved by @mattr-, @envygeeks, and @parkr. Requires 2 more LGTM's."},
 	}
-	for _, testCase := range cases {
-		assert.Equal(t, testCase.description, newDescription(testCase.lgtmers))
+	for _, test := range cases {
+		info := statusInfo{lgtmers: test.lgtmers, quorum: test.quorum}
+		actual := info.newDescription()
+		assert.Equal(t, test.description, actual)
+		assert.True(t, len(actual) <= 140, fmt.Sprintf("%q must be <= 140 chars.", actual))
 	}
+}
+
+func TestLGTMsRequiredDescription(t *testing.T) {
+	cases := []struct {
+		lgtmers  []string
+		quorum   int
+		expected string
+	}{
+		{nil, 0, ""},
+		{nil, 1, "Requires 1 more LGTM."},
+		{[]string{}, 2, "Requires 2 more LGTM's."},
+		{[]string{"@parkr"}, 2, "Requires 1 more LGTM."},
+		{[]string{"@parkr", "@envygeeks"}, 2, ""},
+		{[]string{"@mattr-", "@envygeeks", "@parkr"}, 5, "Requires 2 more LGTM's."},
+	}
+	for _, test := range cases {
+		info := statusInfo{lgtmers: test.lgtmers, quorum: test.quorum}
+		actual := info.newLGTMsRequiredDescription()
+		assert.Equal(t, test.expected, actual)
+		assert.True(t, len(actual) <= 140, fmt.Sprintf("%q must be <= 140 chars.", actual))
+	}
+}
+
+func TestNewApprovedByDescription(t *testing.T) {
 }
 
 func TestStatusInfoNewRepoStatus(t *testing.T) {
@@ -100,17 +130,18 @@ func TestStatusInfoNewRepoStatus(t *testing.T) {
 		expState       string
 		expDescription string
 	}{
-		{"octocat", []string{}, 0, "octocat/lgtm", "success", descriptionNoLGTMers},
-		{"parkr", []string{}, 0, "parkr/lgtm", "success", descriptionNoLGTMers},
-		{"jekyll", []string{}, 1, "jekyll/lgtm", "failure", descriptionNoLGTMers},
-		{"jekyll", []string{"@parkr"}, 1, "jekyll/lgtm", "success", "@parkr has approved this PR."},
-		{"jekyll", []string{"@parkr"}, 2, "jekyll/lgtm", "failure", "@parkr has approved this PR."},
-		{"jekyll", []string{"@parkr", "@envygeeks"}, 1, "jekyll/lgtm", "success", "@parkr and @envygeeks have approved this PR."},
-		{"jekyll", []string{"@parkr", "@envygeeks"}, 2, "jekyll/lgtm", "success", "@parkr and @envygeeks have approved this PR."},
+		{"octocat", []string{}, 0, "octocat/lgtm", "success", "No approval is required."},
+		{"parkr", []string{}, 0, "parkr/lgtm", "success", "No approval is required."},
+		{"jekyll", []string{}, 1, "jekyll/lgtm", "failure", "Awaiting approval from at least 1 maintainer."},
+		{"jekyll", []string{"@parkr"}, 1, "jekyll/lgtm", "success", "Approved by @parkr."},
+		{"jekyll", []string{"@parkr"}, 2, "jekyll/lgtm", "failure", "Approved by @parkr. Requires 1 more LGTM."},
+		{"jekyll", []string{"@parkr", "@envygeeks"}, 1, "jekyll/lgtm", "success", "Approved by @parkr and @envygeeks."},
+		{"jekyll", []string{"@parkr", "@envygeeks"}, 2, "jekyll/lgtm", "success", "Approved by @parkr and @envygeeks."},
+		{"jekyll", []string{"@parkr", "@mattr-", "@envygeeks"}, 6, "jekyll/lgtm", "failure", "Approved by @parkr, @mattr-, and @envygeeks. Requires 3 more LGTM's."},
 	}
 	for _, test := range cases {
-		status := statusInfo{lgtmers: test.lgtmers}
-		newStatus := status.NewRepoStatus(test.owner, test.quorum)
+		status := statusInfo{lgtmers: test.lgtmers, quorum: test.quorum}
+		newStatus := status.NewRepoStatus(test.owner)
 		assert.Equal(t,
 			test.expContext, *newStatus.Context,
 			fmt.Sprintf("with lgtmers: %q and quorum: %d", test.lgtmers, test.quorum))
@@ -120,5 +151,6 @@ func TestStatusInfoNewRepoStatus(t *testing.T) {
 		assert.Equal(t,
 			test.expDescription, *newStatus.Description,
 			fmt.Sprintf("with lgtmers: %q and quorum: %d", test.lgtmers, test.quorum))
+		assert.True(t, len(*newStatus.Description) <= 140, fmt.Sprintf("%q must be <= 140 chars.", *newStatus.Description))
 	}
 }
