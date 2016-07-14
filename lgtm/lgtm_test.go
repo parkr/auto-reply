@@ -12,6 +12,7 @@ func TestLGTMBodyRegexp(t *testing.T) {
 		"LGTM!":                                 true,
 		"LGTM!!!":                               true,
 		"@jekyllbot: LGTM":                      true,
+		"LGTM, thank you.":                      true,
 		"Yeah, this LGTM.":                      true,
 		"Then I'll LGTM it.":                    false,
 		"I'd love to get a LGTM for this.":      false,

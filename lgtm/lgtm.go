@@ -10,7 +10,7 @@ import (
 	"github.com/parkr/auto-reply/hooks"
 )
 
-var lgtmBodyRegexp = regexp.MustCompile(`(?i:\ALGTM\s+|\s+LGTM[.!]*\z|\ALGTM[.!]*\z)`)
+var lgtmBodyRegexp = regexp.MustCompile(`(?i:\ALGTM[!.,]\s+|\s+LGTM[.!,]*\z|\ALGTM[.!,]*\z)`)
 
 type prRef struct {
 	Repo   Repo
