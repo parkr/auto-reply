@@ -1,7 +1,7 @@
 package lgtm
 
 import (
-    "fmt"
+	"fmt"
 	"sync"
 
 	"github.com/google/go-github/github"
@@ -68,9 +68,9 @@ func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
 		preExistingStatus = newEmptyStatus(ref.Repo.Owner)
 		info = parseStatus(*pr.Head.SHA, preExistingStatus)
 		err := setStatus(context, ref, *pr.Head.SHA, info)
-        if err != nil {
-            fmt.Printf("getStatus: couldn't save new empty status to %s for %s: %v\n", ref, *pr.Head.SHA, err)
-        }
+		if err != nil {
+			fmt.Printf("getStatus: couldn't save new empty status to %s for %s: %v\n", ref, *pr.Head.SHA, err)
+		}
 	}
 
 	statusCache.Lock()

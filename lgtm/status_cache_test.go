@@ -219,9 +219,9 @@ func TestSetStatus(t *testing.T) {
 	input := newStatus.NewRepoStatus("o", ref.Repo.Quorum)
 
 	mux.HandleFunc(statusesPOST, func(w http.ResponseWriter, r *http.Request) {
-        statusesHandled = true
-        testMethod(t, r, "POST")
-        
+		statusesHandled = true
+		testMethod(t, r, "POST")
+
 		v := new(github.RepoStatus)
 		json.NewDecoder(r.Body).Decode(v)
 
@@ -237,7 +237,7 @@ func TestSetStatus(t *testing.T) {
 		prSHA,
 		newStatus,
 	))
-    assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
+	assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.Equal(t, newStatus, statusCache.data[ref.String()])
 }
 
@@ -255,7 +255,7 @@ func TestSetStatusHTTPError(t *testing.T) {
 	}
 
 	mux.HandleFunc(statusesPOST, func(w http.ResponseWriter, r *http.Request) {
-        statusesHandled = true
+		statusesHandled = true
 		testMethod(t, r, "POST")
 		http.Error(w, "No way, Jose!", http.StatusForbidden)
 	})
@@ -266,7 +266,7 @@ func TestSetStatusHTTPError(t *testing.T) {
 		prSHA,
 		newStatus,
 	))
-    assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
+	assert.True(t, statusesHandled, "the Statuses API endpoint should be hit")
 	assert.Nil(t, statusCache.data[ref.String()])
 }
 
