@@ -14,6 +14,7 @@ var lgtmerExtractor = regexp.MustCompile("@[a-zA-Z0-9_-]+")
 
 type statusInfo struct {
 	lgtmers    []string
+	quorum     int
 	sha        string
 	repoStatus *github.RepoStatus
 }
@@ -46,37 +47,32 @@ func (s statusInfo) IsLGTMer(username string) bool {
 	return false
 }
 
-func newState(lgtmers []string, quorum int) string {
-	if len(lgtmers) >= quorum {
+func (s statusInfo) newState() string {
+	if len(s.lgtmers) >= s.quorum {
 		return "success"
 	}
 	return "failure"
 }
 
-func newDescription(lgtmers []string) string {
-	switch len(lgtmers) {
+func (s statusInfo) newDescription() string {
+	switch len(s.lgtmers) {
 	case 0:
 		return descriptionNoLGTMers
 	case 1:
-		return fmt.Sprintf("%s has approved this PR.", lgtmers[0])
+		return fmt.Sprintf("%s has approved this PR. %d LGTM's are required.", s.lgtmers[0], s.quorum)
 	case 2:
-		return fmt.Sprintf("%s and %s have approved this PR.", lgtmers[0], lgtmers[1])
+		return fmt.Sprintf("%s and %s have approved this PR. %d LGTM's are required.", s.lgtmers[0], s.lgtmers[1], s.quorum)
 	default:
-		lastIndex := len(lgtmers) - 1
-		return fmt.Sprintf("%s, and %s have approved this PR.",
-			strings.Join(lgtmers[0:lastIndex], ", "), lgtmers[lastIndex])
+		lastIndex := len(s.lgtmers) - 1
+		return fmt.Sprintf("%s, and %s have approved this PR. %d LGTM's are required.",
+			strings.Join(s.lgtmers[0:lastIndex], ", "), s.lgtmers[lastIndex], s.quorum)
 	}
 }
 
-func statusStateAndDescription(lgtmers []string, quorum int) (state string, description string) {
-	return newState(lgtmers, quorum), newDescription(lgtmers)
-}
-
-func (s statusInfo) NewRepoStatus(owner string, quorum int) *github.RepoStatus {
-	state, description := statusStateAndDescription(s.lgtmers, quorum)
+func (s statusInfo) NewRepoStatus(owner string) *github.RepoStatus {
 	return &github.RepoStatus{
 		Context:     github.String(lgtmContext(owner)),
-		State:       github.String(state),
-		Description: github.String(description),
+		State:       github.String(s.newState()),
+		Description: github.String(s.newDescription()),
 	}
 }

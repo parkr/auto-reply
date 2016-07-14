@@ -21,7 +21,7 @@ func lgtmContext(owner string) string {
 
 func setStatus(context *ctx.Context, ref prRef, sha string, status *statusInfo) error {
 	_, _, err := context.GitHub.Repositories.CreateStatus(
-		ref.Repo.Owner, ref.Repo.Name, sha, status.NewRepoStatus(ref.Repo.Owner, ref.Repo.Quorum))
+		ref.Repo.Owner, ref.Repo.Name, sha, status.NewRepoStatus(ref.Repo.Owner))
 	if err != nil {
 		return err
 	}
