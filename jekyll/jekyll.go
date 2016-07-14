@@ -12,7 +12,7 @@ import (
 )
 
 var lgtmEnabledRepos = []lgtm.Repo{
-	//{Owner: "jekyll", Name: "jekyll", Quorum: 2},
+	{Owner: "jekyll", Name: "jekyll", Quorum: 2},
 	{Owner: "jekyll", Name: "jekyll-admin", Quorum: 1},
 	{Owner: "jekyll", Name: "jekyll-coffeescript", Quorum: 2},
 	{Owner: "jekyll", Name: "jekyll-compose", Quorum: 2},
