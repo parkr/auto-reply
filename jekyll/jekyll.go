@@ -31,6 +31,7 @@ var lgtmEnabledRepos = []lgtm.Repo{
 	{Owner: "jekyll", Name: "github-metadata", Quorum: 2},
 	{Owner: "jekyll", Name: "jemoji", Quorum: 1},
 	{Owner: "jekyll", Name: "mercenary", Quorum: 1},
+	{Owner: "jekyll", Name: "minima", Quorum: 1},
 }
 
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
