@@ -125,6 +125,7 @@ func (h *Handler) pullRequestHandler(context *ctx.Context, payload interface{}) 
 	if *event.Action == "opened" || *event.Action == "synchronize" {
 		err := setStatus(context, ref, *event.PullRequest.Head.SHA, &statusInfo{
 			lgtmers: []string{},
+			quorum:  ref.Repo.Quorum,
 			sha:     *event.PullRequest.Head.SHA,
 		})
 		if err != nil {
