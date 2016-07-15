@@ -13,18 +13,23 @@ func TestParseStatus(t *testing.T) {
 		sha             string
 		description     string
 		expectedLgtmers []string
+		expectedQuorum  int
 	}{
-		{"deadbeef", "", []string{}},
-		{"deadbeef", "Waiting for approval from at least %d maintainers.", []string{}},
-		{"deadbeef", "Approved by @parkr.", []string{"@parkr"}},
-		{"deadbeef", "@parkr have approved this PR.", []string{"@parkr"}},
-		{"deadbeef", "@parkr, and @envygeeks have approved this PR.", []string{"@parkr", "@envygeeks"}},
-		{"deadbeef", "@mattr-, @parkr, and @BenBalter have approved this PR.", []string{"@mattr-", "@parkr", "@BenBalter"}},
+		{"deadbeef", "", []string{}, 0},
+		{"deadbeef", "Waiting for approval from at least 2 maintainers.", []string{}, 2},
+		{"deadbeef", "Waiting for approval from at least 22 maintainers.", []string{}, 22},
+		{"deadbeef", "Approved by @parkr. Requires 1 more LGTM.", []string{"@parkr"}, 2},
+		{"deadbeef", "@parkr have approved this PR. Requires 32 more LGTM's.", []string{"@parkr"}, 33},
+		{"deadbeef", "@parkr, and @envygeeks have approved this PR.", []string{"@parkr", "@envygeeks"}, 2},
+		{"deadbeef", "@mattr-, @parkr, and @BenBalter have approved this PR. Requires no more LGTM's.", []string{"@mattr-", "@parkr", "@BenBalter"}, 3},
 	}
 	for _, test := range cases {
 		parsed := parseStatus(test.sha, &github.RepoStatus{Description: github.String(test.description)})
 		assert.Equal(t,
 			test.expectedLgtmers, parsed.lgtmers,
+			fmt.Sprintf("parsing description: %q", test.description))
+		assert.Equal(t,
+			test.expectedQuorum, parsed.quorum,
 			fmt.Sprintf("parsing description: %q", test.description))
 		assert.Equal(t, test.sha, parsed.sha)
 	}
