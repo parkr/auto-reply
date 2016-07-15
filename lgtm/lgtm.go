@@ -122,7 +122,7 @@ func (h *Handler) pullRequestHandler(context *ctx.Context, payload interface{}) 
 		return context.NewError("lgtm.pullRequestHandler: not enabled for %s", ref)
 	}
 
-	if *event.Action == "opened" {
+	if *event.Action == "opened" || *event.Action == "synchronize" {
 		err := setStatus(context, ref, *event.PullRequest.Head.SHA, &statusInfo{
 			lgtmers: []string{},
 			sha:     *event.PullRequest.Head.SHA,
