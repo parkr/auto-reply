@@ -1,4 +1,4 @@
-package issuecomment
+package chlog
 
 import (
 	"io/ioutil"

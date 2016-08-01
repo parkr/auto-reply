@@ -2,6 +2,7 @@ package jekyll
 
 import (
 	"github.com/parkr/auto-reply/autopull"
+	"github.com/parkr/auto-reply/chlog"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/labeler"
@@ -35,10 +36,11 @@ var lgtmEnabledRepos = []lgtm.Repo{
 }
 
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
+	hooks.CreateEvent: {chlog.CreateReleaseOnTagHandler},
 	hooks.IssuesEvent: {deprecate.DeprecateOldRepos},
 	hooks.IssueCommentEvent: {
 		issuecomment.PendingFeedbackUnlabeler, issuecomment.StaleUnlabeler,
-		issuecomment.MergeAndLabel, lgtm.NewIssueCommentHandler(lgtmEnabledRepos),
+		chlog.MergeAndLabel, lgtm.NewIssueCommentHandler(lgtmEnabledRepos),
 	},
 	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 	hooks.PullRequestEvent: {
