@@ -1,4 +1,4 @@
-package issuecomment
+package chlog
 
 import (
 	"encoding/base64"
@@ -262,12 +262,17 @@ func base64Decode(encoded string) string {
 	return string(decoded)
 }
 
-func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, number int) string {
+func parseChangelog(historyFileContents string) (*changelog.Changelog, error) {
 	changes, err := changelog.NewChangelogFromReader(strings.NewReader(historyFileContents))
 	if historyFileContents == "" {
 		err = nil
 		changes = changelog.NewChangelog()
 	}
+	return changes, err
+}
+
+func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, number int) string {
+	changes, err := parseChangelog(historyFileContents)
 	if err != nil {
 		fmt.Printf("comments: error %v\n", err)
 		return historyFileContents
