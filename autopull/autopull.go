@@ -1,3 +1,4 @@
+// autopull provides a webhook which will automatically create pull requests for a push to a special branch name prefix.
 package autopull
 
 import (

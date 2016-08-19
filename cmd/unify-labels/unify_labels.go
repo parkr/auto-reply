@@ -1,3 +1,4 @@
+// unify-labels is a CLI which will add, rename, or change the color of labels so they match the Jekyll org's requirements.
 package main
 
 import (

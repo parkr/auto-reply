@@ -1,3 +1,4 @@
+// auth provides a means of determining use permissions on GitHub.com for repositories.
 package auth
 
 import (
@@ -63,7 +64,7 @@ func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool
 func (auth authenticator) teamsForOrg(org string) []*github.Team {
 	if _, ok := teamsCache[org]; !ok {
 		teamz, _, err := auth.context.GitHub.Organizations.ListTeams(org, &github.ListOptions{
-			PerPage: 100,
+			Page: 0, PerPage: 100,
 		})
 		if err != nil {
 			log.Printf("ERROR performing ListTeams(\"%s\"): %v", org, err)

@@ -1,3 +1,4 @@
+// deprecate closes issues on deprecated repos and leaves a nice comment for the user.
 package deprecate
 
 import (

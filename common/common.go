@@ -1,3 +1,4 @@
+// common is a library I made because I was lazy and didn't know better.
 package common
 
 import (

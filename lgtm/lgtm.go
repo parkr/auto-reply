@@ -1,3 +1,4 @@
+// lgtm contains the functionality to handle approval from maintainers.
 package lgtm
 
 import (

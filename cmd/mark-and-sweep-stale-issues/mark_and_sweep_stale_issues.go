@@ -1,3 +1,4 @@
+// A command-line utility to mark and sweep Jekyll issues for staleness.
 package main
 
 import (

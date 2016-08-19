@@ -1,3 +1,4 @@
+// A command-line utility to run a search query and display results.
 package main
 
 import (
