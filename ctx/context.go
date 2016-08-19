@@ -22,6 +22,7 @@ var (
 
 // issueRef is used to refer to an issue or pull request
 type issueRef struct {
+	Author      string
 	Owner, Repo string
 	Num         int
 }
@@ -65,6 +66,10 @@ func (c *Context) SetIssue(owner, repo string, num int) {
 		Repo:  repo,
 		Num:   num,
 	}
+}
+
+func (c *Context) SetAuthor(author string) {
+	c.Issue.Author = author
 }
 
 func NewDefaultContext() *Context {
