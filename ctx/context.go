@@ -1,7 +1,9 @@
+// ctx is magic; it is basically my own "context" package before I realied that "context" existed.
+// ctx.Context is the main construct. It keeps track of information pertinent to the request.
+// It should all eventually be replaced by context.Context from the Go stdlib.
 package ctx
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -18,9 +20,24 @@ var (
 	noTags            = []string{}
 )
 
+// issueRef is used to refer to an issue or pull request
+type issueRef struct {
+	Owner, Repo string
+	Num         int
+}
+
+func (r issueRef) String() string {
+	return fmt.Sprintf("%s/%s#%d", r.Owner, r.Repo, r.Num)
+}
+
+func (r issueRef) IsEmpty() bool {
+	return r.Owner == "" || r.Repo == "" || r.Num == 0
+}
+
 type Context struct {
 	GitHub *github.Client
 	Statsd *statsd.Client
+	Issue  issueRef
 }
 
 func (c *Context) IncrStat(name string) {
@@ -34,9 +51,20 @@ func (c *Context) CountStat(name string, value int64) {
 }
 
 func (c *Context) NewError(format string, args ...interface{}) error {
-	message := fmt.Sprintf(format, args...)
-	log.Println(message)
-	return errors.New(message)
+	c.Log(format, args...)
+	return fmt.Errorf(format, args...)
+}
+
+func (c *Context) Log(format string, args ...interface{}) {
+	log.Println(fmt.Sprintf(format, args...))
+}
+
+func (c *Context) SetIssue(owner, repo string, num int) {
+	c.Issue = issueRef{
+		Owner: owner,
+		Repo:  repo,
+		Num:   num,
+	}
 }
 
 func NewDefaultContext() *Context {
@@ -44,6 +72,12 @@ func NewDefaultContext() *Context {
 		GitHub: NewClient(),
 		Statsd: NewStatsd(),
 	}
+}
+
+func WithIssue(owner, repo string, num int) *Context {
+	context := NewDefaultContext()
+	context.SetIssue(owner, repo, num)
+	return context
 }
 
 func GitHubToken() string {

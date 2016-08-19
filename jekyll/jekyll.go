@@ -1,6 +1,8 @@
+// jekyll is the configuration of handlers and such specific to the org's requirements. This is what you should copy and customize.
 package jekyll
 
 import (
+	"github.com/parkr/auto-reply/affinity"
 	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/chlog"
 	"github.com/parkr/auto-reply/ctx"
@@ -37,19 +39,34 @@ var lgtmEnabledRepos = []lgtm.Repo{
 
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	hooks.CreateEvent: {chlog.CreateReleaseOnTagHandler},
-	hooks.IssuesEvent: {deprecate.DeprecateOldRepos},
+	hooks.IssuesEvent: {
+		affinity.AssignIssueToAffinityTeamCaptain,
+		deprecate.DeprecateOldRepos,
+	},
 	hooks.IssueCommentEvent: {
-		issuecomment.PendingFeedbackUnlabeler, issuecomment.StaleUnlabeler,
-		chlog.MergeAndLabel, lgtm.NewIssueCommentHandler(lgtmEnabledRepos),
+		affinity.AssignIssueToAffinityTeamCaptainFromComment,
+		issuecomment.PendingFeedbackUnlabeler,
+		issuecomment.StaleUnlabeler,
+		chlog.MergeAndLabel,
+		lgtm.NewIssueCommentHandler(lgtmEnabledRepos),
 	},
 	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 	hooks.PullRequestEvent: {
+		affinity.AssignPRToAffinityTeamCaptain,
 		labeler.PendingRebaseNeedsWorkPRUnlabeler,
 		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
 	},
 }
 
 func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
+	affinity.Teams = []affinity.Team{
+		affinity.Team{ID: 0, Name: "Build", Mention: "@jekyll/build"},
+		affinity.Team{ID: 0, Name: "Documentation", Mention: "@jekyll/documentation"},
+		affinity.Team{ID: 0, Name: "Ecosystem", Mention: "@jekyll/ecosystem"},
+		affinity.Team{ID: 0, Name: "Performance", Mention: "@jekyll/performance"},
+		affinity.Team{ID: 0, Name: "Stability", Mention: "@jekyll/stability"},
+		affinity.Team{ID: 0, Name: "Windows", Mention: "@jekyll/windows"},
+	}
 	return &hooks.GlobalHandler{
 		Context:       context,
 		EventHandlers: jekyllOrgEventHandlers,
