@@ -8,7 +8,8 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/DataDog/datadog-go/statsd",
-			"Rev": "cc2f4770f4d61871e19bfee967bc767fe730b0d9"
+			"Comment": "1.0.0",
+			"Rev": "909c02b65dd8a52e8fa6072db9752a112227cf21"
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
@@ -16,7 +17,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "f6f75a742a52df1fd2f2ba9346dc59a864a9166d"
+			"Rev": "b9698164669e386680621e2006cab02271257611"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -28,7 +29,7 @@
 		},
 		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",
-			"Rev": "e8554b8641db39598be7f6342874b958f12ae1d4"
+			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
@@ -37,15 +38,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "f841c39de738b1d0df95b5a7187744f0e03d8112"
+			"Rev": "7394c112eae4dba7e96bfcfe738e6373d61772b4"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "7357e96168422ba1e6e7f21075713b72d58764e7"
+			"Rev": "12e1e986157ec46fb273824565d9937bd4235105"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "7357e96168422ba1e6e7f21075713b72d58764e7"
+			"Rev": "12e1e986157ec46fb273824565d9937bd4235105"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
