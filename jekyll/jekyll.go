@@ -39,11 +39,11 @@ var lgtmEnabledRepos = []lgtm.Repo{
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	hooks.CreateEvent: {chlog.CreateReleaseOnTagHandler},
 	hooks.IssuesEvent: {
-		affinity.AssignIssueToAffinityTeamCaptain,
+		//affinity.AssignIssueToAffinityTeamCaptain,
 		deprecate.DeprecateOldRepos,
 	},
 	hooks.IssueCommentEvent: {
-		affinity.AssignIssueToAffinityTeamCaptainFromComment,
+		//affinity.AssignIssueToAffinityTeamCaptainFromComment,
 		issuecomment.PendingFeedbackUnlabeler,
 		issuecomment.StaleUnlabeler,
 		chlog.MergeAndLabel,
@@ -51,7 +51,7 @@ var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	},
 	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 	hooks.PullRequestEvent: {
-		affinity.AssignPRToAffinityTeamCaptain,
+		//affinity.AssignPRToAffinityTeamCaptain,
 		labeler.PendingRebaseNeedsWorkPRUnlabeler,
 		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
 	},
