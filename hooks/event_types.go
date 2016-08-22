@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/google/go-github/github"
@@ -90,6 +91,8 @@ func structFromPayload(eventType string, payload []byte) (event interface{}) {
 		event = &github.TeamAddEvent{}
 	case WatchEvent:
 		event = &github.WatchEvent{}
+	default:
+		panic(fmt.Errorf("oh noes! %q is not a supported payload type", eventType))
 	}
 	if err := json.Unmarshal(payload, event); err != nil {
 		log.Println("error unmarshalling %s event: %+v", eventType, err)
