@@ -16,7 +16,7 @@ func StaleUnlabeler(context *ctx.Context, event interface{}) error {
 		return nil
 	}
 
-	if *comment.Sender.Login == "jekyllbot" {
+	if context.GitHubAuthedAs(*comment.Sender.Login) {
 		return nil // heh.
 	}
 
