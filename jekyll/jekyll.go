@@ -39,11 +39,11 @@ var lgtmEnabledRepos = []lgtm.Repo{
 var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	hooks.CreateEvent: {chlog.CreateReleaseOnTagHandler},
 	hooks.IssuesEvent: {
-		//affinity.AssignIssueToAffinityTeamCaptain,
+		affinity.AssignIssueToAffinityTeamCaptain,
 		deprecate.DeprecateOldRepos,
 	},
 	hooks.IssueCommentEvent: {
-		//affinity.AssignIssueToAffinityTeamCaptainFromComment,
+		affinity.AssignIssueToAffinityTeamCaptainFromComment,
 		issuecomment.PendingFeedbackUnlabeler,
 		issuecomment.StaleUnlabeler,
 		chlog.MergeAndLabel,
@@ -51,7 +51,7 @@ var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	},
 	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 	hooks.PullRequestEvent: {
-		//affinity.AssignPRToAffinityTeamCaptain,
+		affinity.AssignPRToAffinityTeamCaptain,
 		labeler.PendingRebaseNeedsWorkPRUnlabeler,
 		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
 	},
@@ -65,6 +65,9 @@ func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
 		affinity.Team{ID: 0, Name: "Performance", Mention: "@jekyll/performance"},
 		affinity.Team{ID: 0, Name: "Stability", Mention: "@jekyll/stability"},
 		affinity.Team{ID: 0, Name: "Windows", Mention: "@jekyll/windows"},
+	}
+	affinity.Repos = []affinity.Repo{
+		{Owner: "jekyll", Name: "jekyll"},
 	}
 	return &hooks.GlobalHandler{
 		Context:       context,

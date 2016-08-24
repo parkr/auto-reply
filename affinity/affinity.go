@@ -15,6 +15,11 @@ import (
 var explanation = `We are utilizing a new workflow in our issues and pull requests. Affinity teams have been setup to allow community members to hear about pull requests that may be interesting to them. When a new issue or pull request comes in, we are asking that the author mention the appropriate affinity team. I then assign a random "team captain" or two to the issue who is in charge of triaging it until it is closed or passing it off to another captain. In order to move forward with this new workflow, we need to know: which of the following teams best fits your issue or contribution?`
 
 var Teams []Team
+var Repos []Repo
+
+type Repo struct {
+	Owner, Name string
+}
 
 type Team struct {
 	// The team ID.
@@ -100,6 +105,16 @@ func NewTeam(context *ctx.Context, teamId int, name, mention string) (Team, erro
 	return team, nil
 }
 
+func enabledForRepo(owner, name string) bool {
+	for _, repo := range Repos {
+		if repo.Owner == owner && repo.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
 func AssignPRToAffinityTeamCaptain(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.PullRequestEvent)
 	if !ok {
@@ -108,6 +123,10 @@ func AssignPRToAffinityTeamCaptain(context *ctx.Context, payload interface{}) er
 
 	context.SetAuthor(*event.Sender.Login)
 	context.SetIssue(*event.Repo.Owner.Login, *event.Repo.Name, *event.Number)
+
+	if !enabledForRepo(context.Issue.Owner, context.Issue.Repo) {
+		return context.NewError("AssignPRToAffinityTeamCaptain: not enabled for %s", context.Issue)
+	}
 
 	if *event.Action != "opened" {
 		return context.NewError("AssignPRToAffinityTeamCaptain: not an 'opened' PR event")
@@ -132,6 +151,10 @@ func AssignIssueToAffinityTeamCaptain(context *ctx.Context, payload interface{})
 	context.SetAuthor(*event.Sender.Login)
 	context.SetIssue(*event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
 
+	if !enabledForRepo(context.Issue.Owner, context.Issue.Repo) {
+		return context.NewError("AssignIssueToAffinityTeamCaptain: not enabled for %s", context.Issue)
+	}
+
 	if *event.Action != "opened" {
 		return context.NewError("AssignIssueToAffinityTeamCaptain: not an 'opened' issue event")
 	}
@@ -153,6 +176,10 @@ func AssignIssueToAffinityTeamCaptainFromComment(context *ctx.Context, payload i
 
 	context.SetAuthor(*event.Sender.Login)
 	context.SetIssue(*event.Repo.Owner.Login, *event.Repo.Name, *event.Issue.Number)
+
+	if !enabledForRepo(context.Issue.Owner, context.Issue.Repo) {
+		return context.NewError("AssignIssueToAffinityTeamCaptainFromComment: not enabled for %s", context.Issue)
+	}
 
 	if *event.Action == "deleted" {
 		return context.NewError("AssignIssueToAffinityTeamCaptainFromComment: deleted issue comment event")
