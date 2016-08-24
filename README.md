@@ -47,13 +47,18 @@ func main() {
 
     // Add your event handlers. Check out the documentation for the
     // github.com/parkr/auto-reply/hooks package to see all supported events.
-    eventHandlers := map[hooks.EventType][]hooks.EventHandler{
-        hooks.PullRequestEvent: {affinity.AssignPRToAffinityTeamCaptain},
-    }
-    affinity.Teams = []affinity.Team{
-		affinity.Team{ID: 123, Name: "Performance", Mention: "@myorg/performance"},
-		affinity.Team{ID: 456, Name: "Documentation", Mention: "@jekyll/documentation"},
-    }
+    eventHandlers := hooks.EventHandlerMap{}
+
+    // Build the affinity handler.
+    aff := &affinity.Handler{}
+    aff.AddRepo("myorg", "myproject")
+    aff.AddTeam(context, 123, "Performance", "@myorg/performance")
+    aff.AddTeam(context, 456, "Documentation", "@myorg/documentation")
+
+    // Add the affinity handler's various event handlers to the event handlers map :)
+	eventHandlers.AddHandler(hooks.IssuesEvent, aff.AssignIssueToAffinityTeamCaptain)
+	eventHandlers.AddHandler(hooks.IssueCommentEvent, aff.AssignIssueToAffinityTeamCaptainFromComment)
+	eventHandlers.AddHandler(hooks.PullRequestEvent, aff.AssignPRToAffinityTeamCaptain)
 
     // Create the webhook handler. GlobalHandler takes the list of event handlers from
     // its configuration and fires each of them based on the X-GitHub-Event header from

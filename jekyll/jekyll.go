@@ -36,14 +36,10 @@ var lgtmEnabledRepos = []lgtm.Repo{
 	{Owner: "jekyll", Name: "minima", Quorum: 1},
 }
 
-var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
+var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 	hooks.CreateEvent: {chlog.CreateReleaseOnTagHandler},
-	hooks.IssuesEvent: {
-		affinity.AssignIssueToAffinityTeamCaptain,
-		deprecate.DeprecateOldRepos,
-	},
+	hooks.IssuesEvent: {deprecate.DeprecateOldRepos},
 	hooks.IssueCommentEvent: {
-		affinity.AssignIssueToAffinityTeamCaptainFromComment,
 		issuecomment.PendingFeedbackUnlabeler,
 		issuecomment.StaleUnlabeler,
 		chlog.MergeAndLabel,
@@ -51,24 +47,32 @@ var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 	},
 	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 	hooks.PullRequestEvent: {
-		affinity.AssignPRToAffinityTeamCaptain,
 		labeler.PendingRebaseNeedsWorkPRUnlabeler,
 		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
 	},
 }
 
+func jekyllAffinityHandler(context *ctx.Context) *affinity.Handler {
+	handler := &affinity.Handler{}
+
+	handler.AddRepo("jekyll", "jekyll")
+
+	handler.AddTeam(context, 1961060, "Build", "@jekyll/build")
+	handler.AddTeam(context, 1961072, "Documentation", "@jekyll/documentation")
+	handler.AddTeam(context, 1961061, "Ecosystem", "@jekyll/ecosystem")
+	handler.AddTeam(context, 1961065, "Performance", "@jekyll/performance")
+	handler.AddTeam(context, 1961059, "Stability", "@jekyll/stability")
+	handler.AddTeam(context, 1116640, "Windows", "@jekyll/windows")
+
+	return handler
+}
+
 func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
-	affinity.Teams = []affinity.Team{
-		affinity.Team{ID: 1961060, Name: "Build", Mention: "@jekyll/build"},
-		affinity.Team{ID: 1961072, Name: "Documentation", Mention: "@jekyll/documentation"},
-		affinity.Team{ID: 1961061, Name: "Ecosystem", Mention: "@jekyll/ecosystem"},
-		affinity.Team{ID: 1961065, Name: "Performance", Mention: "@jekyll/performance"},
-		affinity.Team{ID: 1961059, Name: "Stability", Mention: "@jekyll/stability"},
-		affinity.Team{ID: 1116640, Name: "Windows", Mention: "@jekyll/windows"},
-	}
-	affinity.Repos = []affinity.Repo{
-		{Owner: "jekyll", Name: "jekyll"},
-	}
+	affinityHandler := jekyllAffinityHandler(context)
+	jekyllOrgEventHandlers.AddHandler(hooks.IssuesEvent, affinityHandler.AssignIssueToAffinityTeamCaptain)
+	jekyllOrgEventHandlers.AddHandler(hooks.IssueCommentEvent, affinityHandler.AssignIssueToAffinityTeamCaptainFromComment)
+	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestEvent, affinityHandler.AssignPRToAffinityTeamCaptain)
+
 	return &hooks.GlobalHandler{
 		Context:       context,
 		EventHandlers: jekyllOrgEventHandlers,

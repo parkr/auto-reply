@@ -9,11 +9,21 @@ import (
 	"github.com/parkr/auto-reply/ctx"
 )
 
+type EventHandlerMap map[EventType][]EventHandler
+
+func (m EventHandlerMap) AddHandler(eventType EventType, handler EventHandler) {
+	if m[eventType] == nil {
+		m[eventType] = []EventHandler{}
+	}
+
+	m[eventType] = append(m[eventType], handler)
+}
+
 // GlobalHandler is a handy handler which can take in every event,
 // choose which handlers to fire, and fires them.
 type GlobalHandler struct {
 	Context       *ctx.Context
-	EventHandlers map[EventType][]EventHandler
+	EventHandlers EventHandlerMap
 }
 
 // HandlePayload handles the actual unpacking of the payload and firing of the proper handlers.
