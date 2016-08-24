@@ -27,7 +27,7 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 
 	context.Log("all affinity team captains: %q", team.Captains)
 	victims := team.RandomCaptainLogins(assigneeCount)
-	context.Log("selected affinity team captains: %q", victims)
+	context.Log("selected affinity team captains for %s: %q", context.Issue, victims)
 	_, _, err = context.GitHub.Issues.AddAssignees(
 		context.Issue.Owner,
 		context.Issue.Repo,
