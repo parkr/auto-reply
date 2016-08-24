@@ -39,6 +39,8 @@ type Context struct {
 	GitHub *github.Client
 	Statsd *statsd.Client
 	Issue  issueRef
+
+	currentlyAuthedGitHubUser *github.User
 }
 
 func (c *Context) IncrStat(name string) {
@@ -70,6 +72,19 @@ func (c *Context) SetIssue(owner, repo string, num int) {
 
 func (c *Context) SetAuthor(author string) {
 	c.Issue.Author = author
+}
+
+func (c *Context) GitHubAuthedAs(login string) bool {
+	if c.currentlyAuthedGitHubUser == nil {
+		currentlyAuthedUser, _, err := c.GitHub.Users.Get("")
+		if err != nil {
+			c.Log("couldn't fetch currently-auth'd user: %v", err)
+			return false
+		}
+		c.currentlyAuthedGitHubUser = currentlyAuthedUser
+	}
+
+	return *c.currentlyAuthedGitHubUser.Login == login
 }
 
 func NewDefaultContext() *Context {

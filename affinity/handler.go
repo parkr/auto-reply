@@ -1,6 +1,8 @@
 package affinity
 
 import (
+	"fmt"
+
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
 )
@@ -72,6 +74,10 @@ func (h *Handler) AssignPRToAffinityTeamCaptain(context *ctx.Context, payload in
 		return context.NewError("AssignPRToAffinityTeamCaptain: PR already assigned")
 	}
 
+	if context.GitHubAuthedAs(*event.Sender.Login) {
+		return fmt.Errorf("bozo. you can't reply to your own comment!")
+	}
+
 	context.IncrStat("affinity.pull_request")
 
 	return assignTeamCaptains(context, *h, *event.PullRequest.Body, 2)
@@ -99,6 +105,10 @@ func (h *Handler) AssignIssueToAffinityTeamCaptain(context *ctx.Context, payload
 		return context.NewError("AssignIssueToAffinityTeamCaptain: issue already assigned")
 	}
 
+	if context.GitHubAuthedAs(*event.Sender.Login) {
+		return fmt.Errorf("bozo. you can't reply to your own comment!")
+	}
+
 	context.IncrStat("affinity.issue")
 
 	return assignTeamCaptains(context, *h, *event.Issue.Body, 1)
@@ -122,6 +132,10 @@ func (h *Handler) AssignIssueToAffinityTeamCaptainFromComment(context *ctx.Conte
 
 	if event.Issue.Assignee != nil {
 		return context.NewError("AssignIssueToAffinityTeamCaptainFromComment: issue already assigned")
+	}
+
+	if context.GitHubAuthedAs(*event.Sender.Login) {
+		return fmt.Errorf("bozo. you can't reply to your own comment!")
 	}
 
 	context.IncrStat("affinity.issue_comment")
