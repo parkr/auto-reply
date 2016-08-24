@@ -3,34 +3,41 @@ package affinity
 import (
 	"testing"
 
-	"github.com/google/go-github/github"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTeamRandomCaptainLogins(t *testing.T) {
-	team := Team{Captains: []*github.User{
-		{Login: github.String("parkr")},
-		{Login: github.String("envygeeks")},
-		{Login: github.String("mattr-")},
-	}}
-	selections := team.RandomCaptainLogins(1)
-	assert.Len(t, selections, 1)
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[0])
+var exampleLongComment = `On the site documentation section, links to documentation sections always point to the jekyllrb.com website, this means that users testing changes might get confused because they will see the official external website page instead of their local website upon clicking those links.
 
-	selections = team.RandomCaptainLogins(2)
-	assert.Len(t, selections, 2)
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[0])
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[1])
 
-	selections = team.RandomCaptainLogins(3)
-	assert.Len(t, selections, 3)
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[0])
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[1])
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[2])
+**Please check if this change doesn't break the official website on https://jekyllrb.com before accepting the pull request.**
 
-	selections = team.RandomCaptainLogins(4)
-	assert.Len(t, selections, 3)
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[0])
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[1])
-	assert.Contains(t, []string{"parkr", "envygeeks", "mattr-"}, selections[2])
+----------
+
+@jekyll/documentation`
+
+func TestFindAffinityTeam(t *testing.T) {
+	allTeams := []Team{
+		{ID: 456, Mention: "@jekyll/documentation"},
+		{ID: 789, Mention: "@jekyll/ecosystem"},
+		{ID: 101, Mention: "@jekyll/performance"},
+		{ID: 213, Mention: "@jekyll/stability"},
+		{ID: 141, Mention: "@jekyll/windows"},
+		{ID: 123, Mention: "@jekyll/build"},
+	}
+
+	examples := []struct {
+		body           string
+		matchingTeamID int
+	}{
+		{exampleLongComment, 456},
+		{"@jekyll/documentation @jekyll/build", 456},
+		{"@jekyll/windows @jekyll/documentation", 456},
+		{"@jekyll/windows", 141},
+	}
+	for _, example := range examples {
+		matchingTeam, err := findAffinityTeam(example.body, allTeams)
+		assert.NoError(t, err)
+		assert.Equal(t, matchingTeam.ID, example.matchingTeamID,
+			"expected the following to match %d team: `%s`", example.matchingTeamID, example.body)
+	}
 }
