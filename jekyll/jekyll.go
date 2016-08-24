@@ -59,12 +59,12 @@ var jekyllOrgEventHandlers = map[hooks.EventType][]hooks.EventHandler{
 
 func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
 	affinity.Teams = []affinity.Team{
-		affinity.Team{ID: 0, Name: "Build", Mention: "@jekyll/build"},
-		affinity.Team{ID: 0, Name: "Documentation", Mention: "@jekyll/documentation"},
-		affinity.Team{ID: 0, Name: "Ecosystem", Mention: "@jekyll/ecosystem"},
-		affinity.Team{ID: 0, Name: "Performance", Mention: "@jekyll/performance"},
-		affinity.Team{ID: 0, Name: "Stability", Mention: "@jekyll/stability"},
-		affinity.Team{ID: 0, Name: "Windows", Mention: "@jekyll/windows"},
+		affinity.Team{ID: 1961060, Name: "Build", Mention: "@jekyll/build"},
+		affinity.Team{ID: 1961072, Name: "Documentation", Mention: "@jekyll/documentation"},
+		affinity.Team{ID: 1961061, Name: "Ecosystem", Mention: "@jekyll/ecosystem"},
+		affinity.Team{ID: 1961065, Name: "Performance", Mention: "@jekyll/performance"},
+		affinity.Team{ID: 1961059, Name: "Stability", Mention: "@jekyll/stability"},
+		affinity.Team{ID: 1116640, Name: "Windows", Mention: "@jekyll/windows"},
 	}
 	affinity.Repos = []affinity.Repo{
 		{Owner: "jekyll", Name: "jekyll"},
