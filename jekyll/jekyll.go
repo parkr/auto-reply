@@ -64,6 +64,9 @@ func jekyllAffinityHandler(context *ctx.Context) *affinity.Handler {
 	handler.AddTeam(context, 1961059, "Stability", "@jekyll/stability")
 	handler.AddTeam(context, 1116640, "Windows", "@jekyll/windows")
 
+	context.Log("affinity teams: %q", handler.GetTeams())
+	context.Log("affinity team repos: %q", handler.GetRepos())
+
 	return handler
 }
 

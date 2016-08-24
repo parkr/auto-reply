@@ -22,6 +22,10 @@ func (h *Handler) enabledForRepo(owner, name string) bool {
 	return false
 }
 
+func (h *Handler) GetRepos() []Repo {
+	return h.repos
+}
+
 func (h *Handler) AddRepo(owner, name string) {
 	if h.repos == nil {
 		h.repos = []Repo{}
@@ -32,6 +36,10 @@ func (h *Handler) AddRepo(owner, name string) {
 	}
 
 	h.repos = append(h.repos, Repo{Owner: owner, Name: name})
+}
+
+func (h *Handler) GetTeams() []Team {
+	return h.teams
 }
 
 func (h *Handler) AddTeam(context *ctx.Context, teamID int, name, mention string) error {
