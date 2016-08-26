@@ -13,6 +13,7 @@ var (
 	teamsCache             = map[string][]*github.Team{}
 	teamHasPushAccessCache = map[string]*github.Repository{}
 	teamMembershipCache    = map[string]bool{}
+	orgOwnersCache         = map[string][]*github.User{}
 )
 
 type authenticator struct {
@@ -25,6 +26,16 @@ func CommenterHasPushAccess(context *ctx.Context, event github.IssueCommentEvent
 	for _, team := range orgTeams {
 		if auth.isTeamMember(*team.ID, *event.Comment.User.Login) &&
 			auth.teamHasPushAccess(*team.ID, *event.Repo.Owner.Login, *event.Repo.Name) {
+			return true
+		}
+	}
+	return false
+}
+
+func UserIsOrgOwner(context *ctx.Context, org, login string) bool {
+	auth := authenticator{context: context}
+	for _, owner := range auth.ownersForOrg(org) {
+		if *owner.Login == login {
 			return true
 		}
 	}
@@ -73,6 +84,20 @@ func (auth authenticator) teamsForOrg(org string) []*github.Team {
 		teamsCache[org] = teamz
 	}
 	return teamsCache[org]
+}
+
+func (auth authenticator) ownersForOrg(org string) []*github.User {
+	if _, ok := orgOwnersCache[org]; !ok {
+		owners, _, err := auth.context.GitHub.Organizations.ListMembers(org, &github.ListMembersOptions{
+			Role: "admin", // owners
+		})
+		if err != nil {
+			auth.context.Log("ERROR performing ListMembers(\"%s\"): %v", org, err)
+			return nil
+		}
+		orgOwnersCache[org] = owners
+	}
+	return orgOwnersCache[org]
 }
 
 func (auth authenticator) cacheKeyIsTeamMember(teamId int, login string) string {
