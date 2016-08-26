@@ -55,7 +55,7 @@ var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 func jekyllAffinityHandler(context *ctx.Context) *affinity.Handler {
 	handler := &affinity.Handler{}
 
-	//handler.AddRepo("jekyll", "jekyll")
+	handler.AddRepo("jekyll", "jekyll")
 
 	handler.AddTeam(context, 1961060) // @jekyll/build
 	handler.AddTeam(context, 1961072) // @jekyll/documentation
