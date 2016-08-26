@@ -22,7 +22,8 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 	team, err := findAffinityTeam(body, handler.teams)
 	if err != nil {
 		context.IncrStat("affinity.error.no_team")
-		return askForAffinityTeam(context, handler.teams)
+		//return askForAffinityTeam(context, handler.teams)
+		return context.NewError("%s: no team in the message body; unable to assign", context.Issue)
 	}
 
 	context.Log("all affinity team captains: %q", team.Captains)
@@ -54,8 +55,6 @@ func findAffinityTeam(body string, allTeams []Team) (Team, error) {
 }
 
 func askForAffinityTeam(context *ctx.Context, allTeams []Team) error {
-	return nil
-	// This is annoying.
 	_, _, err := context.GitHub.Issues.CreateComment(
 		context.Issue.Owner,
 		context.Issue.Repo,
