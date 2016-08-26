@@ -117,3 +117,12 @@ func (t *Team) FetchMetadata(context *ctx.Context) error {
 	t.Description = *team.Description
 	return nil
 }
+
+func (t *Team) IsTeamCaptain(login string) bool {
+	for _, captain := range t.Captains {
+		if *captain.Login == login {
+			return true
+		}
+	}
+	return false
+}
