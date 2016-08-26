@@ -54,6 +54,8 @@ func findAffinityTeam(body string, allTeams []Team) (Team, error) {
 }
 
 func askForAffinityTeam(context *ctx.Context, allTeams []Team) error {
+	return nil
+	// This is annoying.
 	_, _, err := context.GitHub.Issues.CreateComment(
 		context.Issue.Owner,
 		context.Issue.Repo,

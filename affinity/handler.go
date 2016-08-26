@@ -42,22 +42,31 @@ func (h *Handler) GetTeams() []Team {
 	return h.teams
 }
 
-func (h *Handler) AddTeam(context *ctx.Context, teamID int, name, mention string) error {
+func (h *Handler) AddTeam(context *ctx.Context, teamID int) error {
 	if h.teams == nil {
 		h.teams = []Team{}
 	}
 
-	if _, err := findAffinityTeam(mention, h.teams); err == nil {
+	if _, err := h.GetTeam(teamID); err == nil {
 		return nil // already have it!
 	}
 
-	team, err := NewTeam(context, teamID, name, mention)
+	team, err := NewTeam(context, teamID)
 	if err != nil {
 		return err
 	}
 
 	h.teams = append(h.teams, team)
 	return nil
+}
+
+func (h *Handler) GetTeam(teamID int) (Team, error) {
+	for _, team := range h.teams {
+		if team.ID == teamID {
+			return team, nil
+		}
+	}
+	return Team{}, fmt.Errorf("GetTeam: team with ID=%d not found", teamID)
 }
 
 func (h *Handler) AssignPRToAffinityTeamCaptain(context *ctx.Context, payload interface{}) error {
