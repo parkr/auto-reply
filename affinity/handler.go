@@ -121,6 +121,7 @@ func (h *Handler) AssignIssueToAffinityTeamCaptain(context *ctx.Context, payload
 
 	return assignTeamCaptains(context, *h, *event.Issue.Body, 1)
 }
+
 func (h *Handler) AssignIssueToAffinityTeamCaptainFromComment(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.IssueCommentEvent)
 	if !ok {

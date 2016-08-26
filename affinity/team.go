@@ -1,23 +1,21 @@
 package affinity
 
 import (
+	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/auth"
 	"github.com/parkr/auto-reply/ctx"
 )
 
-func NewTeam(context *ctx.Context, teamId int, name, mention string) (Team, error) {
-	team := Team{
-		ID:      teamId,
-		Name:    name,
-		Mention: mention,
-	}
-	if err := team.FetchCaptains(context); err != nil {
+func NewTeam(context *ctx.Context, teamId int) (Team, error) {
+	team := Team{ID: teamId}
+	if err := team.FetchMetadata(context); err != nil {
 		return Team{}, err
 	}
-	if err := team.FetchMetadata(context); err != nil {
+	if err := team.FetchCaptains(context); err != nil {
 		return Team{}, err
 	}
 
@@ -27,6 +25,9 @@ func NewTeam(context *ctx.Context, teamId int, name, mention string) (Team, erro
 type Team struct {
 	// The team ID.
 	ID int
+
+	// The org the team belongs to
+	Org string
 
 	// The name of the team.
 	Name string
@@ -82,6 +83,25 @@ func (t *Team) FetchCaptains(context *ctx.Context) error {
 	}
 
 	t.Captains = users
+
+	if t.Org != "" {
+		allMembers, _, err := context.GitHub.Organizations.ListTeamMembers(t.ID, &github.OrganizationListTeamMembersOptions{
+			Role:        "all",
+			ListOptions: github.ListOptions{Page: 0, PerPage: 100},
+		})
+		if err != nil {
+			return err
+		}
+
+		for _, user := range allMembers {
+			if auth.UserIsOrgOwner(context, t.Org, *user.Login) {
+				t.Captains = append(t.Captains, user)
+			}
+		}
+	} else {
+		context.Log("Team.FetchCaptains: cannot fetch org owners without Team.Org value")
+	}
+
 	return nil
 }
 
@@ -91,6 +111,9 @@ func (t *Team) FetchMetadata(context *ctx.Context) error {
 		return err
 	}
 
+	t.Org = *team.Organization.Login
+	t.Name = *team.Name
+	t.Mention = fmt.Sprintf("@%s/%s", t.Org, *team.Slug)
 	t.Description = *team.Description
 	return nil
 }

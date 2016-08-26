@@ -57,12 +57,12 @@ func jekyllAffinityHandler(context *ctx.Context) *affinity.Handler {
 
 	//handler.AddRepo("jekyll", "jekyll")
 
-	handler.AddTeam(context, 1961060, "Build", "@jekyll/build")
-	handler.AddTeam(context, 1961072, "Documentation", "@jekyll/documentation")
-	handler.AddTeam(context, 1961061, "Ecosystem", "@jekyll/ecosystem")
-	handler.AddTeam(context, 1961065, "Performance", "@jekyll/performance")
-	handler.AddTeam(context, 1961059, "Stability", "@jekyll/stability")
-	handler.AddTeam(context, 1116640, "Windows", "@jekyll/windows")
+	handler.AddTeam(context, 1961060) // @jekyll/build
+	handler.AddTeam(context, 1961072) // @jekyll/documentation
+	handler.AddTeam(context, 1961061) // @jekyll/ecosystem
+	handler.AddTeam(context, 1961065) // @jekyll/performance
+	handler.AddTeam(context, 1961059) // @jekyll/stability
+	handler.AddTeam(context, 1116640) // @jekyll/windows
 
 	context.Log("affinity teams: %q", handler.GetTeams())
 	context.Log("affinity team repos: %q", handler.GetRepos())
