@@ -26,7 +26,7 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 		return context.NewError("%s: no team in the message body; unable to assign", context.Issue)
 	}
 
-	context.Log("all affinity team captains: %q", team.Captains)
+	context.Log("team: %s", team)
 	victims := team.RandomCaptainLogins(assigneeCount)
 	context.Log("selected affinity team captains for %s: %q", context.Issue, victims)
 	_, _, err = context.GitHub.Issues.AddAssignees(
@@ -87,4 +87,12 @@ func buildAffinityTeamMessage(context *ctx.Context, allTeams []Team) string {
 		"%s %s\n\n%s\n\nMention one of these teams in a comment below and we'll get this sorted. Thanks!",
 		prefix, explanation, strings.Join(teams, "\n"),
 	)
+}
+
+func usersByLogin(users []*github.User) []string {
+	logins := []string{}
+	for _, user := range users {
+		logins = append(logins, *user.Login)
+	}
+	return logins
 }

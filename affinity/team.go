@@ -42,6 +42,17 @@ type Team struct {
 	Captains []*github.User
 }
 
+func (t Team) String() string {
+	return fmt.Sprintf("Team{ID=%d Org=%s Name=%s Mention=%s Description=%s Captains=%q",
+		t.ID,
+		t.Org,
+		t.Name,
+		t.Mention,
+		t.Description,
+		usersByLogin(t.Captains),
+	)
+}
+
 func (t Team) RandomCaptainLogins(num int) []string {
 	rand.Seed(time.Now().UnixNano())
 
