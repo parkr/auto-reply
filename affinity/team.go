@@ -94,7 +94,7 @@ func (t *Team) FetchCaptains(context *ctx.Context) error {
 		}
 
 		for _, user := range allMembers {
-			if auth.UserIsOrgOwner(context, t.Org, *user.Login) {
+			if auth.UserIsOrgOwner(context, t.Org, *user.Login) && !context.GitHubAuthedAs(*user.Login) {
 				t.Captains = append(t.Captains, user)
 			}
 		}
