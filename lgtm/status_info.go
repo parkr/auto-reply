@@ -69,7 +69,7 @@ func (s statusInfo) newState() string {
 	if len(s.lgtmers) >= s.quorum {
 		return "success"
 	}
-	return "failure"
+	return "pending"
 }
 
 // newDescription produces the LGTM status description based on the LGTMers

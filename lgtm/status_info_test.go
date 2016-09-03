@@ -64,11 +64,11 @@ func TestNewState(t *testing.T) {
 		expected string
 	}{
 		{[]string{}, 0, "success"},
-		{[]string{}, 1, "failure"},
-		{[]string{}, 2, "failure"},
+		{[]string{}, 1, "pending"},
+		{[]string{}, 2, "pending"},
 		{[]string{"@parkr"}, 0, "success"},
 		{[]string{"@parkr"}, 1, "success"},
-		{[]string{"@parkr"}, 2, "failure"},
+		{[]string{"@parkr"}, 2, "pending"},
 		{[]string{"@parkr", "@mattr-"}, 0, "success"},
 		{[]string{"@parkr", "@mattr-"}, 1, "success"},
 		{[]string{"@parkr", "@mattr-"}, 2, "success"},
@@ -137,12 +137,12 @@ func TestStatusInfoNewRepoStatus(t *testing.T) {
 	}{
 		{"octocat", []string{}, 0, "octocat/lgtm", "success", "No approval is required."},
 		{"parkr", []string{}, 0, "parkr/lgtm", "success", "No approval is required."},
-		{"jekyll", []string{}, 1, "jekyll/lgtm", "failure", "Awaiting approval from at least 1 maintainer."},
+		{"jekyll", []string{}, 1, "jekyll/lgtm", "pending", "Awaiting approval from at least 1 maintainer."},
 		{"jekyll", []string{"@parkr"}, 1, "jekyll/lgtm", "success", "Approved by @parkr."},
-		{"jekyll", []string{"@parkr"}, 2, "jekyll/lgtm", "failure", "Approved by @parkr. Requires 1 more LGTM."},
+		{"jekyll", []string{"@parkr"}, 2, "jekyll/lgtm", "pending", "Approved by @parkr. Requires 1 more LGTM."},
 		{"jekyll", []string{"@parkr", "@envygeeks"}, 1, "jekyll/lgtm", "success", "Approved by @parkr and @envygeeks."},
 		{"jekyll", []string{"@parkr", "@envygeeks"}, 2, "jekyll/lgtm", "success", "Approved by @parkr and @envygeeks."},
-		{"jekyll", []string{"@parkr", "@mattr-", "@envygeeks"}, 6, "jekyll/lgtm", "failure", "Approved by @parkr, @mattr-, and @envygeeks. Requires 3 more LGTM's."},
+		{"jekyll", []string{"@parkr", "@mattr-", "@envygeeks"}, 6, "jekyll/lgtm", "pending", "Approved by @parkr, @mattr-, and @envygeeks. Requires 3 more LGTM's."},
 	}
 	for _, test := range cases {
 		status := statusInfo{lgtmers: test.lgtmers, quorum: test.quorum}
