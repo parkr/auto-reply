@@ -2,6 +2,8 @@
 
 An open source gardener. This is a technology for powering GitHub bots. It's really rough around the edges but it currently powers [@jekyllbot](https://github.com/jekyllbot).
 
+[![Build Status](https://travis-ci.org/parkr/auto-reply.svg?branch=master)](https://travis-ci.org/parkr/auto-reply)
+
 ## Configuring
 
 I could use [your thoughts on this!](https://github.com/parkr/auto-reply/issues/4) Currently, it's a hodge-podge. The documentation for each package will provide more details on this. Currently we have the following packages, with varying levels of configuration:
