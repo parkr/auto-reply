@@ -87,7 +87,7 @@ func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
 func newEmptyStatus(owner string, quorum int) *github.RepoStatus {
 	return &github.RepoStatus{
 		Context:     github.String(lgtmContext(owner)),
-		State:       github.String("failure"),
+		State:       github.String("pending"),
 		Description: github.String(statusInfo{quorum: quorum}.newDescription()),
 	}
 }

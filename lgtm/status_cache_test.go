@@ -285,7 +285,7 @@ func TestNewEmptyStatus(t *testing.T) {
 	for _, test := range cases {
 		status := newEmptyStatus(test.owner, 1)
 		assert.Equal(t, test.expContext, *status.Context)
-		assert.Equal(t, "failure", *status.State)
+		assert.Equal(t, "pending", *status.State)
 		assert.Equal(t, "Awaiting approval from at least 1 maintainer.", *status.Description)
 	}
 }
