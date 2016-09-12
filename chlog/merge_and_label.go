@@ -52,6 +52,12 @@ var (
 			Labels:  []string{"internal", "fix"},
 		},
 		changelogCategory{
+			Prefix:  "doc",
+			Slug:    "documentation",
+			Section: "Documentation",
+			Labels:  []string{"documentation"},
+		},
+		changelogCategory{
 			Prefix:  "port",
 			Slug:    "forward-ports",
 			Section: "Forward Ports",
