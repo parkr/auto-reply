@@ -304,7 +304,15 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 }
 
 func deletableRef(pr *github.PullRequest, owner string) bool {
-	return *pr.Head.Repo.Owner.Login == owner && *pr.Head.Ref != "master" && *pr.Head.Ref != "gh-pages"
+	return pr != nil &&
+		pr.Head != nil &&
+		pr.Head.Repo != nil &&
+		pr.Head.Repo.Owner != nil &&
+		pr.Head.Repo.Owner.Login != nil &&
+		*pr.Head.Repo.Owner.Login == owner &&
+		pr.Head.Ref != nil &&
+		*pr.Head.Ref != "master" &&
+		*pr.Head.Ref != "gh-pages"
 }
 
 func commitHistoryFile(context *ctx.Context, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
