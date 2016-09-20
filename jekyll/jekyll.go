@@ -66,14 +66,13 @@ func statStatus(context *ctx.Context, payload interface{}) error {
 	if context.Statsd != nil {
 		statName := fmt.Sprintf("status.%s", *status.State)
 		context.Log("context.Statsd.Count(%s, 1, []string{context:%s, repo:%s}, 1)", statName, *status.Context, context.Issue)
-		return context.Statsd.Count(
+		return context.Statsd.Incr(
 			statName,
-			1,
 			[]string{
 				"context:" + *status.Context,
 				"repo:" + context.Issue.String(),
 			},
-			1,
+			float64(1.0), // rate..?
 		)
 	}
 	return nil
