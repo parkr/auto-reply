@@ -2,6 +2,8 @@
 package jekyll
 
 import (
+	"fmt"
+
 	"github.com/parkr/auto-reply/affinity"
 	"github.com/parkr/auto-reply/autopull"
 	"github.com/parkr/auto-reply/chlog"
@@ -10,6 +12,7 @@ import (
 	"github.com/parkr/auto-reply/labeler"
 	"github.com/parkr/auto-reply/lgtm"
 
+	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/jekyll/deprecate"
 	"github.com/parkr/auto-reply/jekyll/issuecomment"
 )
@@ -49,6 +52,21 @@ var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 		labeler.PendingRebaseNeedsWorkPRUnlabeler,
 		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
 	},
+	hooks.StatusEvent: {statStatus},
+}
+
+func statStatus(context *ctx.Context, payload interface{}) error {
+	status, ok := payload.(*github.StatusEvent)
+	if !ok {
+		return context.NewError("statStatus: not an status event")
+	}
+
+	if context.Statsd != nil {
+		statName := fmt.Sprintf("%s.%s.status.%s", *status.Repo.Owner.Login, *status.Repo.Name, *status.State)
+		context.Log("context.Statsd.Count(%s, 1, []string{context:%s}, 1)", statName, *status.Context)
+		return context.Statsd.Count(statName, 1, []string{"context:" + *status.Context}, 1)
+	}
+	return nil
 }
 
 func jekyllAffinityHandler(context *ctx.Context) *affinity.Handler {
