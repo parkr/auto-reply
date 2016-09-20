@@ -28,7 +28,11 @@ type issueRef struct {
 }
 
 func (r issueRef) String() string {
-	return fmt.Sprintf("%s/%s#%d", r.Owner, r.Repo, r.Num)
+	if r.Num < 0 {
+		return fmt.Sprintf("%s/%s", r.Owner, r.Repo)
+	} else {
+		return fmt.Sprintf("%s/%s#%d", r.Owner, r.Repo, r.Num)
+	}
 }
 
 func (r issueRef) IsEmpty() bool {

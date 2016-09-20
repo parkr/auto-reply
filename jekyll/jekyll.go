@@ -61,10 +61,20 @@ func statStatus(context *ctx.Context, payload interface{}) error {
 		return context.NewError("statStatus: not an status event")
 	}
 
+	context.SetIssue(*status.Repo.Owner.Login, *status.Repo.Name, -1)
+
 	if context.Statsd != nil {
-		statName := fmt.Sprintf("%s.%s.status.%s", *status.Repo.Owner.Login, *status.Repo.Name, *status.State)
-		context.Log("context.Statsd.Count(%s, 1, []string{context:%s}, 1)", statName, *status.Context)
-		return context.Statsd.Count(statName, 1, []string{"context:" + *status.Context}, 1)
+		statName := fmt.Sprintf("status.%s", *status.State)
+		context.Log("context.Statsd.Count(%s, 1, []string{context:%s, repo:%s}, 1)", statName, *status.Context, context.Issue)
+		return context.Statsd.Count(
+			statName,
+			1,
+			[]string{
+				"context:" + *status.Context,
+				"repo:" + context.Issue.String(),
+			},
+			1,
+		)
 	}
 	return nil
 }
