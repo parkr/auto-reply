@@ -127,6 +127,10 @@ func MergeAndLabel(context *ctx.Context, payload interface{}) error {
 		return context.NewError("MergeAndLabel: error getting PR info %s: %v", ref, getRepoErr)
 	}
 
+	if repoInfo == nil {
+		return context.NewError("MergeAndLabel: tried to get PR, but couldn't. repoInfo was nil.")
+	}
+
 	// Delete branch
 	if deletableRef(repoInfo, owner) {
 		wg.Add(1)
