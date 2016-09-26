@@ -13,11 +13,13 @@ import (
 )
 
 var (
-	handler = newHandler([]Repo{{
-		Owner:  "o",
-		Name:   "r",
-		Quorum: 1,
-	}})
+	handler = &Handler{repos: []Repo{
+		{
+			Owner:  "o",
+			Name:   "r",
+			Quorum: 1,
+		},
+	}}
 	ref   = handler.newPRRef("o", "r", 273)
 	prSHA = "deadbeef0000000deadbeef"
 

@@ -8,7 +8,6 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/auth"
 	"github.com/parkr/auto-reply/ctx"
-	"github.com/parkr/auto-reply/hooks"
 )
 
 var lgtmBodyRegexp = regexp.MustCompile(`(?i:\ALGTM[!.,]\s+|\s+LGTM[.!,]*\z|\ALGTM[.!,]*\z)`)
@@ -30,6 +29,18 @@ type Repo struct {
 
 type Handler struct {
 	repos []Repo
+}
+
+func (h *Handler) AddRepo(owner, name string, quorum int) {
+	if repo := h.findRepo(owner, name); repo != nil {
+		repo.Quorum = quorum
+	} else {
+		h.repos = append(h.repos, Repo{
+			Owner:  owner,
+			Name:   name,
+			Quorum: quorum,
+		})
+	}
 }
 
 func (h *Handler) findRepo(owner, name string) *Repo {
@@ -60,27 +71,27 @@ func (h *Handler) newPRRef(owner, name string, number int) prRef {
 	}
 }
 
-func (h *Handler) issueCommentHandler(context *ctx.Context, payload interface{}) error {
+func (h *Handler) IssueCommentHandler(context *ctx.Context, payload interface{}) error {
 	comment, ok := payload.(*github.IssueCommentEvent)
 	if !ok {
-		return context.NewError("lgtm.issueCommentHandler: not an issue comment event")
+		return context.NewError("lgtm.IssueCommentHandler: not an issue comment event")
 	}
 
 	// LGTM comment?
 	if !lgtmBodyRegexp.MatchString(*comment.Comment.Body) {
-		return context.NewError("lgtm.issueCommentHandler: not a LGTM comment")
+		return context.NewError("lgtm.IssueCommentHandler: not a LGTM comment")
 	}
 
 	// Is this a pull request?
 	if comment.Issue == nil || comment.Issue.PullRequestLinks == nil {
-		return context.NewError("lgtm.issueCommentHandler: not a pull request")
+		return context.NewError("lgtm.IssueCommentHandler: not a pull request")
 	}
 
 	ref := h.newPRRef(*comment.Repo.Owner.Login, *comment.Repo.Name, *comment.Issue.Number)
 	lgtmer := *comment.Comment.User.Login
 
 	if !h.isEnabledFor(ref.Repo.Owner, ref.Repo.Name) {
-		return context.NewError("lgtm.issueCommentHandler: not enabled for %s/%s", ref.Repo.Owner, ref.Repo.Name)
+		return context.NewError("lgtm.IssueCommentHandler: not enabled for %s/%s", ref.Repo.Owner, ref.Repo.Name)
 	}
 
 	// Does the user have merge/label abilities?
@@ -93,34 +104,34 @@ func (h *Handler) issueCommentHandler(context *ctx.Context, payload interface{})
 	// Get status
 	info, err := getStatus(context, ref)
 	if err != nil {
-		return context.NewError("lgtm.issueCommentHandler: couldn't get status for %s: %v", ref, err)
+		return context.NewError("lgtm.IssueCommentHandler: couldn't get status for %s: %v", ref, err)
 	}
 
 	// Already LGTM'd by you? Exit.
 	if info.IsLGTMer(lgtmer) {
 		return context.NewError(
-			"lgtm.issueCommentHandler: no duplicate LGTM allowed for @%s on %s", lgtmer, ref)
+			"lgtm.IssueCommentHandler: no duplicate LGTM allowed for @%s on %s", lgtmer, ref)
 	}
 
 	info.lgtmers = append(info.lgtmers, "@"+lgtmer)
 	if err := setStatus(context, ref, info.sha, info); err != nil {
 		return context.NewError(
-			"lgtm.issueCommentHandler: had trouble adding lgtmer '%s' on %s: %v",
+			"lgtm.IssueCommentHandler: had trouble adding lgtmer '%s' on %s: %v",
 			lgtmer, ref, err)
 	}
 	return nil
 }
 
-func (h *Handler) pullRequestHandler(context *ctx.Context, payload interface{}) error {
+func (h *Handler) PullRequestHandler(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.PullRequestEvent)
 	if !ok {
-		return context.NewError("lgtm.pullRequestHandler: not a pull request event")
+		return context.NewError("lgtm.PullRequestHandler: not a pull request event")
 	}
 
 	ref := h.newPRRef(*event.Repo.Owner.Login, *event.Repo.Name, *event.Number)
 
 	if !h.isEnabledFor(ref.Repo.Owner, ref.Repo.Name) {
-		return context.NewError("lgtm.pullRequestHandler: not enabled for %s", ref)
+		return context.NewError("lgtm.PullRequestHandler: not enabled for %s", ref)
 	}
 
 	if *event.Action == "opened" || *event.Action == "synchronize" {
@@ -140,16 +151,17 @@ func (h *Handler) pullRequestHandler(context *ctx.Context, payload interface{}) 
 	return nil
 }
 
-func newHandler(enabledRepos []Repo) *Handler {
-	return &Handler{repos: enabledRepos}
-}
+func (h *Handler) PullRequestReviewHandler(context *ctx.Context, payload interface{}) error {
+	return context.NewError("lgtm.PullRequestReviewHandler: pull request review webhooks aren't implemented yet")
 
-func NewIssueCommentHandler(enabledRepos []Repo) hooks.EventHandler {
-	handler := newHandler(enabledRepos)
-	return handler.issueCommentHandler
-}
+	//event, ok := payload.(*github.PullRequestReviewEvent)
+	//if !ok {
+	//	return context.NewError("lgtm.PullRequestReviewHandler: not a pull request review event")
+	//}
 
-func NewPullRequestHandler(enabledRepos []Repo) hooks.EventHandler {
-	handler := newHandler(enabledRepos)
-	return handler.pullRequestHandler
+	//ref := h.newPRRef(*event.Repo.Owner.Login, *event.Repo.Name, *event.Number)
+
+	//if !h.isEnabledFor(ref.Repo.Owner, ref.Repo.Name) {
+	//	return context.NewError("lgtm.PullRequestReviewHandler: not enabled for %s", ref)
+	//}
 }

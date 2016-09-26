@@ -17,27 +17,6 @@ import (
 	"github.com/parkr/auto-reply/jekyll/issuecomment"
 )
 
-var lgtmEnabledRepos = []lgtm.Repo{
-	{Owner: "jekyll", Name: "jekyll-coffeescript", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-compose", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-docs", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-feed", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-gist", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-import", Quorum: 1},
-	{Owner: "jekyll", Name: "jekyll-mentions", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-opal", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-paginate", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-redirect-from", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-sass-converter", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-sitemap", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-textile-converter", Quorum: 2},
-	{Owner: "jekyll", Name: "jekyll-watch", Quorum: 2},
-	{Owner: "jekyll", Name: "github-metadata", Quorum: 2},
-	{Owner: "jekyll", Name: "jemoji", Quorum: 1},
-	{Owner: "jekyll", Name: "mercenary", Quorum: 1},
-	{Owner: "jekyll", Name: "minima", Quorum: 1},
-}
-
 var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 	hooks.CreateEvent: {chlog.CreateReleaseOnTagHandler},
 	hooks.IssuesEvent: {deprecate.DeprecateOldRepos},
@@ -45,14 +24,10 @@ var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 		issuecomment.PendingFeedbackUnlabeler,
 		issuecomment.StaleUnlabeler,
 		chlog.MergeAndLabel,
-		lgtm.NewIssueCommentHandler(lgtmEnabledRepos),
 	},
-	hooks.PushEvent: {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
-	hooks.PullRequestEvent: {
-		labeler.PendingRebaseNeedsWorkPRUnlabeler,
-		lgtm.NewPullRequestHandler(lgtmEnabledRepos),
-	},
-	hooks.StatusEvent: {statStatus},
+	hooks.PushEvent:        {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
+	hooks.PullRequestEvent: {labeler.PendingRebaseNeedsWorkPRUnlabeler},
+	hooks.StatusEvent:      {statStatus},
 }
 
 func statStatus(context *ctx.Context, payload interface{}) error {
@@ -97,11 +72,40 @@ func jekyllAffinityHandler(context *ctx.Context) *affinity.Handler {
 	return handler
 }
 
+func newLgtmHandler() *lgtm.Handler {
+	handler := &lgtm.Handler{}
+
+	handler.AddRepo("jekyll", "jekyll", 2)
+	handler.AddRepo("jekyll", "jekyll-coffeescript", 2)
+	handler.AddRepo("jekyll", "jekyll-compose", 1)
+	handler.AddRepo("jekyll", "jekyll-docs", 1)
+	handler.AddRepo("jekyll", "jekyll-feed", 1)
+	handler.AddRepo("jekyll", "jekyll-gist", 2)
+	handler.AddRepo("jekyll", "jekyll-import", 1)
+	handler.AddRepo("jekyll", "jekyll-mentions", 2)
+	handler.AddRepo("jekyll", "jekyll-opal", 2)
+	handler.AddRepo("jekyll", "jekyll-paginate", 2)
+	handler.AddRepo("jekyll", "jekyll-redirect-from", 2)
+	handler.AddRepo("jekyll", "jekyll-sass-converter", 2)
+	handler.AddRepo("jekyll", "jekyll-sitemap", 2)
+	handler.AddRepo("jekyll", "jekyll-textile-converter", 2)
+	handler.AddRepo("jekyll", "jekyll-watch", 2)
+	handler.AddRepo("jekyll", "github-metadata", 2)
+	handler.AddRepo("jekyll", "jemoji", 1)
+	handler.AddRepo("jekyll", "mercenary", 1)
+	handler.AddRepo("jekyll", "minima", 1)
+
+	return handler
+}
+
 func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
 	affinityHandler := jekyllAffinityHandler(context)
 	jekyllOrgEventHandlers.AddHandler(hooks.IssuesEvent, affinityHandler.AssignIssueToAffinityTeamCaptain)
 	jekyllOrgEventHandlers.AddHandler(hooks.IssueCommentEvent, affinityHandler.AssignIssueToAffinityTeamCaptainFromComment)
 	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestEvent, affinityHandler.AssignPRToAffinityTeamCaptain)
+
+	lgtmHandler := newLgtmHandler()
+	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestReviewEvent, lgtmHandler.PullRequestReviewHandler)
 
 	return &hooks.GlobalHandler{
 		Context:       context,

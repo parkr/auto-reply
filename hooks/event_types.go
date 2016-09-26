@@ -25,6 +25,7 @@ var (
 	PageBuildEvent                EventType = "page_build"
 	PublicEvent                   EventType = "public"
 	PullRequestEvent              EventType = "pull_request"
+	PullRequestReviewEvent        EventType = "pull_request_review"
 	PullRequestReviewCommentEvent EventType = "pull_request_review_comment"
 	PushEvent                     EventType = "push"
 	ReleaseEvent                  EventType = "release"
