@@ -115,7 +115,9 @@ func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Reposi
 	}
 
 	log.Printf("%s -- ignored non-stale issues: %d", linkify(owner, name, -1), nonStaleIssues)
-	log.Printf("%s -- failed issues: %d", linkify(owner, name, -1), failedIssues)
+	if failedIssues > 0 {
+		log.Printf("%s !! failed issues: %d", linkify(owner, name, -1), failedIssues)
+	}
 
 	wg.Done()
 }
