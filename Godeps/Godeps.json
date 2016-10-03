@@ -18,7 +18,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "a59a35745f99ad92d70d69a9f180767063aa4bf3"
+			"Rev": "3e246d29992beb5a5d2fc253adebea86997c45b0"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -39,15 +39,25 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "7394c112eae4dba7e96bfcfe738e6373d61772b4"
+			"Rev": "f09c4662a0bd6bd8943ac7b4931e185df9471da4"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "12e1e986157ec46fb273824565d9937bd4235105"
+			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "12e1e986157ec46fb273824565d9937bd4235105"
+			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"Comment": "v1.1.3-19-gd77da35",
+			"Rev": "d77da356e56a7428ad25149ca77381849a6a5232"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"Comment": "v1.1.3-19-gd77da35",
+			"Rev": "d77da356e56a7428ad25149ca77381849a6a5232"
 		}
 	]
 }
