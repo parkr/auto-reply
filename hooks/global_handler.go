@@ -1,11 +1,13 @@
 package hooks
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
 )
 
@@ -29,30 +31,24 @@ type GlobalHandler struct {
 // HandlePayload handles the actual unpacking of the payload and firing of the proper handlers.
 // It will never respond with anything but a 200.
 func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, payload []byte) {
-	eventType := r.Header.Get("X-GitHub-Event")
+	eventType := github.WebHookType(r)
 
 	if eventType == "ping" {
-		event := structFromPayload(eventType, payload)
-		ping, ok := event.(*pingEventPayload)
-		if !ok {
-			log.Println(string(payload))
-			http.Error(w, "you sure that was a ping message?", 200)
-			return
-		}
-		http.Error(w, ping.Zen, 200)
+		handlePingPayload(w, r, payload)
 		return
 	}
 
 	if os.Getenv("AUTO_REPLY_DEBUG") == "true" {
-		log.Printf("payload: %s %s", r.Header.Get("X-GitHub-Event"), string(payload))
+		log.Printf("payload: %s %s", eventType, string(payload))
 	}
 
 	if handlers, ok := h.EventHandlers[EventType(eventType)]; ok {
 		numHandlers := h.FireHandlers(handlers, eventType, payload)
 
-		issueCommentHandlers, ok := h.EventHandlers[EventType(eventType)]
-		if ok && EventType(eventType) == PullRequestEvent {
-			numHandlers += h.FireHandlers(issueCommentHandlers, "issue_comment", payload)
+		if EventType(eventType) == PullRequestEvent {
+			if issueCommentHandlers, ok := h.EventHandlers[EventType(eventType)]; ok {
+				numHandlers += h.FireHandlers(issueCommentHandlers, "issue_comment", payload)
+			}
 		}
 
 		fmt.Fprintf(w, "fired %d handlers", numHandlers)
@@ -68,7 +64,11 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 
 func (h *GlobalHandler) FireHandlers(handlers []EventHandler, eventType string, payload []byte) int {
 	h.Context.IncrStat("handler." + eventType)
-	event := structFromPayload(eventType, payload)
+	event, err := github.ParseWebHook(eventType, payload)
+	if err != nil {
+		h.Context.NewError("FireHandlers: couldn't parse webhook: %+v", err)
+		return 0
+	}
 	for _, handler := range handlers {
 		go handler(h.Context, event)
 	}
@@ -83,4 +83,15 @@ func (h *GlobalHandler) AcceptedEventTypes() []EventType {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func handlePingPayload(w http.ResponseWriter, r *http.Request, payload []byte) {
+	var ping pingEventPayload
+	if err := json.Unmarshal(payload, &ping); err != nil {
+		log.Println(string(payload))
+		http.Error(w, "you sure that was a ping message?", 500)
+		log.Printf("GlobalHandler.HandlePayload: couldn't handle ping payload: %+v", err)
+		return
+	}
+	http.Error(w, ping.Zen, 200)
 }
