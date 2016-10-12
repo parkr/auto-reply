@@ -18,7 +18,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "3e246d29992beb5a5d2fc253adebea86997c45b0"
+			"Rev": "ba2eeefeb8428f9527fe710fe3dfaf06e3523310"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -39,15 +39,15 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "f09c4662a0bd6bd8943ac7b4931e185df9471da4"
+			"Rev": "6dba816f1056709e29a1c442883cab1336d3c083"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
+			"Rev": "1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "3c3a985cb79f52a3190fbc056984415ca6763d01"
+			"Rev": "1e695b1c8febf17aad3bfa7bf0a819ef94b98ad5"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",

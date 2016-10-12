@@ -172,14 +172,6 @@ type IntegrationInstallationRepositoriesEvent struct {
 	Sender              *User         `json:"sender,omitempty"`
 }
 
-// Installation represents a GitHub integration installation.
-type Installation struct {
-	ID              *int    `json:"id,omitempty"`
-	Account         *User   `json:"account,omitempty"`
-	AccessTokensURL *string `json:"access_tokens_url,omitempty"`
-	RepositoriesURL *string `json:"repositories_url,omitempty"`
-}
-
 // IssueCommentEvent is triggered when an issue comment is created on an issue
 // or pull request.
 // The Webhook event name is "issue_comment".
@@ -300,6 +292,26 @@ type PullRequestEvent struct {
 	Changes *EditChange `json:"changes,omitempty"`
 	Repo    *Repository `json:"repository,omitempty"`
 	Sender  *User       `json:"sender,omitempty"`
+}
+
+// PullRequestReviewEvent is triggered when a review is submitted on a pull
+// request.
+// The Webhook event name is "pull_request_review".
+//
+// GitHub docs: https://developer.github.com/v3/activity/events/types/#pullrequestreviewevent
+type PullRequestReviewEvent struct {
+	// Action is always "submitted".
+	Action            *string            `json:"action,omitempty"`
+	PullRequestReview *PullRequestReview `json:"review,omitempty"`
+	PullRequest       *PullRequest       `json:"pull_request,omitempty"`
+
+	// The following fields are only populated by Webhook events.
+	Repo   *Repository `json:"repository,omitempty"`
+	Sender *User       `json:"sender,omitempty"`
+
+	// The follow field is only present when the webhook is triggered on a
+	// repository belonging to an organization.
+	Organization *Organization `json:"organization,omitempty"`
 }
 
 // PullRequestReviewCommentEvent is triggered when a comment is created on a

@@ -54,6 +54,7 @@ var (
 		"page_build":                            "PageBuildEvent",
 		"public":                                "PublicEvent",
 		"pull_request_review_comment":           "PullRequestReviewCommentEvent",
+		"pull_request_review":                   "PullRequestReviewEvent",
 		"pull_request":                          "PullRequestEvent",
 		"push":                                  "PushEvent",
 		"repository":                            "RepositoryEvent",
