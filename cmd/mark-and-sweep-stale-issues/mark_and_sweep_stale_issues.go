@@ -28,6 +28,7 @@ var (
 		repo("jekyll", "jekyll-feed"),
 		repo("jekyll", "jekyll-compose"),
 		repo("jekyll", "jekyll-watch"),
+		repo("jekyll", "jekyll-seo-tag"),
 		repo("jekyll", "jekyll-sitemap"),
 		repo("jekyll", "jekyll-sass-converter"),
 		repo("jekyll", "jemoji"),
