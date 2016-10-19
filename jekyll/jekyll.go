@@ -87,6 +87,7 @@ func newLgtmHandler() *lgtm.Handler {
 	handler.AddRepo("jekyll", "jekyll-paginate", 2)
 	handler.AddRepo("jekyll", "jekyll-redirect-from", 2)
 	handler.AddRepo("jekyll", "jekyll-sass-converter", 2)
+	handler.AddRepo("jekyll", "jekyll-seo-tag", 1)
 	handler.AddRepo("jekyll", "jekyll-sitemap", 2)
 	handler.AddRepo("jekyll", "jekyll-textile-converter", 2)
 	handler.AddRepo("jekyll", "jekyll-watch", 2)
