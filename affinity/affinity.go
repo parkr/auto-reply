@@ -27,7 +27,11 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 	}
 
 	context.Log("team: %s", team)
-	victims := team.RandomCaptainLogins(assigneeCount)
+	victims := team.RandomCaptainLoginsExcluding(context.Issue.Author, assigneeCount)
+	if len(victims) == 0 {
+		context.IncrStat("affinity.error.no_acceptable_captains")
+		return context.NewError("%s: team captains other than issue author could not be found", context.Issue)
+	}
 	context.Log("selected affinity team captains for %s: %q", context.Issue, victims)
 	_, _, err = context.GitHub.Issues.AddAssignees(
 		context.Issue.Owner,
