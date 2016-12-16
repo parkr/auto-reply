@@ -84,6 +84,41 @@ OuterLoop:
 	return selections
 }
 
+func (t Team) RandomCaptainLoginsExcluding(excludedLogin string, count int) []string {
+	var selections []string
+	validSelection := true
+
+	// Try 10 times to get a set of captains which doesn't include the
+	// excluded one.
+	for i := 0; i < 10; i++ {
+		selections = t.RandomCaptainLogins(count)
+
+		// Have we included the login of the excluded captain?
+		validSelection = true
+		for _, selection := range selections {
+			if excludedLogin == selection {
+				validSelection = false
+			}
+		}
+
+		// If everything is OK, then return.
+		if validSelection {
+			break
+		}
+	}
+
+	if !validSelection {
+		var limitedSelection []string
+		for _, selection := range selections {
+			if selection != excludedLogin {
+				limitedSelection = append(limitedSelection, selection)
+			}
+		}
+		return limitedSelection
+	}
+	return selections
+}
+
 func (t *Team) FetchCaptains(context *ctx.Context) error {
 	users, _, err := context.GitHub.Organizations.ListTeamMembers(t.ID, &github.OrganizationListTeamMembersOptions{
 		Role:        "maintainer",
