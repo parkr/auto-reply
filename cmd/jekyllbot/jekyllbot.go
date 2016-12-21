@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
@@ -27,17 +26,10 @@ func main() {
 	}))
 
 	jekyllOrgHandler := jekyll.NewJekyllOrgHandler(context)
-	http.HandleFunc("/_github/jekyll", verifyPayload(
-		getSecret("JEKYLL"),
-		jekyllOrgHandler,
-	))
+	http.Handle("/_github/jekyll", jekyllOrgHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
-}
-
-func getSecret(suffix string) []byte {
-	return []byte(os.Getenv("GH_SECRET_" + suffix))
 }
 
 func verifyPayload(secret []byte, handler hooks.HookHandler) http.HandlerFunc {

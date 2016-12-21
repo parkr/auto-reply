@@ -26,6 +26,35 @@ func (m EventHandlerMap) AddHandler(eventType EventType, handler EventHandler) {
 type GlobalHandler struct {
 	Context       *ctx.Context
 	EventHandlers EventHandlerMap
+
+	// secret is the secret used by GitHub to validate the integrity of the
+	// request. It is given to GitHub in the webhook management interface.
+	secret []byte
+}
+
+// ServeHTTP handles the incoming HTTP request, validates the payload and
+// fires
+func (h *GlobalHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+
+	var payload []byte
+	var err error
+	if secret := h.getSecret(); len(secret) > 0 {
+		payload, err = github.ValidatePayload(r, secret)
+		if err != nil {
+			log.Println("received invalid signature:", err)
+			http.Error(w, err.Error(), http.StatusForbidden)
+			return
+		}
+	} else {
+		err = json.NewDecoder(r.Body).Decode(&payload)
+		if err != nil {
+			log.Println("received invalid json in body:", err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+	h.HandlePayload(w, r, payload)
 }
 
 // HandlePayload handles the actual unpacking of the payload and firing of the proper handlers.
@@ -83,6 +112,18 @@ func (h *GlobalHandler) AcceptedEventTypes() []EventType {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+func (h *GlobalHandler) getSecret() []byte {
+	if len(h.secret) > 0 {
+		return h.secret
+	}
+
+	// Fill the value of h.secret if one exists.
+	if envVal := os.Getenv("GITHUB_WEBHOOK_SECRET"); envVal != "" {
+		h.secret = []byte(envVal)
+	}
+	return h.secret
 }
 
 func handlePingPayload(w http.ResponseWriter, r *http.Request, payload []byte) {

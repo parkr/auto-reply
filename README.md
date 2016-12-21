@@ -6,6 +6,11 @@ An open source gardener. This is a technology for powering GitHub bots. It's rea
 
 ## Configuring
 
+If you want to configure a secret to validate your payload from GitHub,
+then set it as the environment variable `GITHUB_WEBHOOK_SECRET`. This is
+the same value you enter in the web interface when setting up the "Secret"
+for your webhook.
+
 I could use [your thoughts on this!](https://github.com/parkr/auto-reply/issues/4) Currently, it's a hodge-podge. The documentation for each package will provide more details on this. Currently we have the following packages, with varying levels of configuration:
 
 - `affinity` – assigns issues based on team mentions and those team captains. See [Jekyll's docs for more info.](https://github.com/jekyll/jekyll/blob/master/docs/affinity-team-captain.md)
@@ -27,9 +32,8 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
 
-	"github.com/google/go-github/github"
+	"github.com/parkr/auto-reply/affinity"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/hooks"
 )
@@ -47,29 +51,29 @@ func main() {
 		w.Write([]byte("ok\n"))
 	}))
 
-    // Add your event handlers. Check out the documentation for the
-    // github.com/parkr/auto-reply/hooks package to see all supported events.
-    eventHandlers := hooks.EventHandlerMap{}
+	// Add your event handlers. Check out the documentation for the
+	// github.com/parkr/auto-reply/hooks package to see all supported events.
+	eventHandlers := hooks.EventHandlerMap{}
 
-    // Build the affinity handler.
-    aff := &affinity.Handler{}
-    aff.AddRepo("myorg", "myproject")
-    aff.AddTeam(context, 123, "Performance", "@myorg/performance")
-    aff.AddTeam(context, 456, "Documentation", "@myorg/documentation")
+	// Build the affinity handler.
+	aff := &affinity.Handler{}
+	aff.AddRepo("myorg", "myproject")
+	aff.AddTeam(context, 123) // @myorg/performance
+	aff.AddTeam(context, 456) // @myorg/documentation
 
-    // Add the affinity handler's various event handlers to the event handlers map :)
+	// Add the affinity handler's various event handlers to the event handlers map :)
 	eventHandlers.AddHandler(hooks.IssuesEvent, aff.AssignIssueToAffinityTeamCaptain)
 	eventHandlers.AddHandler(hooks.IssueCommentEvent, aff.AssignIssueToAffinityTeamCaptainFromComment)
 	eventHandlers.AddHandler(hooks.PullRequestEvent, aff.AssignPRToAffinityTeamCaptain)
 
-    // Create the webhook handler. GlobalHandler takes the list of event handlers from
-    // its configuration and fires each of them based on the X-GitHub-Event header from
-    // the webhook payload.
-    myOrgHandler := hooks.GlobalHandler{
+	// Create the webhook handler. GlobalHandler takes the list of event handlers from
+	// its configuration and fires each of them based on the X-GitHub-Event header from
+	// the webhook payload.
+	myOrgHandler := &hooks.GlobalHandler{
 		Context:       context,
 		EventHandlers: eventHandlers,
 	}
-	http.HandleFunc("/_github/myproject", myOrgHandler)
+	http.Handle("/_github/myproject", myOrgHandler)
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
@@ -94,9 +98,8 @@ func MyIssueCommentHandler(context *ctx.Context, payload interface{}) error {
 Then you register that with your project. Taking the two examples above, you'd add `MyIssueCommentHandler` to the `eventHandlers[hooks.IssueCommentEvent]` array:
 
 ```go
-eventHandlers := map[hooks.EventType][]hooks.EventHandler{
-    hooks.IssueCommentEvent: {MyIssueCommentHandler},
-}
+eventHandlers := hooks.EventHandlerMap{}
+eventHandlers.AddHandler(hooks.IssueCommentEvent, MyIssueCommentHandler)
 ```
 
 And it should work!
