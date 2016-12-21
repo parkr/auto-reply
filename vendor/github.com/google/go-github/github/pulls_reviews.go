@@ -1,8 +1,13 @@
+// Copyright 2016 The go-github AUTHORS. All rights reserved.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package github
 
 import "time"
 
-// No docs are out for this quite yet.
+// PullRequestReview represents a review of a pull request.
 type PullRequestReview struct {
 	ID          *int       `json:"id,omitempty"`
 	User        *User      `json:"user,omitempty"`
