@@ -34,6 +34,7 @@ var (
 		repo("jekyll", "jemoji"),
 		repo("jekyll", "jekyll-gist"),
 		repo("jekyll", "jekyll-coffeescript"),
+		repo("jekyll", "plugins"),
 	}
 
 	twoMonthsAgo = time.Now().AddDate(0, -2, 0)
