@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/parkr/auto-reply",
-	"GoVersion": "go1.8",
+	"GoVersion": "go1.7",
 	"GodepVersion": "v75",
 	"Packages": [
 		"./...",
