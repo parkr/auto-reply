@@ -8,19 +8,14 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
-	"github.com/parkr/auto-reply/hooks"
 )
 
-func AutomaticallyCreatePullRequest(repos ...string) hooks.EventHandler {
-	puller := autoPuller{repos: repos}
-	return puller.Handler
+type Handler struct {
+	repos          []string
+	acceptAllRepos bool
 }
 
-type autoPuller struct {
-	repos []string
-}
-
-func (h *autoPuller) handlesRepo(repo string) bool {
+func (h *Handler) handlesRepo(repo string) bool {
 	for _, handled := range h.repos {
 		if handled == repo {
 			return true
@@ -29,13 +24,21 @@ func (h *autoPuller) handlesRepo(repo string) bool {
 	return false
 }
 
-func (h *autoPuller) Handler(context *ctx.Context, event interface{}) error {
+func (h *Handler) AddRepo(owner, name string) {
+	h.repos = append(h.repos, owner+"/"+name)
+}
+
+func (h *Handler) AcceptAllRepos(newValue bool) {
+	h.acceptAllRepos = newValue
+}
+
+func (h *Handler) CreatePullRequestFromPush(context *ctx.Context, event interface{}) error {
 	push, ok := event.(*github.PushEvent)
 	if !ok {
 		return context.NewError("AutoPull: not an push event")
 	}
 
-	if strings.HasPrefix(*push.Ref, "refs/heads/pull/") && h.handlesRepo(*push.Repo.FullName) {
+	if strings.HasPrefix(*push.Ref, "refs/heads/pull/") && (h.acceptAllRepos || h.handlesRepo(*push.Repo.FullName)) {
 		pr := newPRForPush(push)
 		if pr == nil {
 			return context.NewError("AutoPull: no commits for %s on %s/%s", *push.Ref, *push.Repo.Owner.Name, *push.Repo.Name)

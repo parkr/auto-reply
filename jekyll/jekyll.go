@@ -25,7 +25,6 @@ var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 		issuecomment.StaleUnlabeler,
 		chlog.MergeAndLabel,
 	},
-	hooks.PushEvent:        {autopull.AutomaticallyCreatePullRequest("jekyll/jekyll")},
 	hooks.PullRequestEvent: {labeler.PendingRebaseNeedsWorkPRUnlabeler},
 	hooks.StatusEvent:      {statStatus},
 }
@@ -108,6 +107,10 @@ func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
 
 	lgtmHandler := newLgtmHandler()
 	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestReviewEvent, lgtmHandler.PullRequestReviewHandler)
+
+	autopullHandler := autopull.Handler{}
+	autopullHandler.AcceptAllRepos(true)
+	jekyllOrgEventHandlers.AddHandler(hooks.PushEvent, autopullHandler.CreatePullRequestFromPush)
 
 	return &hooks.GlobalHandler{
 		Context:       context,
