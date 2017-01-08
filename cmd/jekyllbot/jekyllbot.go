@@ -6,9 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
-	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/jekyll"
 )
 
@@ -30,17 +28,4 @@ func main() {
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
-}
-
-func verifyPayload(secret []byte, handler hooks.HookHandler) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		payload, err := github.ValidatePayload(r, secret)
-		if err != nil {
-			log.Println("received invalid signature:", err)
-			http.Error(w, err.Error(), http.StatusForbidden)
-			return
-		}
-		handler.HandlePayload(w, r, payload)
-	})
 }
