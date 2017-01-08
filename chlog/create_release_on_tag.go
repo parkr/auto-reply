@@ -22,11 +22,12 @@ func CreateReleaseOnTagHandler(context *ctx.Context, payload interface{}) error 
 
 	version := extractVersion(*create.Ref)
 	if version == "" {
-		return context.NewError("chlog.CreateReleaseOnTagHandler: not a version tag")
+		return context.NewError("chlog.CreateReleaseOnTagHandler: not a version tag (%s)", *create.Ref)
 	}
 
+	isPreRelease := strings.Index(version, ".pre") >= 0
 	desiredRef := version
-	if strings.Index(version, ".pre") >= 0 {
+	if isPreRelease {
 		// Working with a pre-release. Use HEAD.
 		desiredRef = "HEAD"
 	}
@@ -52,7 +53,7 @@ func CreateReleaseOnTagHandler(context *ctx.Context, payload interface{}) error 
 		Name:       create.Ref,
 		Body:       github.String(releaseBodyForVersion),
 		Draft:      github.Bool(false),
-		Prerelease: github.Bool(strings.Index(*create.Ref, ".pre") >= 0),
+		Prerelease: github.Bool(isPreRelease),
 	})
 	if err != nil {
 		context.NewError("chlog.CreateReleaseOnTagHandler: error creating release: %v", err)
