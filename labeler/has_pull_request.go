@@ -9,7 +9,7 @@ import (
 	"github.com/parkr/auto-reply/ctx"
 )
 
-var fixesIssueMatcher = regexp.MustCompile(`(?:Close|Closes|Closed|Fix|Fixes|Fixed|Resolve|Resolves|Resolved) #(\d+)`)
+var fixesIssueMatcher = regexp.MustCompile(`(?i)(?:Close|Closes|Closed|Fix|Fixes|Fixed|Resolve|Resolves|Resolved) #(\d+)`)
 
 var IssueHasPullRequestLabeler = func(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.PullRequestEvent)
