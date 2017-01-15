@@ -11,6 +11,7 @@ build:
 	godep go build -o ./bin/unearth ./cmd/unearth
 	godep go build -o ./bin/mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
 	godep go build -o ./bin/unify-labels ./cmd/unify-labels
+	godep go build -o ./bin/check-for-outdated-dependencies ./cmd/check-for-outdated-dependencies
 
 .PHONY: test
 test:
