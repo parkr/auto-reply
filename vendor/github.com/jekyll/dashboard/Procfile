@@ -1,1 +1,1 @@
-web: dashboard
+web: dashboard -port=$PORT

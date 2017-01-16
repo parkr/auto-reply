@@ -1,7 +1,6 @@
 package dashboard
 
 import (
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -106,7 +105,7 @@ func newProject(name, nwo, branch, rubygem string) *Project {
 	}
 }
 
-func getProject(name string) Project {
+func getProject(name string) *Project {
 	if defaultProjectMap == nil {
 		buildProjectMap()
 	}
@@ -115,9 +114,10 @@ func getProject(name string) Project {
 		if !p.fetched {
 			p.fetch()
 		}
-		return *p
+		return p
 	}
-	panic(fmt.Sprintf("no project named '%s'", name))
+
+	return nil
 }
 
 func getAllProjects() []*Project {

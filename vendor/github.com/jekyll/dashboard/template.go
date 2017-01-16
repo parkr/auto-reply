@@ -81,6 +81,15 @@ var (
     }
     tr.appendChild(downloadsTD);
 
+    if (info.github === undefined || info.github === null) {
+        for (i = 0; i < 4; i++) {
+            var emptyTD = document.createElement("td");
+            emptyTD.innerText = "no info";
+            tr.appendChild(emptyTD);
+        }
+        return;
+    }
+
     // Commits
     var commitsTD = document.createElement("td");
     commitsTD.innerText = info.github.commits_this_week;
@@ -135,7 +144,7 @@ var (
   {{range .Projects}}
   var oReq = new XMLHttpRequest();
   oReq.addEventListener("load", reqListener);
-  oReq.open("GET", "/{{.Name}}.json");
+  oReq.open("GET", "/show.json?name={{urlquery .Name}}");
   oReq.send();
   {{end}}
   </script>

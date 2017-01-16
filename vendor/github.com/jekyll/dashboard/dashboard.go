@@ -2,25 +2,39 @@ package dashboard
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
-
-	"goji.io"
-	"goji.io/pat"
-	"golang.org/x/net/context"
 )
+
+var defaultPort = 8000
+
+func jsonResponse(w http.ResponseWriter, code int, body string) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(code)
+	w.Write([]byte(body))
+}
 
 func reset(w http.ResponseWriter, r *http.Request) {
 	resetProjects()
-	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"reset": true}`))
+	jsonResponse(w, http.StatusOK, `{"reset": "true"}`)
 }
 
-func show(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-	name := pat.Param(ctx, "name")
-	w.Header().Set("Content-Type", "application/json")
+func show(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	if name == "" {
+		jsonResponse(w, http.StatusBadRequest, `{"error": "missing name param"}`)
+		return
+	}
+
+	proj := getProject(name)
+	if proj == nil {
+		jsonResponse(w, http.StatusNotFound, fmt.Sprintf(`{"error": "could not find project '%s'"}`, name))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(getProject(name))
 }
 
@@ -28,19 +42,16 @@ func index(w http.ResponseWriter, r *http.Request) {
 	indexTmpl.Execute(w, templateInfo{Projects: getProjects()})
 }
 
-func getBindPort() string {
-	if port := os.Getenv("PORT"); port != "" {
-		return port
-	}
-	return "8000"
-}
-
 func Listen() {
-	mux := goji.NewMux()
-	mux.HandleFunc(pat.Post("/reset.json"), reset)
-	mux.HandleFuncC(pat.Get("/:name.json"), show)
-	mux.HandleFunc(pat.Get("/"), index)
+	var port int
+	flag.IntVar(&port, "port", defaultPort, "The port the server should listen on.")
+	flag.Parse()
 
-	bind := fmt.Sprintf(":%s", getBindPort())
-	log.Fatal(http.ListenAndServe(bind, mux))
+	http.HandleFunc("/reset.json", reset)
+	http.HandleFunc("/show.json", show)
+	http.HandleFunc("/", index)
+
+	bind := fmt.Sprintf(":%d", port)
+	log.Printf("Starting server on %s...", bind)
+	log.Fatal(http.ListenAndServe(bind, nil))
 }
