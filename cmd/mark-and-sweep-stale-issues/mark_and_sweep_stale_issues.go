@@ -17,6 +17,7 @@ import (
 var (
 	nonStaleableLabels = []string{
 		"has-pull-request",
+		"pinned",
 		"security",
 	}
 

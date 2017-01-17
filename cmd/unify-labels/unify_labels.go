@@ -22,6 +22,7 @@ var desiredLabels = []*github.Label{
 	{Name: github.String("internal"), Color: github.String("ededed")},
 	{Name: github.String("pending-feedback"), Color: github.String("fbca04")},
 	{Name: github.String("pending-rebase"), Color: github.String("eb6420")},
+	{Name: github.String("pinned"), Color: github.String("f3f4d3")},
 	{Name: github.String("release"), Color: github.String("d4c5f9")},
 	{Name: github.String("security"), Color: github.String("e11d21")},
 	{Name: github.String("stale"), Color: github.String("bfd4f2")},
