@@ -22,6 +22,7 @@ var (
 
 	repos = []*github.Repository{
 		repo("jekyll", "jekyll"),
+		repo("jekyll", "jekyll-admin"),
 		repo("jekyll", "jekyll-import"),
 		repo("jekyll", "github-metadata"),
 		repo("jekyll", "jekyll-redirect-from"),
