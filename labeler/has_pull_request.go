@@ -9,9 +9,9 @@ import (
 	"github.com/parkr/auto-reply/ctx"
 )
 
-var fixesIssueMatcher = regexp.MustCompile(`(?i)(?:Close|Closes|Closed|Fix|Fixes|Fixed|Resolve|Resolves|Resolved) #(\d+)`)
+var fixesIssueMatcher = regexp.MustCompile(`(?i)(?:Close|Closes|Closed|Fix|Fixes|Fixed|Resolve|Resolves|Resolved)\s+#(\d+)`)
 
-var IssueHasPullRequestLabeler = func(context *ctx.Context, payload interface{}) error {
+func IssueHasPullRequestLabeler(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.PullRequestEvent)
 	if !ok {
 		return context.NewError("IssueHasPullRequestLabeler: not a pull request event")
@@ -23,25 +23,40 @@ var IssueHasPullRequestLabeler = func(context *ctx.Context, payload interface{})
 
 	owner, repo, description := *event.Repo.Owner.Login, *event.Repo.Name, *event.PullRequest.Body
 
-	issueNum := issueFixed(description)
+	issueNums := linkedIssues(description)
+	if issueNums == nil {
+		return nil
+	}
 
 	var err error
-	if issueNum != -1 {
+	for _, issueNum := range issueNums {
 		err := AddLabels(context.GitHub, owner, repo, issueNum, []string{"has-pull-request"})
 		if err != nil {
-			log.Printf("error adding the has-pull-request label: %v", err)
+			log.Printf("error adding the has-pull-request label to %s/%s#%d: %v", owner, repo, issueNum, err)
 		}
 	}
 
 	return err
 }
 
-func issueFixed(description string) int {
+func linkedIssues(description string) []int {
 	issueSubmatches := fixesIssueMatcher.FindAllStringSubmatch(description, -1)
 	if len(issueSubmatches) == 0 || len(issueSubmatches[0]) < 2 {
-		return -1
+		return nil
 	}
 
-	issueNum, _ := strconv.Atoi(issueSubmatches[0][1])
-	return issueNum
+	issueNums := []int{}
+	for _, match := range issueSubmatches {
+		if len(match) < 2 {
+			continue
+		}
+
+		if issueNum, err := strconv.Atoi(match[1]); err == nil {
+			issueNums = append(issueNums, issueNum)
+		}
+	}
+
+	log.Println(issueSubmatches)
+
+	return issueNums
 }

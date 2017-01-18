@@ -25,8 +25,11 @@ var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 		issuecomment.StaleUnlabeler,
 		chlog.MergeAndLabel,
 	},
-	hooks.PullRequestEvent: {labeler.PendingRebaseNeedsWorkPRUnlabeler},
-	hooks.StatusEvent:      {statStatus},
+	hooks.PullRequestEvent: {
+		labeler.IssueHasPullRequestLabeler,
+		labeler.PendingRebaseNeedsWorkPRUnlabeler,
+	},
+	hooks.StatusEvent: {statStatus},
 }
 
 func statStatus(context *ctx.Context, payload interface{}) error {
