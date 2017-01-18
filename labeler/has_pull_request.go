@@ -1,7 +1,6 @@
 package labeler
 
 import (
-	"log"
 	"regexp"
 	"strconv"
 
@@ -32,7 +31,7 @@ func IssueHasPullRequestLabeler(context *ctx.Context, payload interface{}) error
 	for _, issueNum := range issueNums {
 		err := AddLabels(context.GitHub, owner, repo, issueNum, []string{"has-pull-request"})
 		if err != nil {
-			log.Printf("error adding the has-pull-request label to %s/%s#%d: %v", owner, repo, issueNum, err)
+			context.Log("error adding the has-pull-request label to %s/%s#%d: %v", owner, repo, issueNum, err)
 		}
 	}
 
@@ -55,8 +54,6 @@ func linkedIssues(description string) []int {
 			issueNums = append(issueNums, issueNum)
 		}
 	}
-
-	log.Println(issueSubmatches)
 
 	return issueNums
 }
