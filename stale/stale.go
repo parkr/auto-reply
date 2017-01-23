@@ -152,7 +152,7 @@ func IsStale(issue *github.Issue, config Configuration) bool {
 }
 
 func isUpdatedWithinDuration(issue *github.Issue, config Configuration) bool {
-	return (*issue.UpdatedAt).Unix() >= time.Now().Truncate(config.DormantDuration).Unix()
+	return (*issue.UpdatedAt).Unix() >= time.Now().Add(-config.DormantDuration).Unix()
 }
 
 // Returns true if none of the exempt labels are present, false if at least one exempt label is present.
