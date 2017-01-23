@@ -15,6 +15,7 @@ type Context struct {
 	GitHub   *github.Client
 	Statsd   *statsd.Client
 	RubyGems *rubyGemsClient
+	Repo     repoRef
 	Issue    issueRef
 
 	currentlyAuthedGitHubUser *github.User
@@ -39,6 +40,13 @@ func NewDefaultContext() *Context {
 
 func WithIssue(owner, repo string, num int) *Context {
 	context := NewDefaultContext()
+	context.SetRepo(owner, repo)
 	context.SetIssue(owner, repo, num)
+	return context
+}
+
+func WithRepo(owner, repo string) *Context {
+	context := NewDefaultContext()
+	context.SetRepo(owner, repo)
 	return context
 }

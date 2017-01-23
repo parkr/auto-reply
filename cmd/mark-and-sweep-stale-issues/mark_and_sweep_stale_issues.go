@@ -2,17 +2,21 @@
 package main
 
 import (
+	"context"
 	"flag"
-	"fmt"
 	"log"
-	"sync"
+	"strings"
 	"time"
 
 	"github.com/google/go-github/github"
-	"github.com/parkr/auto-reply/common"
 	"github.com/parkr/auto-reply/ctx"
-	"github.com/parkr/auto-reply/labeler"
+	"github.com/parkr/auto-reply/stale"
+	"golang.org/x/sync/errgroup"
 )
+
+type repo struct {
+	Owner, Name string
+}
 
 var (
 	nonStaleableLabels = []string{
@@ -21,22 +25,22 @@ var (
 		"security",
 	}
 
-	repos = []*github.Repository{
-		repo("jekyll", "jekyll"),
-		repo("jekyll", "jekyll-admin"),
-		repo("jekyll", "jekyll-import"),
-		repo("jekyll", "github-metadata"),
-		repo("jekyll", "jekyll-redirect-from"),
-		repo("jekyll", "jekyll-feed"),
-		repo("jekyll", "jekyll-compose"),
-		repo("jekyll", "jekyll-watch"),
-		repo("jekyll", "jekyll-seo-tag"),
-		repo("jekyll", "jekyll-sitemap"),
-		repo("jekyll", "jekyll-sass-converter"),
-		repo("jekyll", "jemoji"),
-		repo("jekyll", "jekyll-gist"),
-		repo("jekyll", "jekyll-coffeescript"),
-		repo("jekyll", "plugins"),
+	defaultRepos = []repo{
+		repo{"jekyll", "jekyll"},
+		repo{"jekyll", "jekyll-admin"},
+		repo{"jekyll", "jekyll-import"},
+		repo{"jekyll", "github-metadata"},
+		repo{"jekyll", "jekyll-redirect-from"},
+		repo{"jekyll", "jekyll-feed"},
+		repo{"jekyll", "jekyll-compose"},
+		repo{"jekyll", "jekyll-watch"},
+		repo{"jekyll", "jekyll-seo-tag"},
+		repo{"jekyll", "jekyll-sitemap"},
+		repo{"jekyll", "jekyll-sass-converter"},
+		repo{"jekyll", "jemoji"},
+		repo{"jekyll", "jekyll-gist"},
+		repo{"jekyll", "jekyll-coffeescript"},
+		repo{"jekyll", "plugins"},
 	}
 
 	twoMonthsAgo = time.Now().AddDate(0, -2, 0)
@@ -80,160 +84,48 @@ This issue will automatically be closed in two months if no further activity occ
 func main() {
 	var actuallyDoIt bool
 	flag.BoolVar(&actuallyDoIt, "f", false, "Whether to actually mark the issues or close them.")
+	var inputRepos string
+	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-admin'.")
 	flag.Parse()
 
-	client := ctx.NewClient()
+	if ctx.NewDefaultContext().GitHub == nil {
+		log.Fatalln("cannot proceed without github client")
+	}
 
-	var wg sync.WaitGroup
+	var repos []repo
+	if inputRepos != "" {
+		for _, nwo := range strings.Split(inputRepos, ",") {
+			pieces := strings.Split(nwo, "/")
+			repos = append(repos, repo{Owner: pieces[0], Name: pieces[1]})
+		}
+	} else {
+		repos = defaultRepos
+	}
+
+	wg, _ := errgroup.WithContext(context.Background())
 	for _, repo := range repos {
-		wg.Add(1)
-		go markAndSweep(&wg, client, repo, actuallyDoIt)
-	}
-	wg.Wait()
-}
-
-func markAndSweep(wg *sync.WaitGroup, client *github.Client, repo *github.Repository, actuallyDoIt bool) {
-	owner, name, nonStaleIssues, failedIssues := *repo.Owner.Login, *repo.Name, 0, 0
-
-	issues, resp, err := client.Issues.ListByRepo(owner, name, staleIssuesListOptions)
-	err = common.ErrorFromResponse(resp, err)
-	if err != nil {
-		log.Fatalf("could not list issues for %s/%s: %v", owner, name, err)
-	}
-
-	if len(issues) == 0 {
-		log.Printf("no issues for %s/%s", owner, name)
-		wg.Done()
-		return
-	}
-
-	for _, issue := range issues {
-		if isStale(issue) {
-			err := handleStaleIssue(client, repo, issue, actuallyDoIt)
-			if err != nil {
-				failedIssues += 1
-			}
-		} else {
-			nonStaleIssues += 1
-		}
-	}
-
-	log.Printf("%s -- ignored non-stale issues: %d", linkify(owner, name, -1), nonStaleIssues)
-	if failedIssues > 0 {
-		log.Printf("%s !! failed issues: %d", linkify(owner, name, -1), failedIssues)
-	}
-
-	wg.Done()
-}
-
-func handleStaleIssue(client *github.Client, repo *github.Repository, issue *github.Issue, actuallyDoIt bool) error {
-	owner, name, number := *repo.Owner.Login, *repo.Name, *issue.Number
-	issueRef := linkify(owner, name, number)
-
-	if hasStaleLabel(issue) {
-		// Close.
-		if actuallyDoIt {
-			number := *issue.Number
-			log.Printf("%s is stale & notified (closing).", issueRef)
-			_, resp, err := client.Issues.Edit(
-				owner,
-				name,
-				number,
-				&github.IssueRequest{State: github.String("closed")},
+		repo := repo
+		wg.Go(func() error {
+			return stale.MarkAndCloseForRepo(
+				ctx.WithRepo(repo.Owner, repo.Name),
+				stale.Configuration{
+					Perform:             actuallyDoIt,
+					ExemptLabels:        nonStaleableLabels,
+					DormantDuration:     time.Since(twoMonthsAgo),
+					NotificationComment: staleIssueComment(repo.Owner, repo.Name),
+				},
 			)
-			err = common.ErrorFromResponse(resp, err)
-			if err != nil {
-				log.Printf("%s !!! could not close issue: %v", issueRef, err)
-				return err
-			}
-		} else {
-			log.Printf("%s is stale & notified (dry-run).", issueRef)
-		}
-	} else {
-		// Mark as stale.
-		if actuallyDoIt {
-			log.Printf("%s is stale (marking).", issueRef)
-			err := labeler.AddLabels(client, owner, name, number, []string{"stale"})
-			if err != nil {
-				log.Printf("%s !!! could not add stale label: %v", issueRef, err)
-				return err
-			}
-
-			_, resp, err := client.Issues.CreateComment(owner, name, number, staleIssueComment(repo))
-			err = common.ErrorFromResponse(resp, err)
-			if err != nil {
-				log.Printf("%s !!! could not leave comment: %v", issueRef, err)
-				return err
-			}
-		} else {
-			log.Printf("%s is stale (dry-run).", issueRef)
-		}
+		})
 	}
-
-	return nil
-}
-
-func linkify(owner, name string, number int) string {
-	if number == -1 {
-		return fmt.Sprintf("https://github.com/%s/%s", owner, name)
-	} else {
-		return fmt.Sprintf("https://github.com/%s/%s/issues/%d", owner, name, number)
+	if err := wg.Wait(); err != nil {
+		log.Fatal("error: ", err)
 	}
 }
 
-func isStale(issue *github.Issue) bool {
-	return issue.PullRequestLinks == nil && !isUpdatedInLast2Months(*issue.UpdatedAt) && isStaleable(issue)
-}
-
-func isUpdatedInLast2Months(updatedAt time.Time) bool {
-	return updatedAt.Unix() >= twoMonthsAgo.Unix()
-}
-
-func isStaleable(issue *github.Issue) bool {
-	if issue.Labels == nil {
-		return true
-	}
-
-	if len(issue.Labels) == 0 {
-		return true
-	}
-
-	for _, staleableLabel := range nonStaleableLabels {
-		for _, issueLabel := range issue.Labels {
-			if *issueLabel.Name == staleableLabel {
-				return false
-			}
-		}
-	}
-
-	return true
-}
-
-func hasStaleLabel(issue *github.Issue) bool {
-	if issue.Labels == nil {
-		return false
-	}
-
-	for _, label := range issue.Labels {
-		if *label.Name == "stale" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func staleIssueComment(repo *github.Repository) *github.IssueComment {
-	if *repo.Name == "jekyll" {
+func staleIssueComment(repoOwner, repoName string) *github.IssueComment {
+	if repoName == "jekyll" {
 		return staleJekyllIssueComment
 	} else {
 		return staleNonJekyllIssueComment
-	}
-}
-
-func repo(owner, name string) *github.Repository {
-	return &github.Repository{
-		Owner: &github.User{Login: github.String(owner)},
-		Name:  github.String(name),
 	}
 }
