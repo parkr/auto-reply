@@ -62,6 +62,10 @@
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
 			"Rev": "314dd2c0bf3ebd592ec0d20847d27e79d0dbe8dd"
+		},
+		{
+			"ImportPath": "golang.org/x/sync/errgroup",
+			"Rev": "450f422ab23cf9881c94e2db30cac0eb1b7cf80c"
 		}
 	]
 }
