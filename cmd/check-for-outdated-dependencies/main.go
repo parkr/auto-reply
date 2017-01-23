@@ -19,7 +19,10 @@ func main() {
 	flag.StringVar(&depType, "type", "ruby", "The type of dependency we're checking (options: ruby)")
 	var reposString string
 	flag.StringVar(&reposString, "repos", defaultRepos, "Comma-separated list of repos to check, e.g. jekyll/jekyll,jekyll/jekyll-import")
+	var perform bool
+	flag.BoolVar(&perform, "f", false, "Whether to open issues (default: false, which is a dry-run)")
 	flag.Parse()
+
 	context := ctx.NewDefaultContext()
 
 	for _, repo := range strings.Split(reposString, ",") {
@@ -32,6 +35,11 @@ func main() {
 				"%s/%s: %s is outdated (constraint: %s, but latest version is %s)",
 				repoOwner, repoName, dependency.GetName(), dependency.GetConstraint(), dependency.GetLatestVersion(context),
 			)
+
+			// Do not open issues if dry-run.
+			if !perform {
+				continue
+			}
 
 			preExistingIssue := dependencies.GitHubUpdateIssueForDependency(context, repoOwner, repoName, dependency)
 
