@@ -2,6 +2,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"strings"
 
@@ -61,7 +62,57 @@ func findLabel(labels []*github.Label, desiredLabel *github.Label) *github.Label
 	return nil
 }
 
+func processRepo(context *ctx.Context, repo *github.Repository, perform bool) error {
+	owner, repoName := *repo.Owner.Login, *repo.Name
+	context.Log("Processing %s", *repo.FullName)
+
+	// 1. Find labels on GitHub.
+	labels, _, err := context.GitHub.Issues.ListLabels(owner, repoName, &listOpts)
+	if err != nil {
+		return context.NewError("error fetching labels for %s: %v", *repo.FullName, err)
+	}
+
+	for _, desiredLabel := range desiredLabels {
+		matchedLabel := findLabel(labels, desiredLabel)
+
+		// It doesn't exist. Create and continue.
+		if matchedLabel == nil {
+			if perform {
+				context.Log("%s: creating %s with color %s", *repo.FullName, *desiredLabel.Name, *desiredLabel.Color)
+				_, _, err := context.GitHub.Issues.CreateLabel(owner, repoName, desiredLabel)
+				if err != nil {
+					return context.NewError("error creating '%s' for %s: %v", *desiredLabel.Name, *repo.FullName, err)
+				}
+			} else {
+				context.Log("%s: would create %s with color %s", *repo.FullName, *desiredLabel.Name, *desiredLabel.Color)
+			}
+			continue
+		}
+
+		// It does exist, but possibly with incorrect info. Update it.
+		if *matchedLabel.Name != *desiredLabel.Name || *matchedLabel.Color != *desiredLabel.Color {
+			if perform {
+				context.Log("%s: updating %s with data: %v",
+					*repo.FullName, *matchedLabel.Name, github.Stringify(desiredLabel))
+				_, _, err := context.GitHub.Issues.EditLabel(owner, repoName, *matchedLabel.Name, desiredLabel)
+				if err != nil {
+					return context.NewError("%s: error updating '%s': %v", *repo.FullName, *matchedLabel.Name, err)
+				}
+			} else {
+				context.Log("%s: would update %s with data: %v", *repo.FullName, *matchedLabel.Name, github.Stringify(desiredLabel))
+			}
+			continue
+		}
+	}
+
+	return nil
+}
+
 func main() {
+	var perform bool
+	flag.BoolVar(&perform, "f", false, "Whether to modify the labels (if true) or show dry-run output (if false).")
+	flag.Parse()
+
 	context := ctx.NewDefaultContext()
 	repos, _, err := context.GitHub.Repositories.List("jekyll", &github.RepositoryListOptions{
 		Type: "owner", Sort: "full_name", Direction: "asc", ListOptions: listOpts,
@@ -71,37 +122,8 @@ func main() {
 	}
 
 	for _, repo := range repos {
-		owner, repoName := *repo.Owner.Login, *repo.Name
-		log.Printf("Processing %s", *repo.FullName)
-		labels, _, err := context.GitHub.Issues.ListLabels(owner, repoName, &listOpts)
-		if err != nil {
-			log.Fatalf("error fetching labels for %s: %v", *repo.FullName, err)
-		}
-
-		for _, desiredLabel := range desiredLabels {
-			matchedLabel := findLabel(labels, desiredLabel)
-
-			if matchedLabel == nil {
-				log.Printf("%s: creating %s with color %s",
-					*repo.FullName, *desiredLabel.Name, *desiredLabel.Color)
-				// It doesn't exist. Create and continue.
-				_, _, err := context.GitHub.Issues.CreateLabel(owner, repoName, desiredLabel)
-				if err != nil {
-					log.Fatalf("error creating '%s' for %s: %v", *desiredLabel.Name, *repo.FullName, err)
-				}
-				continue
-			}
-
-			// It does exist, but possibly with incorrect info. Update it.
-			if *matchedLabel.Name != *desiredLabel.Name || *matchedLabel.Color != *desiredLabel.Color {
-				log.Printf("%s: updating %s with data: %v",
-					*repo.FullName, *matchedLabel.Name, github.Stringify(desiredLabel))
-				_, _, err := context.GitHub.Issues.EditLabel(owner, repoName, *matchedLabel.Name, desiredLabel)
-				if err != nil {
-					log.Fatalf("error updating '%s' for %s: %v", *matchedLabel.Name, *repo.FullName, err)
-				}
-				continue
-			}
+		if err := processRepo(context, repo, perform); err != nil {
+			context.Log("%s: failed!", *repo.FullName)
 		}
 	}
 }
