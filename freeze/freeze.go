@@ -16,7 +16,6 @@ var (
 func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, error) {
 	issues := []github.Issue{}
 	query := fmt.Sprintf("repo:%s/%s is:closed -label:%v updated:<=%s", owner, repo, LabelName, TooOld)
-	fmt.Println(query)
 	opts := &github.SearchOptions{
 		Sort:  "created",
 		Order: "asc",
