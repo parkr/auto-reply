@@ -32,7 +32,7 @@ func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, 
 		}
 
 		if *result.Total == 0 {
-			return nil, nil
+			return issues, nil
 		}
 
 		issues = append(issues, result.Issues...)
