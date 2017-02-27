@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
+	"github.com/parkr/auto-reply/freeze"
 )
 
 var desiredLabels = []*github.Label{
@@ -17,6 +18,7 @@ var desiredLabels = []*github.Label{
 	{Name: github.String("enhancement"), Color: github.String("009800")},
 	{Name: github.String("feature"), Color: github.String("009800")},
 	{Name: github.String("fix"), Color: github.String("eb6420")},
+	{Name: github.String(freeze.LabelName), Color: github.String("0052cc")},
 	{Name: github.String("github"), Color: github.String("222222")},
 	{Name: github.String("has-pull-request"), Color: github.String("fbca04")},
 	{Name: github.String("help-wanted"), Color: github.String("fbca04")},
