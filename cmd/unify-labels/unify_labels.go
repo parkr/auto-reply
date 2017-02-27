@@ -12,6 +12,7 @@ import (
 )
 
 var desiredLabels = []*github.Label{
+	{Name: github.String("accepted"), Color: github.String("4bc865")},
 	{Name: github.String("bug"), Color: github.String("d41313")},
 	{Name: github.String("discussion"), Color: github.String("006b75")},
 	{Name: github.String("documentation"), Color: github.String("006b75")},
