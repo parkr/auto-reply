@@ -140,7 +140,7 @@ func (t *Team) FetchCaptains(context *ctx.Context) error {
 		}
 
 		for _, user := range allMembers {
-			if auth.UserIsOrgOwner(context, t.Org, *user.Login) && !context.GitHubAuthedAs(*user.Login) {
+			if !t.IsCaptain(*user.Login) && auth.UserIsOrgOwner(context, t.Org, *user.Login) && !context.GitHubAuthedAs(*user.Login) {
 				t.Captains = append(t.Captains, user)
 			}
 		}
@@ -149,6 +149,15 @@ func (t *Team) FetchCaptains(context *ctx.Context) error {
 	}
 
 	return nil
+}
+
+func (t *Team) IsCaptain(login string) bool {
+	for _, captain := range t.Captains {
+		if *captain.Login == login {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Team) FetchMetadata(context *ctx.Context) error {
