@@ -26,7 +26,7 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 		return context.NewError("%s: no team in the message body; unable to assign", context.Issue)
 	}
 
-	context.Log("team: %s", team)
+	context.Log("team: %s, excluding: %s", team, context.Issue.Author)
 	victims := team.RandomCaptainLoginsExcluding(context.Issue.Author, assigneeCount)
 	if len(victims) == 0 {
 		context.IncrStat("affinity.error.no_acceptable_captains")
