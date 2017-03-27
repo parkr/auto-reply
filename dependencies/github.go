@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
+	"github.com/parkr/auto-reply/search"
 )
 
 func containsSubstring(s, substring string) bool {
@@ -16,25 +17,17 @@ func GitHubUpdateIssueForDependency(context *ctx.Context, repoOwner, repoName st
 	query := fmt.Sprintf(
 		"repo:%s/%s update %s v%s is:open in:title",
 		repoOwner, repoName, dependency.GetName(), dependency.GetLatestVersion(context))
-	opts := &github.SearchOptions{Sort: "created", Order: "desc", ListOptions: github.ListOptions{Page: 0, PerPage: 100}}
-	for {
-		result, resp, err := context.GitHub.Search.Issues(query, opts)
-		if err != nil {
-			context.Log("dependencies: error running search query: '%s': %v", query, err)
-			break
-		}
 
-		for _, issue := range result.Issues {
-			if containsSubstring(*issue.Title, "update") && containsSubstring(*issue.Title, dependency.GetName()) {
-				return &issue
-			}
-		}
+	issues, err := search.GitHubIssues(context, query)
+	if err != nil {
+		context.Log("dependencies: couldn't search github: %+v", err)
+		return nil
+	}
 
-		if resp.NextPage == 0 {
-			break
+	for _, issue := range issues {
+		if containsSubstring(*issue.Title, "update") && containsSubstring(*issue.Title, dependency.GetName()) {
+			return &issue
 		}
-
-		opts.ListOptions.Page = resp.NextPage
 	}
 
 	return nil

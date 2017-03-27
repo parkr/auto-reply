@@ -11,6 +11,7 @@ import (
 	"github.com/parkr/auto-reply/hooks"
 	"github.com/parkr/auto-reply/labeler"
 	"github.com/parkr/auto-reply/lgtm"
+	"github.com/parkr/auto-reply/travis"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/jekyll/deprecate"
@@ -29,7 +30,7 @@ var jekyllOrgEventHandlers = hooks.EventHandlerMap{
 		labeler.IssueHasPullRequestLabeler,
 		labeler.PendingRebaseNeedsWorkPRUnlabeler,
 	},
-	hooks.StatusEvent: {statStatus},
+	hooks.StatusEvent: {statStatus, travis.FailingFmtBuildHandler},
 }
 
 func statStatus(context *ctx.Context, payload interface{}) error {
