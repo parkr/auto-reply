@@ -75,7 +75,7 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 		job := struct {
 			Job travisJob `json:"job"`
 		}{Job: travisJob{}}
-		resp, err := httpGetTravis("/jobs" + strconv.FormatInt(jobID, 10))
+		resp, err := httpGetTravis("/jobs/" + strconv.FormatInt(jobID, 10))
 		if err != nil {
 			return context.NewError("FailingFmtBuildHandler: couldn't get job info from travis: %+v", err)
 		}
