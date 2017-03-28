@@ -96,7 +96,7 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 				return context.NewError("FailingFmtBuildHandler: couldn't run query %q: %+v", query, err)
 			}
 			if len(issues) > 0 {
-				log.Printf("We already have an issue or issues for this failure! %s", issues[0].HTMLURL)
+				log.Printf("We already have an issue or issues for this failure! %s", *issues[0].HTMLURL)
 			} else {
 				jobHTMLURL := fmt.Sprintf("https://travis-ci.org/%s/%s/jobs/%d", context.Repo.Owner, context.Repo.Name, jobID)
 				issue, _, err := context.GitHub.Issues.Create(context.Repo.Owner, context.Repo.Name, &github.IssueRequest{
@@ -111,8 +111,8 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 					return context.NewError("FailingFmtBuildHandler: failed to file an issue: %+v", err)
 				}
 				log.Printf("Filed issue: %s", *issue.HTMLURL)
-				break
 			}
+			break // you found the right job, now c'est fin
 		}
 	}
 
