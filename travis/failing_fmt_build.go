@@ -84,7 +84,7 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 			return context.NewError("FailingFmtBuildHandler: couldn't decode job json: %+v", err)
 		}
 		log.Printf("FailingFmtBuildHandler: job %d response: %+v %+v", jobID, resp, job)
-		if job.Job.State == "failure" && job.Job.Config.Env == "TEST_SUITE=fmt" {
+		if job.Job.State == "failed" && job.Job.Config.Env == "TEST_SUITE=fmt" {
 			// Winner! Open an issue if there isn't already one.
 			issues, err := search.GitHubIssues(context, "repo:%s/%s is:open in:title fmt build is failing")
 			if err != nil {
@@ -93,7 +93,7 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 			if len(issues) > 0 {
 				log.Printf("We already have an issue or issues for this failure! %s", issues[0].HTMLURL)
 			} else {
-				jobHTMLURL := fmt.Sprintf("https://github.com/%s/%s/jobs/%d", context.Repo.Owner, context.Repo.Name, jobID)
+				jobHTMLURL := fmt.Sprintf("https://travis-ci.org/%s/%s/jobs/%d", context.Repo.Owner, context.Repo.Name, jobID)
 				issue, _, err := context.GitHub.Issues.Create(context.Repo.Owner, context.Repo.Name, &github.IssueRequest{
 					Title: github.String("fmt build is failing on master"),
 					Body: github.String(fmt.Sprint(
