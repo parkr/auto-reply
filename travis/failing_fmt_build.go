@@ -86,9 +86,14 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 		log.Printf("FailingFmtBuildHandler: job %d response: %+v %+v", jobID, resp, job)
 		if job.Job.State == "failed" && job.Job.Config.Env == "TEST_SUITE=fmt" {
 			// Winner! Open an issue if there isn't already one.
-			issues, err := search.GitHubIssues(context, "repo:%s/%s is:open in:title fmt build is failing")
+			query := fmt.Sprintf(
+				"repo:%s/%s is:open in:title fmt build is failing on master",
+				context.Repo.Owner,
+				context.Repo.Name,
+			)
+			issues, err := search.GitHubIssues(context, query)
 			if err != nil {
-				context.NewError("FailingFmtBuildHandler: not a travis build on the master branch")
+				return context.NewError("FailingFmtBuildHandler: couldn't run query %q: %+v", query, err)
 			}
 			if len(issues) > 0 {
 				log.Printf("We already have an issue or issues for this failure! %s", issues[0].HTMLURL)
