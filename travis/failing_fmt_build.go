@@ -96,7 +96,7 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 				jobHTMLURL := fmt.Sprintf("https://travis-ci.org/%s/%s/jobs/%d", context.Repo.Owner, context.Repo.Name, jobID)
 				issue, _, err := context.GitHub.Issues.Create(context.Repo.Owner, context.Repo.Name, &github.IssueRequest{
 					Title: github.String("fmt build is failing on master"),
-					Body: github.String(fmt.Sprint(
+					Body: github.String(fmt.Sprintf(
 						"Hey @jekyll/maintainers!\n\nIt looks like the fmt build in Travis is failing again: %s :frowning_face:\n\nCould someone please fix this up? Clone down the repo, run `bundle install`, then `script/fmt` to see the failures. File a PR once you're done and say \"Fixes <this issue url>\" in the description.\n\nThanks! :revolving_hearts:",
 						jobHTMLURL,
 					)),
