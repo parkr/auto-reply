@@ -52,12 +52,11 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 
 	context.SetRepo(*status.Repo.Owner.Login, *status.Repo.Name)
 
-	// Pull build ID from target_url womp
 	buildID, err := buildIDFromTargetURL(*status.TargetURL)
 	if err != nil {
 		return context.NewError("FailingFmtBuildHandler: couldn't extract build ID from %q: %+v", *status.TargetURL, err)
 	}
-	uri := fmt.Sprintf("/repos/%s/%s/%d", context.Repo.Owner, context.Repo.Name, buildID)
+	uri := fmt.Sprintf("/repos/%s/%s/builds/%d", context.Repo.Owner, context.Repo.Name, buildID)
 	resp, err := httpGetTravis(uri)
 	if err != nil {
 		return context.NewError("FailingFmtBuildHandler: %+v", err)
