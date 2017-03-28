@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
@@ -51,7 +52,12 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 
 	context.SetRepo(*status.Repo.Owner.Login, *status.Repo.Name)
 
-	uri := fmt.Sprintf("/repos/%s/%s/%d", context.Repo.Owner, context.Repo.Name)
+	// Pull build ID from target_url womp
+	buildID, err := buildIDFromTargetURL(*status.TargetURL)
+	if err != nil {
+		return context.NewError("FailingFmtBuildHandler: couldn't extract build ID from %q: %+v", *status.TargetURL, err)
+	}
+	uri := fmt.Sprintf("/repos/%s/%s/%d", context.Repo.Owner, context.Repo.Name, buildID)
 	resp, err := httpGetTravis(uri)
 	if err != nil {
 		return context.NewError("FailingFmtBuildHandler: %+v", err)
@@ -121,4 +127,9 @@ func httpGetTravis(uri string) (*http.Response, error) {
 		return nil, fmt.Errorf("couldn't send request to %s: %+v", url, err)
 	}
 	return resp, err
+}
+
+func buildIDFromTargetURL(targetURL string) (int64, error) {
+	pieces := strings.Split(targetURL, "/")
+	return strconv.ParseInt(pieces[len(pieces)-1], 10, 64)
 }
