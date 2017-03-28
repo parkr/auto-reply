@@ -24,7 +24,7 @@ type changelogCategory struct {
 
 var (
 	mergeCommentRegexp = regexp.MustCompile("@[a-zA-Z-_]+: (merge|:shipit:|:ship:)( \\+([a-zA-Z-_ ]+))?")
-	mergeOptions       = &github.PullRequestOptions{MergeMethod: "merge"}
+	mergeOptions       = &github.PullRequestOptions{MergeMethod: "squash"}
 
 	categories = []changelogCategory{
 		changelogCategory{
