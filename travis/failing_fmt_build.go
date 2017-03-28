@@ -70,7 +70,7 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 	if err != nil {
 		return context.NewError("FailingFmtBuildHandler: couldn't decode build json: %+v", err)
 	}
-	log.Printf("FailingFmtBuildHandler: response: %+v %+v", resp, build)
+	log.Printf("FailingFmtBuildHandler: %q response: %+v %+v", uri, resp, build)
 
 	for _, jobID := range build.Build.JobIDs {
 		job := struct {
