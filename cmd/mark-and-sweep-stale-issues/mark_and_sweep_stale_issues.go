@@ -20,6 +20,7 @@ type repo struct {
 
 var (
 	nonStaleableLabels = []string{
+		"bug",
 		"has-pull-request",
 		"pinned",
 		"security",
