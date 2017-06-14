@@ -56,6 +56,11 @@ func TestAddMergeReference(t *testing.T) {
 		"Development Fixes", "Another great change!!!!!!!", 1)
 	assert.Equal(t, "## HEAD\n\n### Development Fixes\n\n  * Some great change (#1)\n  * Another great change!!!!!!! (#1)\n", historyFile)
 
+	historyFile = addMergeReference(
+		"## HEAD\n\n### Development Fixes\n\n  * Some great change (#1)\n",
+		"Development Fixes", "Another great change for <science>!!!!!!!", 1)
+	assert.Equal(t, "## HEAD\n\n### Development Fixes\n\n  * Some great change (#1)\n  * Another great change for &lt;science&gt;!!!!!!! (#1)\n", historyFile)
+
 	jekyllHistory, err := ioutil.ReadFile("History.markdown")
 	assert.NoError(t, err)
 	historyFile = addMergeReference(string(jekyllHistory), "Development Fixes", "A marvelous change.", 41526)

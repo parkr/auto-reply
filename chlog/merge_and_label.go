@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"text/template"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/auth"
@@ -289,7 +290,7 @@ func addMergeReference(historyFileContents, changeSectionLabel, prTitle string, 
 	}
 
 	changeLine := &changelog.ChangeLine{
-		Summary:   prTitle,
+		Summary:   template.HTMLEscapeString(prTitle),
 		Reference: fmt.Sprintf("#%d", number),
 	}
 
