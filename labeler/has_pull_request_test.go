@@ -12,6 +12,12 @@ func TestLinkedIssues(t *testing.T) {
 
 	assert.Equal(t, []int{13, 14, 1, 412, 2},
 		linkedIssues("Fixes #13. Fixes # Resolves #14 Settles #12 Closes #1. Fixes #412..... Close #2"))
+
+	multilineComment := `Upgrade Rubocop to 0.49.0
+
+Fix #6089
+Fix #6101 `
+	assert.Equal(t, []int{6089, 6101}, linkedIssues(multilineComment))
 }
 
 func TestClosedIssueRegex(t *testing.T) {
