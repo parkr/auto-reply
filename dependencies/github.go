@@ -34,7 +34,7 @@ func GitHubUpdateIssueForDependency(context *ctx.Context, repoOwner, repoName st
 }
 
 func FileGitHubIssueForDependency(context *ctx.Context, repoOwner, repoName string, dependency Dependency) (*github.Issue, error) {
-	issue, _, err := context.GitHub.Issues.Create(repoOwner, repoName, &github.IssueRequest{
+	issue, _, err := context.GitHub.Issues.Create(context.Context(), repoOwner, repoName, &github.IssueRequest{
 		Title: github.String(fmt.Sprintf(
 			"Update dependency constraint to allow for %s v%s",
 			dependency.GetName(), dependency.GetLatestVersion(context),

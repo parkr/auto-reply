@@ -45,7 +45,8 @@ func UserIsOrgOwner(context *ctx.Context, org, login string) bool {
 func (auth authenticator) isTeamMember(teamId int, login string) bool {
 	cacheKey := auth.cacheKeyIsTeamMember(teamId, login)
 	if _, ok := teamMembershipCache[cacheKey]; !ok {
-		newOk, _, err := auth.context.GitHub.Organizations.IsTeamMember(teamId, login)
+		newOk, _, err := auth.context.GitHub.Organizations.IsTeamMember(
+			auth.context.Context(), teamId, login)
 		if err != nil {
 			log.Printf("ERROR performing IsTeamMember(%d, \"%s\"): %v", teamId, login, err)
 			return false
@@ -58,7 +59,8 @@ func (auth authenticator) isTeamMember(teamId int, login string) bool {
 func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool {
 	cacheKey := auth.cacheKeyTeamHashPushAccess(teamId, owner, repo)
 	if _, ok := teamHasPushAccessCache[cacheKey]; !ok {
-		repository, _, err := auth.context.GitHub.Organizations.IsTeamRepo(teamId, owner, repo)
+		repository, _, err := auth.context.GitHub.Organizations.IsTeamRepo(
+			auth.context.Context(), teamId, owner, repo)
 		if err != nil {
 			log.Printf("ERROR performing IsTeamRepo(%d, \"%s\", \"%s\"): %v", teamId, owner, repo, err)
 			return false
@@ -74,9 +76,11 @@ func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool
 
 func (auth authenticator) teamsForOrg(org string) []*github.Team {
 	if _, ok := teamsCache[org]; !ok {
-		teamz, _, err := auth.context.GitHub.Organizations.ListTeams(org, &github.ListOptions{
-			Page: 0, PerPage: 100,
-		})
+		teamz, _, err := auth.context.GitHub.Organizations.ListTeams(
+			auth.context.Context(),
+			org,
+			&github.ListOptions{Page: 0, PerPage: 100},
+		)
 		if err != nil {
 			log.Printf("ERROR performing ListTeams(\"%s\"): %v", org, err)
 			return nil
@@ -88,9 +92,11 @@ func (auth authenticator) teamsForOrg(org string) []*github.Team {
 
 func (auth authenticator) ownersForOrg(org string) []*github.User {
 	if _, ok := orgOwnersCache[org]; !ok {
-		owners, _, err := auth.context.GitHub.Organizations.ListMembers(org, &github.ListMembersOptions{
-			Role: "admin", // owners
-		})
+		owners, _, err := auth.context.GitHub.Organizations.ListMembers(
+			auth.context.Context(),
+			org,
+			&github.ListMembersOptions{Role: "admin"}, // owners
+		)
 		if err != nil {
 			auth.context.Log("ERROR performing ListMembers(\"%s\"): %v", org, err)
 			return nil

@@ -123,13 +123,13 @@ func MergeAndLabel(context *ctx.Context, payload interface{}) error {
 
 	// Merge
 	commitMsg := fmt.Sprintf("Merge pull request %v", number)
-	_, _, mergeErr := context.GitHub.PullRequests.Merge(owner, repo, number, commitMsg, mergeOptions)
+	_, _, mergeErr := context.GitHub.PullRequests.Merge(context.Context(), owner, repo, number, commitMsg, mergeOptions)
 	if mergeErr != nil {
 		return context.NewError("MergeAndLabel: error merging %s: %v", ref, mergeErr)
 	}
 
 	// Delete branch
-	repoInfo, _, getRepoErr := context.GitHub.PullRequests.Get(owner, repo, number)
+	repoInfo, _, getRepoErr := context.GitHub.PullRequests.Get(context.Context(), owner, repo, number)
 	if getRepoErr != nil {
 		return context.NewError("MergeAndLabel: error getting PR info %s: %v", ref, getRepoErr)
 	}
@@ -143,7 +143,7 @@ func MergeAndLabel(context *ctx.Context, payload interface{}) error {
 		wg.Add(1)
 		go func() {
 			ref := fmt.Sprintf("heads/%s", *repoInfo.Head.Ref)
-			_, deleteBranchErr := context.GitHub.Git.DeleteRef(owner, repo, ref)
+			_, deleteBranchErr := context.GitHub.Git.DeleteRef(context.Context(), owner, repo, ref)
 			if deleteBranchErr != nil {
 				fmt.Printf("MergeAndLabel: error deleting branch %v\n", mergeErr)
 			}
@@ -252,12 +252,13 @@ func addLabelsForSubsection(context *ctx.Context, owner, repo string, number int
 		return fmt.Errorf("no labels for changeSectionLabel='%s'", changeSectionLabel)
 	}
 
-	_, _, err := context.GitHub.Issues.AddLabelsToIssue(owner, repo, number, labels)
+	_, _, err := context.GitHub.Issues.AddLabelsToIssue(context.Context(), owner, repo, number, labels)
 	return err
 }
 
 func getHistoryContents(context *ctx.Context, owner, repo string) (content, sha string) {
 	contents, _, _, err := context.GitHub.Repositories.GetContents(
+		context.Context(),
 		owner,
 		repo,
 		"History.markdown",
@@ -332,7 +333,7 @@ func commitHistoryFile(context *ctx.Context, historySHA, owner, repo string, num
 			Email: github.String("jekyllbot@jekyllrb.com"),
 		},
 	}
-	updateResponse, _, err := context.GitHub.Repositories.UpdateFile(owner, repo, "History.markdown", repositoryContentsOptions)
+	updateResponse, _, err := context.GitHub.Repositories.UpdateFile(context.Context(), owner, repo, "History.markdown", repositoryContentsOptions)
 	if err != nil {
 		fmt.Printf("comments: error committing History.markdown: %v\n", err)
 		return err

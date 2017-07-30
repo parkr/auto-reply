@@ -16,8 +16,8 @@ var (
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta content="origin-when-cross-origin" name="referrer" />
-  <link crossorigin="anonymous" href="https://assets-cdn.github.com/assets/frameworks-98550932b9f11a849da143d2dbc9dfaa977a17656514d323ae9ce0d6fa688b60.css" integrity="sha256-mFUJMrnxGoSdoUPS28nfqpd6F2VlFNMjrpzg1vpoi2A=" media="all" rel="stylesheet" />
-  <link crossorigin="anonymous" href="https://assets-cdn.github.com/assets/github-a17b8c9d020ded73daa7ee1a3844b4512f12076634d9249861ddf86dc33da66e.css" integrity="sha256-oXuMnQIN7XPap+4aOES0US8SB2Y02SSYYd34bcM9pm4=" media="all" rel="stylesheet" />
+  <link crossorigin="anonymous" href="https://assets-cdn.github.com/assets/frameworks-e04a23d39bf81b7db3c635177756ef51bc171feb440be9e174933c6eb56382da.css" integrity="sha256-4Eoj05v4G32zxjUXd1bvUbwXH+tEC+nhdJM8brVjgto=" media="all" rel="stylesheet" />
+  <link crossorigin="anonymous" href="https://assets-cdn.github.com/assets/github-24334c18831214381e60cd2cee0b86be216d64096d129d8c2b644d1fdcba1d4e.css" integrity="sha256-JDNMGIMSFDgeYM0s7guGviFtZAltEp2MK2RNH9y6HU4=" media="all" rel="stylesheet" />
   <title>Dashboard</title>
   <style type="text/css">
   .markdown-body {

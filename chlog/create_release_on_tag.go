@@ -48,13 +48,16 @@ func CreateReleaseOnTagHandler(context *ctx.Context, payload interface{}) error 
 
 	releaseBodyForVersion := strings.Join(strings.SplitN(versionLog.String(), "\n\n", 2)[1:], "\n")
 
-	_, _, err = context.GitHub.Repositories.CreateRelease(owner, name, &github.RepositoryRelease{
-		TagName:    create.Ref,
-		Name:       create.Ref,
-		Body:       github.String(releaseBodyForVersion),
-		Draft:      github.Bool(false),
-		Prerelease: github.Bool(isPreRelease),
-	})
+	_, _, err = context.GitHub.Repositories.CreateRelease(
+		context.Context(),
+		owner, name,
+		&github.RepositoryRelease{
+			TagName:    create.Ref,
+			Name:       create.Ref,
+			Body:       github.String(releaseBodyForVersion),
+			Draft:      github.Bool(false),
+			Prerelease: github.Bool(isPreRelease),
+		})
 	if err != nil {
 		context.NewError("chlog.CreateReleaseOnTagHandler: error creating release: %v", err)
 	}

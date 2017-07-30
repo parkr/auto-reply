@@ -16,7 +16,7 @@ func PendingFeedbackUnlabeler(context *ctx.Context, event interface{}) error {
 
 	if senderAndCreatorEqual(comment) && hasLabel(comment.Issue.Labels, pendingFeedbackLabel) {
 		owner, name, number := *comment.Repo.Owner.Login, *comment.Repo.Name, *comment.Issue.Number
-		err := labeler.RemoveLabelIfExists(context.GitHub, owner, name, number, pendingFeedbackLabel)
+		err := labeler.RemoveLabelIfExists(context, owner, name, number, pendingFeedbackLabel)
 		if err != nil {
 			return context.NewError("PendingFeedbackUnlabeler: error removing label on %s/%s#%d: %v", owner, name, number, err)
 		}

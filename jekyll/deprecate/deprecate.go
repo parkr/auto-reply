@@ -38,6 +38,7 @@ func DeprecateOldRepos(context *ctx.Context, event interface{}) error {
 func commentAndClose(context *ctx.Context, owner, name string, number int, message string) error {
 	ref := fmt.Sprintf("%s/%s#%d", owner, name, number)
 	_, _, err := context.GitHub.Issues.CreateComment(
+		context.Context(),
 		owner, name, number,
 		&github.IssueComment{Body: github.String(message)},
 	)
@@ -45,6 +46,7 @@ func commentAndClose(context *ctx.Context, owner, name string, number int, messa
 		return context.NewError("DeprecateOldRepos: error commenting on %s: %v", ref, err)
 	}
 	_, _, err = context.GitHub.Issues.Edit(
+		context.Context(),
 		owner, name, number,
 		&github.IssueRequest{State: github.String("closed")},
 	)

@@ -15,7 +15,7 @@ build:
 
 .PHONY: test
 test:
-	godep go test ./...
+	godep go test github.com/parkr/auto-reply/...
 
 .PHONY: server
 server: build

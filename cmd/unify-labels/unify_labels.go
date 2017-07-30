@@ -70,7 +70,7 @@ func processRepo(context *ctx.Context, repo *github.Repository, perform bool) er
 	context.Log("Processing %s", *repo.FullName)
 
 	// 1. Find labels on GitHub.
-	labels, _, err := context.GitHub.Issues.ListLabels(owner, repoName, &listOpts)
+	labels, _, err := context.GitHub.Issues.ListLabels(context.Context(), owner, repoName, &listOpts)
 	if err != nil {
 		return context.NewError("error fetching labels for %s: %v", *repo.FullName, err)
 	}
@@ -82,7 +82,7 @@ func processRepo(context *ctx.Context, repo *github.Repository, perform bool) er
 		if matchedLabel == nil {
 			if perform {
 				context.Log("%s: creating %s with color %s", *repo.FullName, *desiredLabel.Name, *desiredLabel.Color)
-				_, _, err := context.GitHub.Issues.CreateLabel(owner, repoName, desiredLabel)
+				_, _, err := context.GitHub.Issues.CreateLabel(context.Context(), owner, repoName, desiredLabel)
 				if err != nil {
 					return context.NewError("error creating '%s' for %s: %v", *desiredLabel.Name, *repo.FullName, err)
 				}
@@ -97,7 +97,7 @@ func processRepo(context *ctx.Context, repo *github.Repository, perform bool) er
 			if perform {
 				context.Log("%s: updating %s with data: %v",
 					*repo.FullName, *matchedLabel.Name, github.Stringify(desiredLabel))
-				_, _, err := context.GitHub.Issues.EditLabel(owner, repoName, *matchedLabel.Name, desiredLabel)
+				_, _, err := context.GitHub.Issues.EditLabel(context.Context(), owner, repoName, *matchedLabel.Name, desiredLabel)
 				if err != nil {
 					return context.NewError("%s: error updating '%s': %v", *repo.FullName, *matchedLabel.Name, err)
 				}
@@ -117,7 +117,7 @@ func main() {
 	flag.Parse()
 
 	context := ctx.NewDefaultContext()
-	repos, _, err := context.GitHub.Repositories.List("jekyll", &github.RepositoryListOptions{
+	repos, _, err := context.GitHub.Repositories.List(context.Context(), "jekyll", &github.RepositoryListOptions{
 		Type: "owner", Sort: "full_name", Direction: "asc", ListOptions: listOpts,
 	})
 	if err != nil {

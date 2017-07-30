@@ -29,7 +29,7 @@ func IssueHasPullRequestLabeler(context *ctx.Context, payload interface{}) error
 
 	var err error
 	for _, issueNum := range issueNums {
-		err := AddLabels(context.GitHub, owner, repo, issueNum, []string{"has-pull-request"})
+		err := AddLabels(context, owner, repo, issueNum, []string{"has-pull-request"})
 		if err != nil {
 			context.Log("error adding the has-pull-request label to %s/%s#%d: %v", owner, repo, issueNum, err)
 		}

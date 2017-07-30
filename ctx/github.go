@@ -12,7 +12,7 @@ const githubAccessTokenEnvVar = "GITHUB_ACCESS_TOKEN"
 
 func (c *Context) GitHubAuthedAs(login string) bool {
 	if c.currentlyAuthedGitHubUser == nil {
-		currentlyAuthedUser, _, err := c.GitHub.Users.Get("")
+		currentlyAuthedUser, _, err := c.GitHub.Users.Get(c.Context(), "")
 		if err != nil {
 			c.Log("couldn't fetch currently-auth'd user: %v", err)
 			return false

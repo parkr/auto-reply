@@ -120,10 +120,14 @@ func (t Team) RandomCaptainLoginsExcluding(excludedLogin string, count int) []st
 }
 
 func (t *Team) FetchCaptains(context *ctx.Context) error {
-	users, _, err := context.GitHub.Organizations.ListTeamMembers(t.ID, &github.OrganizationListTeamMembersOptions{
-		Role:        "maintainer",
-		ListOptions: github.ListOptions{Page: 0, PerPage: 100},
-	})
+	users, _, err := context.GitHub.Organizations.ListTeamMembers(
+		context.Context(),
+		t.ID,
+		&github.OrganizationListTeamMembersOptions{
+			Role:        "maintainer",
+			ListOptions: github.ListOptions{Page: 0, PerPage: 100},
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -131,10 +135,14 @@ func (t *Team) FetchCaptains(context *ctx.Context) error {
 	t.Captains = users
 
 	if t.Org != "" {
-		allMembers, _, err := context.GitHub.Organizations.ListTeamMembers(t.ID, &github.OrganizationListTeamMembersOptions{
-			Role:        "all",
-			ListOptions: github.ListOptions{Page: 0, PerPage: 100},
-		})
+		allMembers, _, err := context.GitHub.Organizations.ListTeamMembers(
+			context.Context(),
+			t.ID,
+			&github.OrganizationListTeamMembersOptions{
+				Role:        "all",
+				ListOptions: github.ListOptions{Page: 0, PerPage: 100},
+			},
+		)
 		if err != nil {
 			return err
 		}
@@ -161,7 +169,7 @@ func (t *Team) IsCaptain(login string) bool {
 }
 
 func (t *Team) FetchMetadata(context *ctx.Context) error {
-	team, _, err := context.GitHub.Organizations.GetTeam(t.ID)
+	team, _, err := context.GitHub.Organizations.GetTeam(context.Context(), t.ID)
 	if err != nil {
 		return err
 	}

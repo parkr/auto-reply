@@ -9,7 +9,7 @@ func GitHubIssues(context *ctx.Context, query string) ([]github.Issue, error) {
 	issues := []github.Issue{}
 	opts := &github.SearchOptions{Sort: "created", Order: "desc", ListOptions: github.ListOptions{Page: 0, PerPage: 100}}
 	for {
-		result, resp, err := context.GitHub.Search.Issues(query, opts)
+		result, resp, err := context.GitHub.Search.Issues(context.Context(), query, opts)
 		if err != nil {
 			return nil, context.NewError("search: error running GitHub issues search query: '%s': %v", query, err)
 		}

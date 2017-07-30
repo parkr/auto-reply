@@ -48,7 +48,7 @@ func MarkAndCloseForRepo(context *ctx.Context, config Configuration) error {
 	allIssues := []*github.Issue{}
 
 	for {
-		issues, resp, err := context.GitHub.Issues.ListByRepo(owner, name, staleIssuesListOptions)
+		issues, resp, err := context.GitHub.Issues.ListByRepo(context.Context(), owner, name, staleIssuesListOptions)
 		if err != nil {
 			return context.NewError("could not list issues for %s/%s: %v", owner, name, err)
 		}
@@ -119,6 +119,7 @@ func MarkOrCloseIssue(context *ctx.Context, issue *github.Issue, config Configur
 
 func closeIssue(context *ctx.Context, issue *github.Issue) error {
 	_, _, err := context.GitHub.Issues.Edit(
+		context.Context(),
 		context.Repo.Owner,
 		context.Repo.Name,
 		*issue.Number,
@@ -129,14 +130,16 @@ func closeIssue(context *ctx.Context, issue *github.Issue) error {
 
 func markIssue(context *ctx.Context, issue *github.Issue, comment *github.IssueComment) error {
 	// Mark with "stale" label.
-	err := labeler.AddLabels(context.GitHub, context.Repo.Owner, context.Repo.Name, *issue.Number, []string{"stale"})
+	err := labeler.AddLabels(context, context.Repo.Owner, context.Repo.Name, *issue.Number, []string{"stale"})
 	if err != nil {
 		return context.NewError("stale: couldn't mark issue as stale %s#%d: %+v", context.Repo, *issue.Number, err)
 	}
 
 	if comment != nil {
 		// Leave comment.
-		_, _, err := context.GitHub.Issues.CreateComment(context.Repo.Owner, context.Repo.Name, *issue.Number, comment)
+		_, _, err := context.GitHub.Issues.CreateComment(
+			context.Context(),
+			context.Repo.Owner, context.Repo.Name, *issue.Number, comment)
 		if err != nil {
 			return context.NewError("stale: couldn't leave comment on %s#%d: %+v", context.Repo, *issue.Number, err)
 		}

@@ -99,14 +99,17 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 				log.Printf("We already have an issue or issues for this failure! %s", *issues[0].HTMLURL)
 			} else {
 				jobHTMLURL := fmt.Sprintf("https://travis-ci.org/%s/%s/jobs/%d", context.Repo.Owner, context.Repo.Name, jobID)
-				issue, _, err := context.GitHub.Issues.Create(context.Repo.Owner, context.Repo.Name, &github.IssueRequest{
-					Title: github.String("fmt build is failing on master"),
-					Body: github.String(fmt.Sprintf(
-						"Hey @jekyll/maintainers!\n\nIt looks like the fmt build in Travis is failing again: %s :frowning_face:\n\nCould someone please fix this up? Clone down the repo, run `bundle install`, then `script/fmt` to see the failures. File a PR once you're done and say \"Fixes <this issue url>\" in the description.\n\nThanks! :revolving_hearts:",
-						jobHTMLURL,
-					)),
-					Labels: &failingFmtBuildLabels,
-				})
+				issue, _, err := context.GitHub.Issues.Create(
+					context.Context(),
+					context.Repo.Owner, context.Repo.Name,
+					&github.IssueRequest{
+						Title: github.String("fmt build is failing on master"),
+						Body: github.String(fmt.Sprintf(
+							"Hey @jekyll/maintainers!\n\nIt looks like the fmt build in Travis is failing again: %s :frowning_face:\n\nCould someone please fix this up? Clone down the repo, run `bundle install`, then `script/fmt` to see the failures. File a PR once you're done and say \"Fixes <this issue url>\" in the description.\n\nThanks! :revolving_hearts:",
+							jobHTMLURL,
+						)),
+						Labels: &failingFmtBuildLabels,
+					})
 				if err != nil {
 					return context.NewError("FailingFmtBuildHandler: failed to file an issue: %+v", err)
 				}

@@ -21,7 +21,7 @@ func lgtmContext(owner string) string {
 
 func setStatus(context *ctx.Context, ref prRef, sha string, status *statusInfo) error {
 	_, _, err := context.GitHub.Repositories.CreateStatus(
-		ref.Repo.Owner, ref.Repo.Name, sha, status.NewRepoStatus(ref.Repo.Owner))
+		context.Context(), ref.Repo.Owner, ref.Repo.Name, sha, status.NewRepoStatus(ref.Repo.Owner))
 	if err != nil {
 		return err
 	}
@@ -41,12 +41,12 @@ func getStatus(context *ctx.Context, ref prRef) (*statusInfo, error) {
 		return cachedStatus, nil
 	}
 
-	pr, _, err := context.GitHub.PullRequests.Get(ref.Repo.Owner, ref.Repo.Name, ref.Number)
+	pr, _, err := context.GitHub.PullRequests.Get(context.Context(), ref.Repo.Owner, ref.Repo.Name, ref.Number)
 	if err != nil {
 		return nil, err
 	}
 
-	statuses, _, err := context.GitHub.Repositories.ListStatuses(ref.Repo.Owner, ref.Repo.Name, *pr.Head.SHA, nil)
+	statuses, _, err := context.GitHub.Repositories.ListStatuses(context.Context(), ref.Repo.Owner, ref.Repo.Name, *pr.Head.SHA, nil)
 	if err != nil {
 		return nil, err
 	}

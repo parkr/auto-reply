@@ -131,7 +131,7 @@ func (r *rubyDependencyChecker) parseGemfileDependency(line string) Dependency {
 }
 
 func (r *rubyDependencyChecker) fetchFile(context *ctx.Context, path string) string {
-	contents, _, _, err := context.GitHub.Repositories.GetContents(r.owner, r.name, path, nil)
+	contents, _, _, err := context.GitHub.Repositories.GetContents(context.Context(), r.owner, r.name, path, nil)
 	if err != nil {
 		context.Log("dependencies: error getting %s from %s/%s: %v", path, r.owner, r.name, err)
 		return ""

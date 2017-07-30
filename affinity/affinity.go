@@ -34,6 +34,7 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 	}
 	context.Log("selected affinity team captains for %s: %q", context.Issue, victims)
 	_, _, err = context.GitHub.Issues.AddAssignees(
+		context.Context(),
 		context.Issue.Owner,
 		context.Issue.Repo,
 		context.Issue.Num,
@@ -60,6 +61,7 @@ func findAffinityTeam(body string, allTeams []Team) (Team, error) {
 
 func askForAffinityTeam(context *ctx.Context, allTeams []Team) error {
 	_, _, err := context.GitHub.Issues.CreateComment(
+		context.Context(),
 		context.Issue.Owner,
 		context.Issue.Repo,
 		context.Issue.Num,

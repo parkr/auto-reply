@@ -1,9 +1,9 @@
 {
 	"ImportPath": "github.com/parkr/auto-reply",
 	"GoVersion": "go1.8",
-	"GodepVersion": "v75",
+	"GodepVersion": "v79",
 	"Packages": [
-		"./...",
+		"github.com/parkr/auto-reply/...",
 		"github.com/stretchr/testify/assert"
 	],
 	"Deps": [
@@ -23,11 +23,11 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "c8ebe3a4d7f0791a6315b7410353d4084c58805d"
+			"Rev": "35d38108ba83757e9b6fc00e4ba7e2d597c651be"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
-			"Rev": "9235644dd9e52eeae6fa48efd539fdc351a0af53"
+			"Rev": "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 		},
 		{
 			"ImportPath": "github.com/hashicorp/go-version",
@@ -35,7 +35,11 @@
 		},
 		{
 			"ImportPath": "github.com/jekyll/dashboard",
-			"Rev": "385802e880fb7e9b5fd5a61f2e5b9cb9d55446ff"
+			"Rev": "c0fdb07d5482c48f572ee3310cff6adb61b7dc13"
+		},
+		{
+			"ImportPath": "github.com/jekyll/dashboard/triage",
+			"Rev": "c0fdb07d5482c48f572ee3310cff6adb61b7dc13"
 		},
 		{
 			"ImportPath": "github.com/parkr/changelog",
@@ -53,19 +57,23 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
-			"Rev": "45e771701b814666a7eb299e6c7a57d0b1799e91"
+			"Rev": "f5079bd7f6f74e23c4d65efa0f4ce14cbd6a3c0f"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "f5079bd7f6f74e23c4d65efa0f4ce14cbd6a3c0f"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "314dd2c0bf3ebd592ec0d20847d27e79d0dbe8dd"
+			"Rev": "b53b38ad8a6435bd399ea76d0fa74f23149cca4e"
 		},
 		{
 			"ImportPath": "golang.org/x/oauth2/internal",
-			"Rev": "314dd2c0bf3ebd592ec0d20847d27e79d0dbe8dd"
+			"Rev": "b53b38ad8a6435bd399ea76d0fa74f23149cca4e"
 		},
 		{
 			"ImportPath": "golang.org/x/sync/errgroup",
-			"Rev": "450f422ab23cf9881c94e2db30cac0eb1b7cf80c"
+			"Rev": "f52d1811a62927559de87708c8913c1650ce4f26"
 		}
 	]
 }

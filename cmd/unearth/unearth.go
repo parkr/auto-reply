@@ -34,10 +34,13 @@ func repoNameFromURL(url string) string {
 }
 
 func issuesForQuery(query string) {
-	result, _, err := context.GitHub.Search.Issues(query, &github.SearchOptions{
-		Sort:        "created",
-		ListOptions: *defaultListOptions,
-	})
+	result, _, err := context.GitHub.Search.Issues(
+		context.Context(),
+		query,
+		&github.SearchOptions{
+			Sort:        "created",
+			ListOptions: *defaultListOptions,
+		})
 	haltIfError(err)
 	fmt.Printf("Query '%s' found %d issues:\n", query, *result.Total)
 	for _, issue := range result.Issues {

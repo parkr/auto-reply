@@ -1,6 +1,7 @@
 package dashboard
 
 import (
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -73,7 +74,7 @@ func github(nwo string) chan *GitHub {
 }
 
 func openIssues(owner, repo string) int {
-	repoData, _, err := githubClient.Repositories.Get(owner, repo)
+	repoData, _, err := githubClient.Repositories.Get(context.Background(), owner, repo)
 	if err != nil {
 		log.Printf("error fetching repo %s/%s: %v", owner, repo, err)
 		return -1
@@ -83,6 +84,7 @@ func openIssues(owner, repo string) int {
 
 func openPRs(nwo string) int {
 	result, _, err := githubClient.Search.Issues(
+		context.Background(),
 		"state:open type:pr repo:"+nwo,
 		&gh.SearchOptions{Sort: "created", Order: "asc"},
 	)
@@ -94,7 +96,7 @@ func openPRs(nwo string) int {
 }
 
 func commitsThisWeek(owner, repo string) int {
-	activities, _, err := githubClient.Repositories.ListCommitActivity(owner, repo)
+	activities, _, err := githubClient.Repositories.ListCommitActivity(context.Background(), owner, repo)
 	if err != nil {
 		log.Printf("error fetching commits this week for %s/%s: %v", owner, repo, err)
 		return -1
@@ -107,12 +109,13 @@ func commitsThisWeek(owner, repo string) int {
 }
 
 func commitsSinceLatestRelease(owner, repo string) (int, string) {
-	release, _, err := githubClient.Repositories.GetLatestRelease(owner, repo)
+	release, _, err := githubClient.Repositories.GetLatestRelease(context.Background(), owner, repo)
 	if err != nil {
 		log.Printf("error fetching commits since latest release for %s/%s: %v", owner, repo, err)
 		return -1, ""
 	}
 	comparison, _, err := githubClient.Repositories.CompareCommits(
+		context.Background(),
 		owner, repo,
 		*release.TagName, "master",
 	)

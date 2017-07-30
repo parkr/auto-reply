@@ -21,7 +21,7 @@ func StaleUnlabeler(context *ctx.Context, event interface{}) error {
 	}
 
 	owner, name, number := *comment.Repo.Owner.Login, *comment.Repo.Name, *comment.Issue.Number
-	err := labeler.RemoveLabelIfExists(context.GitHub, owner, name, number, "stale")
+	err := labeler.RemoveLabelIfExists(context, owner, name, number, "stale")
 	if err != nil {
 		return context.NewError("StaleUnlabeler: error removing label on %s/%s#%d: %v", owner, name, number, err)
 	}

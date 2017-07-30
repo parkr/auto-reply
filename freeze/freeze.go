@@ -25,7 +25,7 @@ func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, 
 	}
 
 	for {
-		result, resp, err := context.GitHub.Search.Issues(query, opts)
+		result, resp, err := context.GitHub.Search.Issues(context.Context(), query, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -46,10 +46,10 @@ func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, 
 }
 
 func Freeze(context *ctx.Context, owner, repo string, issueNum int) error {
-	_, err := context.GitHub.Issues.Lock(owner, repo, issueNum)
+	_, err := context.GitHub.Issues.Lock(context.Context(), owner, repo, issueNum)
 	if err != nil {
 		return err
 	}
-	_, _, err = context.GitHub.Issues.AddLabelsToIssue(owner, repo, issueNum, []string{LabelName})
+	_, _, err = context.GitHub.Issues.AddLabelsToIssue(context.Context(), owner, repo, issueNum, []string{LabelName})
 	return err
 }

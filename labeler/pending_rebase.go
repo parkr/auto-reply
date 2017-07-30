@@ -30,11 +30,11 @@ var PendingRebaseNeedsWorkPRUnlabeler = func(context *ctx.Context, payload inter
 
 	var err error
 	if isMergeable(context, owner, repo, num) {
-		err = RemoveLabelIfExists(context.GitHub, owner, repo, num, "pending-rebase")
+		err = RemoveLabelIfExists(context, owner, repo, num, "pending-rebase")
 		if err != nil {
 			log.Printf("error removing the pending-rebase label: %v", err)
 		}
-		err = RemoveLabelIfExists(context.GitHub, owner, repo, num, "needs-work")
+		err = RemoveLabelIfExists(context, owner, repo, num, "needs-work")
 	} else {
 		err = fmt.Errorf("%s/%s#%d is not mergeable", owner, repo, num)
 	}
@@ -46,7 +46,7 @@ var PendingRebaseNeedsWorkPRUnlabeler = func(context *ctx.Context, payload inter
 }
 
 func isMergeable(context *ctx.Context, owner, repo string, number int) bool {
-	pr, res, err := context.GitHub.PullRequests.Get(owner, repo, number)
+	pr, res, err := context.GitHub.PullRequests.Get(context.Context(), owner, repo, number)
 	err = common.ErrorFromResponse(res, err)
 	if err != nil {
 		log.Printf("couldn't determine mergeability of %s/%s#%d: %v", owner, repo, number, err)

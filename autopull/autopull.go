@@ -44,7 +44,7 @@ func (h *Handler) CreatePullRequestFromPush(context *ctx.Context, event interfac
 			return context.NewError("AutoPull: no commits for %s on %s/%s", *push.Ref, *push.Repo.Owner.Name, *push.Repo.Name)
 		}
 
-		pull, _, err := context.GitHub.PullRequests.Create(*push.Repo.Owner.Name, *push.Repo.Name, pr)
+		pull, _, err := context.GitHub.PullRequests.Create(context.Context(), *push.Repo.Owner.Name, *push.Repo.Name, pr)
 		if err != nil {
 			return context.NewError(
 				"AutoPull: error creating pull request for %s on %s/%s: %v",

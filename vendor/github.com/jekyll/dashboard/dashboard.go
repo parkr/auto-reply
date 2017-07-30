@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/jekyll/dashboard/triage"
 )
 
 var defaultPort = 8000
@@ -49,6 +51,7 @@ func Listen() {
 
 	http.HandleFunc("/reset.json", reset)
 	http.HandleFunc("/show.json", show)
+	http.Handle("/triage", triage.New(githubClient, []string{"documentation", "bug", "enhancement"}))
 	http.HandleFunc("/", index)
 
 	bind := fmt.Sprintf(":%d", port)
