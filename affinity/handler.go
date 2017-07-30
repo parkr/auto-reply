@@ -69,6 +69,28 @@ func (h *Handler) GetTeam(teamID int) (Team, error) {
 	return Team{}, fmt.Errorf("GetTeam: team with ID=%d not found", teamID)
 }
 
+func (h *Handler) RequestReviewFromAffinityTeamCaptains(context *ctx.Context, payload interface{}) error {
+	event, ok := payload.(*github.PullRequestEvent)
+	if !ok {
+		return context.NewError("RequestReviewFromAffinityTeamCaptains: not a pull request event")
+	}
+
+	context.SetAuthor(*event.Sender.Login)
+	context.SetIssue(*event.Repo.Owner.Login, *event.Repo.Name, *event.Number)
+
+	if !h.enabledForRepo(context.Issue.Owner, context.Issue.Repo) {
+		return context.NewError("RequestReviewFromAffinityTeamCaptains: not enabled for %s", context.Issue)
+	}
+
+	if *event.Action != "opened" {
+		return context.NewError("RequestReviewFromAffinityTeamCaptains: not an 'opened' PR event")
+	}
+
+	context.IncrStat("affinity.pull_request", []string{"task:request_review"})
+
+	return requestReviewFromTeamCaptains(context, *h, *event.PullRequest.Body, 2)
+}
+
 func (h *Handler) AssignPRToAffinityTeamCaptain(context *ctx.Context, payload interface{}) error {
 	event, ok := payload.(*github.PullRequestEvent)
 	if !ok {

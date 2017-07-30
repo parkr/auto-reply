@@ -109,6 +109,7 @@ func NewJekyllOrgHandler(context *ctx.Context) *hooks.GlobalHandler {
 	jekyllOrgEventHandlers.AddHandler(hooks.IssuesEvent, affinityHandler.AssignIssueToAffinityTeamCaptain)
 	jekyllOrgEventHandlers.AddHandler(hooks.IssueCommentEvent, affinityHandler.AssignIssueToAffinityTeamCaptainFromComment)
 	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestEvent, affinityHandler.AssignPRToAffinityTeamCaptain)
+	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestEvent, affinityHandler.RequestReviewFromAffinityTeamCaptains)
 
 	lgtmHandler := newLgtmHandler()
 	jekyllOrgEventHandlers.AddHandler(hooks.PullRequestReviewEvent, lgtmHandler.PullRequestReviewHandler)

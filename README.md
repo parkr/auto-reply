@@ -64,7 +64,7 @@ func main() {
 	// Add the affinity handler's various event handlers to the event handlers map :)
 	eventHandlers.AddHandler(hooks.IssuesEvent, aff.AssignIssueToAffinityTeamCaptain)
 	eventHandlers.AddHandler(hooks.IssueCommentEvent, aff.AssignIssueToAffinityTeamCaptainFromComment)
-	eventHandlers.AddHandler(hooks.PullRequestEvent, aff.AssignPRToAffinityTeamCaptain)
+	eventHandlers.AddHandler(hooks.PullRequestEvent, aff.RequestReviewFromAffinityTeamCaptain)
 
 	// Create the webhook handler. GlobalHandler takes the list of event handlers from
 	// its configuration and fires each of them based on the X-GitHub-Event header from

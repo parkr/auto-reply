@@ -50,6 +50,43 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 	return nil
 }
 
+func requestReviewFromTeamCaptains(context *ctx.Context, handler Handler, body string, assigneeCount int) error {
+	if context.Issue.IsEmpty() {
+		context.IncrStat("affinity.error.no_ref", nil)
+		return context.NewError("requestReviewFromTeamCaptains: issue reference was not set; bailing")
+	}
+
+	team, err := findAffinityTeam(body, handler.teams)
+	if err != nil {
+		context.IncrStat("affinity.error.no_team", nil)
+		//return askForAffinityTeam(context, handler.teams)
+		return context.NewError("%s: no team in the message body; unable to assign", context.Issue)
+	}
+
+	context.Log("team: %s, excluding: %s", team, context.Issue.Author)
+	victims := team.RandomCaptainLoginsExcluding(context.Issue.Author, assigneeCount)
+	if len(victims) == 0 {
+		context.IncrStat("affinity.error.no_acceptable_captains", nil)
+		return context.NewError("%s: team captains other than issue author could not be found", context.Issue)
+	}
+	context.Log("selected affinity team captains for %s: %q", context.Issue, victims)
+	_, _, err = context.GitHub.PullRequests.RequestReviewers(
+		context.Context(),
+		context.Issue.Owner,
+		context.Issue.Repo,
+		context.Issue.Num,
+		victims,
+	)
+	if err != nil {
+		context.IncrStat("affinity.error.github_api", nil)
+		return context.NewError("requestReviewFromTeamCaptains: problem assigning: %v", err)
+	}
+
+	context.IncrStat("affinity.success", nil)
+	context.Log("requestReviewFromTeamCaptains: requested review from %q on %s", victims, context.Issue)
+	return nil
+}
+
 func findAffinityTeam(body string, allTeams []Team) (Team, error) {
 	for _, team := range allTeams {
 		if strings.Contains(body, team.Mention) {
