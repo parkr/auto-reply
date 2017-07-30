@@ -82,7 +82,7 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 
 		fmt.Fprintf(w, "fired %d handlers", numHandlers)
 	} else {
-		h.Context.IncrStat("handler.invalid")
+		h.Context.IncrStat("handler.invalid", nil)
 		errMessage := fmt.Sprintf("unhandled event type: %s", eventType)
 		log.Printf("%s; handled events: %+v", errMessage, h.AcceptedEventTypes())
 		http.Error(w, errMessage, 200)
@@ -92,7 +92,7 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 }
 
 func (h *GlobalHandler) FireHandlers(handlers []EventHandler, eventType string, payload []byte) int {
-	h.Context.IncrStat("handler." + eventType)
+	h.Context.IncrStat("handler." + eventType, nil)
 	event, err := github.ParseWebHook(eventType, payload)
 	if err != nil {
 		h.Context.NewError("FireHandlers: couldn't parse webhook: %+v", err)

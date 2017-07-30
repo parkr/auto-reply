@@ -15,13 +15,13 @@ var explanation = `We are utilizing a new workflow in our issues and pull reques
 
 func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assigneeCount int) error {
 	if context.Issue.IsEmpty() {
-		context.IncrStat("affinity.error.no_ref")
+		context.IncrStat("affinity.error.no_ref", nil)
 		return context.NewError("assignTeamCaptains: issue reference was not set; bailing")
 	}
 
 	team, err := findAffinityTeam(body, handler.teams)
 	if err != nil {
-		context.IncrStat("affinity.error.no_team")
+		context.IncrStat("affinity.error.no_team", nil)
 		//return askForAffinityTeam(context, handler.teams)
 		return context.NewError("%s: no team in the message body; unable to assign", context.Issue)
 	}
@@ -29,7 +29,7 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 	context.Log("team: %s, excluding: %s", team, context.Issue.Author)
 	victims := team.RandomCaptainLoginsExcluding(context.Issue.Author, assigneeCount)
 	if len(victims) == 0 {
-		context.IncrStat("affinity.error.no_acceptable_captains")
+		context.IncrStat("affinity.error.no_acceptable_captains", nil)
 		return context.NewError("%s: team captains other than issue author could not be found", context.Issue)
 	}
 	context.Log("selected affinity team captains for %s: %q", context.Issue, victims)
@@ -41,11 +41,11 @@ func assignTeamCaptains(context *ctx.Context, handler Handler, body string, assi
 		victims,
 	)
 	if err != nil {
-		context.IncrStat("affinity.error.github_api")
+		context.IncrStat("affinity.error.github_api", nil)
 		return context.NewError("assignTeamCaptains: problem assigning: %v", err)
 	}
 
-	context.IncrStat("affinity.success")
+	context.IncrStat("affinity.success", nil)
 	context.Log("assignTeamCaptains: assigned %q to %s", victims, context.Issue)
 	return nil
 }

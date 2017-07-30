@@ -7,26 +7,27 @@ import (
 )
 
 var (
+	hostport  string  = "127.0.0.1:8125"
+	namespace string  = "autoreply."
 	countRate float64 = 1
-	noTags            = []string{}
 )
 
 func NewStatsd() *statsd.Client {
-	client, err := statsd.New("127.0.0.1:8125")
+	client, err := statsd.New(hostport)
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
-	client.Namespace = "autoreply."
+	client.Namespace = namespace
 	return client
 }
 
-func (c *Context) IncrStat(name string) {
-	c.CountStat(name, 1)
+func (c *Context) IncrStat(name string, tags []string) {
+	c.CountStat(name, 1, tags)
 }
 
-func (c *Context) CountStat(name string, value int64) {
+func (c *Context) CountStat(name string, value int64, tags []string) {
 	if c.Statsd != nil {
-		c.Statsd.Count(name, value, noTags, countRate)
+		c.Statsd.Count(name, value, tags, countRate)
 	}
 }

@@ -87,7 +87,7 @@ func (h *Handler) AssignPRToAffinityTeamCaptain(context *ctx.Context, payload in
 	}
 
 	if event.PullRequest.Assignee != nil {
-		context.IncrStat("affinity.error.already_assigned")
+		context.IncrStat("affinity.error.already_assigned", nil)
 		return context.NewError("AssignPRToAffinityTeamCaptain: PR already assigned")
 	}
 
@@ -95,9 +95,9 @@ func (h *Handler) AssignPRToAffinityTeamCaptain(context *ctx.Context, payload in
 		return fmt.Errorf("bozo. you can't reply to your own comment!")
 	}
 
-	context.IncrStat("affinity.pull_request")
+	context.IncrStat("affinity.pull_request", nil)
 
-	return assignTeamCaptains(context, *h, *event.PullRequest.Body, 2)
+	return assignTeamCaptains(context, *h, *event.PullRequest.Body, 1)
 }
 
 func (h *Handler) AssignIssueToAffinityTeamCaptain(context *ctx.Context, payload interface{}) error {
@@ -118,7 +118,7 @@ func (h *Handler) AssignIssueToAffinityTeamCaptain(context *ctx.Context, payload
 	}
 
 	if event.Assignee != nil {
-		context.IncrStat("affinity.error.already_assigned")
+		context.IncrStat("affinity.error.already_assigned", nil)
 		return context.NewError("AssignIssueToAffinityTeamCaptain: issue already assigned")
 	}
 
@@ -126,7 +126,7 @@ func (h *Handler) AssignIssueToAffinityTeamCaptain(context *ctx.Context, payload
 		return fmt.Errorf("bozo. you can't reply to your own comment!")
 	}
 
-	context.IncrStat("affinity.issue")
+	context.IncrStat("affinity.issue", nil)
 
 	return assignTeamCaptains(context, *h, *event.Issue.Body, 1)
 }
@@ -156,7 +156,7 @@ func (h *Handler) AssignIssueToAffinityTeamCaptainFromComment(context *ctx.Conte
 		return fmt.Errorf("bozo. you can't reply to your own comment!")
 	}
 
-	context.IncrStat("affinity.issue_comment")
+	context.IncrStat("affinity.issue_comment", nil)
 
 	return assignTeamCaptains(context, *h, *event.Comment.Body, 1)
 }
