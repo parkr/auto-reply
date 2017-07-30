@@ -47,6 +47,12 @@ var (
 			Labels:  []string{"bug", "fix"},
 		},
 		changelogCategory{
+			Prefix:  "fix",
+			Slug:    "fix",
+			Section: "Bug Fixes",
+			Labels:  []string{"bug", "fix"},
+		},
+		changelogCategory{
 			Prefix:  "dev",
 			Slug:    "development-fixes",
 			Section: "Development Fixes",
