@@ -20,6 +20,9 @@ type Configuration struct {
 	// Whether to actuall perform the action. If false, just outputs what *would* happen.
 	Perform bool
 
+	// Labels, in addition to "stale", which should be mark an issue as already stale.
+	StaleLabels []string
+
 	// If an issue has this label, it is not stale.
 	ExemptLabels []string
 
@@ -96,7 +99,7 @@ func MarkOrCloseIssue(context *ctx.Context, issue *github.Issue, config Configur
 		return context.NewError("stale: issue %s#%d is not stale", context.Repo, *issue.Number)
 	}
 
-	if hasStaleLabel(issue) {
+	if hasStaleLabel(issue, config) {
 		// Close!
 		if config.Perform {
 			context.Log("https://github.com/%s/issues/%d is being closed.", context.Repo, *issue.Number)
@@ -175,14 +178,19 @@ func excludesNonStaleableLabels(issue *github.Issue, config Configuration) bool 
 	return true
 }
 
-func hasStaleLabel(issue *github.Issue) bool {
+func hasStaleLabel(issue *github.Issue, config Configuration) bool {
 	if issue.Labels == nil {
 		return false
 	}
 
-	for _, label := range issue.Labels {
-		if *label.Name == "stale" {
+	for _, issueLabel := range issue.Labels {
+		if *issueLabel.Name == "stale" {
 			return true
+		}
+		for _, staleLabel := range config.StaleLabels {
+			if *issueLabel.Name == staleLabel {
+				return true
+			}
 		}
 	}
 

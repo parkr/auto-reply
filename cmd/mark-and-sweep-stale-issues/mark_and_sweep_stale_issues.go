@@ -19,12 +19,19 @@ type repo struct {
 }
 
 var (
+	// Labels which mean the issue is already stale.
+	staleLabels = []string{
+		"pending-feedback",
+	}
+
+	// Labels which can be used to disable the staleable functionality for an issue.
 	nonStaleableLabels = []string{
 		"has-pull-request",
 		"pinned",
 		"security",
 	}
 
+	// All the repos to apply apply these to.
 	defaultRepos = []repo{
 		repo{"jekyll", "jekyll"},
 		repo{"jekyll", "jekyll-admin"},
@@ -110,6 +117,7 @@ func main() {
 				ctx.WithRepo(repo.Owner, repo.Name),
 				stale.Configuration{
 					Perform:             actuallyDoIt,
+					StaleLabels:         staleLabels,
 					ExemptLabels:        nonStaleableLabels,
 					DormantDuration:     time.Since(twoMonthsAgo),
 					NotificationComment: staleIssueComment(repo.Owner, repo.Name),
