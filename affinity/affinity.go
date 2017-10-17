@@ -75,7 +75,7 @@ func requestReviewFromTeamCaptains(context *ctx.Context, handler Handler, body s
 		context.Issue.Owner,
 		context.Issue.Repo,
 		context.Issue.Num,
-		victims,
+		github.ReviewersRequest{Reviewers: victims},
 	)
 	if err != nil {
 		context.IncrStat("affinity.error.github_api", nil)
