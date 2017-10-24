@@ -12,6 +12,7 @@ import (
 
 var defaultRepos = strings.Join([]string{
 	"jekyll/jekyll",
+	"jekyll/jekyll-watch",
 }, ",")
 
 func main() {
