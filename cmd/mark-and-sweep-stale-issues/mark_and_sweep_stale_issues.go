@@ -40,6 +40,7 @@ var (
 		repo{"jekyll", "jekyll-redirect-from"},
 		repo{"jekyll", "jekyll-feed"},
 		repo{"jekyll", "jekyll-compose"},
+		repo{"jekyll", "jekyll-docs"},
 		repo{"jekyll", "jekyll-watch"},
 		repo{"jekyll", "jekyll-seo-tag"},
 		repo{"jekyll", "jekyll-sitemap"},
@@ -47,6 +48,7 @@ var (
 		repo{"jekyll", "jemoji"},
 		repo{"jekyll", "jekyll-gist"},
 		repo{"jekyll", "jekyll-coffeescript"},
+		repo{"jekyll", "minima"},
 		repo{"jekyll", "plugins"},
 	}
 
