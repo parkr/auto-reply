@@ -55,7 +55,12 @@ func (d *RubyDependency) IsOutdated(context *ctx.Context) bool {
 		return *d.isOutdated
 	}
 
-	isOutdated := !d.GetConstraint().Check(d.GetLatestVersion(context))
+	latestVersion := d.GetLatestVersion(context)
+	if latestVersion == nil {
+		return false
+	}
+
+	isOutdated := !d.GetConstraint().Check(latestVersion)
 	d.isOutdated = &isOutdated
 	return *d.isOutdated
 }
