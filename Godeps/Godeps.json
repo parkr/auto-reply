@@ -45,6 +45,10 @@
 			"Rev": "cef0141074f9b8cc85a225bb4edca5278114e997"
 		},
 		{
+			"ImportPath": "github.com/parkr/githubapi/githubsearch",
+			"Rev": "a4a24abadc26d281479efda344a2131f350f16f8"
+		},
+		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",
 			"Comment": "v1.0.0",
 			"Rev": "792786c7400a136282c1664665ae0a8db921c6c2"
