@@ -33,6 +33,14 @@
 			"Rev": "fc61389e27c71d120f87031ca8c88a3428f372dd"
 		},
 		{
+			"ImportPath": "github.com/heroku/x/hmetrics",
+			"Rev": "705849e307dd75c91728463dea5bfd08ef493e64"
+		},
+		{
+			"ImportPath": "github.com/heroku/x/hmetrics/onload",
+			"Rev": "705849e307dd75c91728463dea5bfd08ef493e64"
+		},
+		{
 			"ImportPath": "github.com/jekyll/dashboard",
 			"Rev": "4df3547908cb8b1780adf7b79a91bc6066dd3fb1"
 		},
