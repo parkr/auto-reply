@@ -2,6 +2,7 @@
 package main
 
 import (
+	_ "expvar"
 	"flag"
 	"log"
 	"net/http"
