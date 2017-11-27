@@ -3,12 +3,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/freeze"
+	"github.com/parkr/auto-reply/sentry"
 )
 
 var desiredLabels = []*github.Label{
@@ -117,16 +119,32 @@ func main() {
 	flag.Parse()
 
 	context := ctx.NewDefaultContext()
-	repos, _, err := context.GitHub.Repositories.List(context.Context(), "jekyll", &github.RepositoryListOptions{
-		Type: "owner", Sort: "full_name", Direction: "asc", ListOptions: listOpts,
+
+	log.SetPrefix("freeze-ancient-issues: ")
+
+	sentryClient, err := sentry.NewClient(map[string]string{
+		"app":     "unify-labels",
+		"perform": fmt.Sprintf("%t", perform),
 	})
 	if err != nil {
-		log.Fatalln("error fetching repos:", err)
+		panic(err)
 	}
 
-	for _, repo := range repos {
-		if err := processRepo(context, repo, perform); err != nil {
-			context.Log("%s: failed!", *repo.FullName)
+	sentryClient.Recover(func() error {
+		repos, _, err := context.GitHub.Repositories.List(context.Context(), "jekyll", &github.RepositoryListOptions{
+			Type: "owner", Sort: "full_name", Direction: "asc", ListOptions: listOpts,
+		})
+		if err != nil {
+			return err
 		}
-	}
+
+		for _, repo := range repos {
+			if err := processRepo(context, repo, perform); err != nil {
+				context.Log("%s: failed!", *repo.FullName)
+				return err
+			}
+		}
+
+		return nil
+	})
 }

@@ -4,12 +4,14 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
+	"github.com/parkr/auto-reply/sentry"
 	"github.com/parkr/auto-reply/stale"
 	"golang.org/x/sync/errgroup"
 )
@@ -109,25 +111,36 @@ func main() {
 		repos = defaultRepos
 	}
 
-	wg, _ := errgroup.WithContext(context.Background())
-	for _, repo := range repos {
-		repo := repo
-		wg.Go(func() error {
-			return stale.MarkAndCloseForRepo(
-				ctx.WithRepo(repo.Owner, repo.Name),
-				stale.Configuration{
-					Perform:             actuallyDoIt,
-					StaleLabels:         staleLabels,
-					ExemptLabels:        nonStaleableLabels,
-					DormantDuration:     time.Since(twoMonthsAgo),
-					NotificationComment: staleIssueComment(repo.Owner, repo.Name),
-				},
-			)
-		})
+	log.SetPrefix("mark-and-sweep-stale-issues: ")
+
+	sentryClient, err := sentry.NewClient(map[string]string{
+		"app":          "mark-and-sweep-stale-issues",
+		"inputRepos":   inputRepos,
+		"actuallyDoIt": fmt.Sprintf("%t", actuallyDoIt),
+	})
+	if err != nil {
+		panic(err)
 	}
-	if err := wg.Wait(); err != nil {
-		log.Fatal("error: ", err)
-	}
+
+	sentryClient.Recover(func() error {
+		wg, _ := errgroup.WithContext(context.Background())
+		for _, repo := range repos {
+			repo := repo
+			wg.Go(func() error {
+				return stale.MarkAndCloseForRepo(
+					ctx.WithRepo(repo.Owner, repo.Name),
+					stale.Configuration{
+						Perform:             actuallyDoIt,
+						StaleLabels:         staleLabels,
+						ExemptLabels:        nonStaleableLabels,
+						DormantDuration:     time.Since(twoMonthsAgo),
+						NotificationComment: staleIssueComment(repo.Owner, repo.Name),
+					},
+				)
+			})
+		}
+		return wg.Wait()
+	})
 }
 
 func staleIssueComment(repoOwner, repoName string) *github.IssueComment {
