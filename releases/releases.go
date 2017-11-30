@@ -12,7 +12,7 @@ import (
 )
 
 func LatestRelease(context *ctx.Context, repo jekyll.Repository) (*github.RepositoryRelease, error) {
-	releases, _, err := context.GitHub.Repositories.ListReleases(context.Context(), repo.Owner(), repo.Name, &github.ListOptions{PerPage: 300})
+	releases, _, err := context.GitHub.Repositories.ListReleases(context.Context(), repo.Owner(), repo.Name(), &github.ListOptions{PerPage: 300})
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func LatestRelease(context *ctx.Context, repo jekyll.Repository) (*github.Reposi
 func CommitsSinceRelease(context *ctx.Context, repo jekyll.Repository, latestRelease *github.RepositoryRelease) (int, error) {
 	comparison, _, err := context.GitHub.Repositories.CompareCommits(
 		context.Context(),
-		repo.Owner(), repo.Name,
+		repo.Owner(), repo.Name(),
 		latestRelease.GetTagName(), "master",
 	)
 	if err != nil {

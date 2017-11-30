@@ -58,6 +58,17 @@ func main() {
 			return errors.New("cannot proceed without github client")
 		}
 
+		if inputRepos != "" {
+			repos = []jekyll.Repository{}
+			for _, inputRepo := range strings.Split(inputRepos, ",") {
+				pieces := strings.Split(inputRepo, "/")
+				if len(pieces) != 2 {
+					return fmt.Errorf("input repo %q is improperly formed", inputRepo)
+				}
+				repos = append(repos, jekyll.NewRepository(pieces[0], pieces[1]))
+			}
+		}
+
 		wg, _ := errgroup.WithContext(context.Context())
 		for _, repo := range repos {
 			repo := repo
@@ -105,7 +116,7 @@ func fileIssue(context *ctx.Context, repo jekyll.Repository, latestRelease *gith
 	// TODO: does one already exist?
 	issue, _, err := context.GitHub.Issues.Create(
 		context.Context(),
-		repo.Owner(), repo.Name,
+		repo.Owner(), repo.Name(),
 		&github.IssueRequest{
 			Title:  github.String("Time for a new release!"),
 			Labels: &issueLabels,
