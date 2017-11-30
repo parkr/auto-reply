@@ -1,3 +1,9 @@
+BINARIES = bin/check-for-outdated-dependencies \
+    bin/jekyllbot \
+    bin/mark-and-sweep-stale-issues \
+    bin/unearth \
+    bin/unify-labels
+
 .PHONY: all
 all: deps build test
 
@@ -5,13 +11,13 @@ all: deps build test
 deps:
 	go get github.com/tools/godep
 
+.PHONY: $(BINARIES)
+$(BINARIES): clean
+	godep go build -o ./$@ ./$(patsubst bin/%,cmd/%,$@)
+
 .PHONY: build
-build:
-	godep go build -o ./bin/jekyllbot ./cmd/jekyllbot
-	godep go build -o ./bin/unearth ./cmd/unearth
-	godep go build -o ./bin/mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
-	godep go build -o ./bin/unify-labels ./cmd/unify-labels
-	godep go build -o ./bin/check-for-outdated-dependencies ./cmd/check-for-outdated-dependencies
+build: clean $(BINARIES)
+	ls -lh bin/
 
 .PHONY: test
 test:
@@ -31,4 +37,4 @@ mark-and-sweep: build
 
 .PHONY: clean
 clean:
-	rm -r bin
+	rm -rf bin
