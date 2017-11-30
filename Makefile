@@ -1,6 +1,7 @@
 BINARIES = bin/check-for-outdated-dependencies \
     bin/jekyllbot \
     bin/mark-and-sweep-stale-issues \
+    bin/nudge-maintainers-to-release \
     bin/unearth \
     bin/unify-labels
 
