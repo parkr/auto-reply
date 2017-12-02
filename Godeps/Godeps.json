@@ -39,7 +39,7 @@
 		},
 		{
 			"ImportPath": "github.com/hashicorp/go-version",
-			"Rev": "fc61389e27c71d120f87031ca8c88a3428f372dd"
+			"Rev": "4fe82ae3040f80a03d04d2cccb5606a626b8e1ee"
 		},
 		{
 			"ImportPath": "github.com/heroku/x/hmetrics",

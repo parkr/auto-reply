@@ -35,21 +35,21 @@ var (
 
 	// All the repos to apply apply these to.
 	defaultRepos = []repo{
-		repo{"jekyll", "jekyll"},
-		repo{"jekyll", "jekyll-admin"},
-		repo{"jekyll", "jekyll-import"},
-		repo{"jekyll", "github-metadata"},
-		repo{"jekyll", "jekyll-redirect-from"},
-		repo{"jekyll", "jekyll-feed"},
-		repo{"jekyll", "jekyll-compose"},
-		repo{"jekyll", "jekyll-watch"},
-		repo{"jekyll", "jekyll-seo-tag"},
-		repo{"jekyll", "jekyll-sitemap"},
-		repo{"jekyll", "jekyll-sass-converter"},
-		repo{"jekyll", "jemoji"},
-		repo{"jekyll", "jekyll-gist"},
-		repo{"jekyll", "jekyll-coffeescript"},
-		repo{"jekyll", "plugins"},
+		{"jekyll", "jekyll"},
+		{"jekyll", "jekyll-admin"},
+		{"jekyll", "jekyll-import"},
+		{"jekyll", "github-metadata"},
+		{"jekyll", "jekyll-redirect-from"},
+		{"jekyll", "jekyll-feed"},
+		{"jekyll", "jekyll-compose"},
+		{"jekyll", "jekyll-watch"},
+		{"jekyll", "jekyll-seo-tag"},
+		{"jekyll", "jekyll-sitemap"},
+		{"jekyll", "jekyll-sass-converter"},
+		{"jekyll", "jemoji"},
+		{"jekyll", "jekyll-gist"},
+		{"jekyll", "jekyll-coffeescript"},
+		{"jekyll", "plugins"},
 	}
 
 	twoMonthsAgo = time.Now().AddDate(0, -2, 0)

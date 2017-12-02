@@ -1,3 +1,5 @@
+sudo: false
+script: make -j10
 language: go
 go:
   - 1.9
