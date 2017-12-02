@@ -1,7 +1,6 @@
 package releases
 
 import (
-	"errors"
 	"fmt"
 	"sort"
 
@@ -21,27 +20,25 @@ func LatestRelease(context *ctx.Context, repo jekyll.Repository) (*github.Reposi
 		return nil, nil
 	}
 
+	versionMap := map[string]*github.RepositoryRelease{}
 	versions := []*version.Version{}
 	for _, release := range releases {
 		v, err := version.NewVersion(release.GetTagName())
 		if err != nil {
 			continue
 		}
+		versionMap[v.String()] = release
 		versions = append(versions, v)
 	}
 
 	// After this, the versions are properly sorted
 	sort.Sort(sort.Reverse(version.Collection(versions)))
 
-	desiredVersionTagName := "v" + versions[0].String()
-
-	for _, release := range releases {
-		if release.GetTagName() == desiredVersionTagName {
-			return release, nil
-		}
+	if latestRelease, ok := versionMap[versions[0].String()]; ok {
+		return latestRelease, nil
 	}
 
-	return nil, errors.New("couldn't determine the latest version")
+	return nil, fmt.Errorf("%s: couldn't find %s in versions %+v", repo, versions[0], versions)
 }
 
 func CommitsSinceRelease(context *ctx.Context, repo jekyll.Repository, latestRelease *github.RepositoryRelease) (int, error) {
