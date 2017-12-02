@@ -2,6 +2,7 @@ package sentry
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"os"
 
@@ -23,7 +24,8 @@ func newRavenClient(tags map[string]string) (*raven.Client, error) {
 //
 
 type SentryClient interface {
-	Recover(func() error)
+	Recover(func() error) (err interface{}, errID string)
+	RecoverAndExit(func() error)
 	GetSentry() *raven.Client
 }
 
@@ -36,12 +38,19 @@ type sentryClient struct {
 	ravenClient *raven.Client
 }
 
-func (c *sentryClient) Recover(f func() error) {
-	c.ravenClient.CapturePanicAndWait(func() {
+func (c *sentryClient) Recover(f func() error) (err interface{}, errID string) {
+	return c.ravenClient.CapturePanicAndWait(func() {
 		if err := f(); err != nil {
+			log.Printf("error encountered: %+v", err)
 			panic(err)
 		}
 	}, nil)
+}
+
+func (c *sentryClient) RecoverAndExit(f func() error) {
+	if err, _ := c.Recover(f); err != nil {
+		log.Fatalf("panicked!")
+	}
 }
 
 func (c *sentryClient) GetSentry() *raven.Client {
