@@ -1,3 +1,4 @@
+ROOT_PKG=github.com/parkr/auto-reply
 BINARIES = bin/check-for-outdated-dependencies \
     bin/jekyllbot \
     bin/mark-and-sweep-stale-issues \
@@ -6,11 +7,17 @@ BINARIES = bin/check-for-outdated-dependencies \
     bin/unify-labels
 
 .PHONY: all
-all: deps build test
+all: deps fmt build test
 
 .PHONY: deps
 deps:
 	go get github.com/tools/godep
+
+.PHONY: fmt
+fmt:
+	git ls-files | grep -v '^vendor' | grep '\.go$$' | xargs gofmt -s -l -w | sed -e 's/^/Fixed /'
+	go list $(ROOT_PKG)/... | xargs go fix
+	go list $(ROOT_PKG)/... | xargs go vet
 
 .PHONY: $(BINARIES)
 $(BINARIES): deps clean
