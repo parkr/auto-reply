@@ -23,21 +23,21 @@ type repository struct {
 
 var (
 	defaultRepos = []repository{
-		repository{"jekyll", "jekyll"},
-		repository{"jekyll", "jekyll-admin"},
-		repository{"jekyll", "jekyll-import"},
-		repository{"jekyll", "github-metadata"},
-		repository{"jekyll", "jekyll-redirect-from"},
-		repository{"jekyll", "jekyll-feed"},
-		repository{"jekyll", "jekyll-compose"},
-		repository{"jekyll", "jekyll-watch"},
-		repository{"jekyll", "jekyll-seo-tag"},
-		repository{"jekyll", "jekyll-sitemap"},
-		repository{"jekyll", "jekyll-sass-converter"},
-		repository{"jekyll", "jemoji"},
-		repository{"jekyll", "jekyll-gist"},
-		repository{"jekyll", "jekyll-coffeescript"},
-		repository{"jekyll", "plugins"},
+		{"jekyll", "jekyll"},
+		{"jekyll", "jekyll-admin"},
+		{"jekyll", "jekyll-import"},
+		{"jekyll", "github-metadata"},
+		{"jekyll", "jekyll-redirect-from"},
+		{"jekyll", "jekyll-feed"},
+		{"jekyll", "jekyll-compose"},
+		{"jekyll", "jekyll-watch"},
+		{"jekyll", "jekyll-seo-tag"},
+		{"jekyll", "jekyll-sitemap"},
+		{"jekyll", "jekyll-sass-converter"},
+		{"jekyll", "jemoji"},
+		{"jekyll", "jekyll-gist"},
+		{"jekyll", "jekyll-coffeescript"},
+		{"jekyll", "plugins"},
 	}
 
 	sleepBetweenFreezes = 150 * time.Millisecond

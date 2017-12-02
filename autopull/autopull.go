@@ -51,7 +51,7 @@ func (h *Handler) CreatePullRequestFromPush(context *ctx.Context, event interfac
 				*push.Ref, *push.Repo.Owner.Name, *push.Repo.Name, err,
 			)
 		}
-		log.Println("created pull request: %s#%d", *push.Repo.FullName, *pull.Number)
+		log.Printf("created pull request: %s#%d", *push.Repo.FullName, *pull.Number)
 	}
 
 	return nil
