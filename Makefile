@@ -28,7 +28,7 @@ build: clean $(BINARIES)
 	ls -lh bin/
 
 .PHONY: test
-test:
+test: deps
 	godep go test github.com/parkr/auto-reply/...
 
 .PHONY: server
