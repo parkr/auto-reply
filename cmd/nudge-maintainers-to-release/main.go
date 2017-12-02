@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"strings"
 	"time"
@@ -12,7 +14,9 @@ import (
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/jekyll"
 	"github.com/parkr/auto-reply/releases"
+	"github.com/parkr/auto-reply/search"
 	"github.com/parkr/auto-reply/sentry"
+	"github.com/parkr/githubapi/githubsearch"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -21,8 +25,25 @@ var (
 
 	twoMonthsAgoUnix = time.Now().AddDate(0, -2, 0).Unix()
 
+	issueTitle  = "Time for a new release"
 	issueLabels = []string{"release"}
+
+	issueBodyTemplate = template.Must(template.New("issueBodyTemplate").Parse(`
+Hello, maintainers! :wave:
+
+By my calculations, it's time for a new release of {{.Repo.Name}}. {{if gt .CommitsOnMasterSinceLatestRelease 100}}There have been {{.CommitsOnMasterSinceLatestRelease}} commits{{else}}It's been over 2 months{{end}} since the last release, {{.LatestRelease.TagName}}.
+
+What else is left to be done before a new release can be made? Please make sure to update History.markdown too if it's not already updated.
+
+Thanks! :revolving_hearts: :sparkles:
+`))
 )
+
+type templateInfo struct {
+	Repo                              jekyll.Repository
+	CommitsOnMasterSinceLatestRelease int
+	LatestRelease                     *github.RepositoryRelease
+}
 
 func main() {
 	var perform bool
@@ -89,20 +110,37 @@ func main() {
 					return err
 				}
 
-				if commitsSinceLatestRelease > 100 {
+				if commitsSinceLatestRelease > 100 || (commitsSinceLatestRelease >= 1 && latestRelease.GetCreatedAt().Unix() <= twoMonthsAgoUnix) {
 					if perform {
-						return fileIssue(context, repo, latestRelease, "Over 100 commits have been made since the last release.")
+						err := fileIssue(context, templateInfo{
+							Repo:                              repo,
+							LatestRelease:                     latestRelease,
+							CommitsOnMasterSinceLatestRelease: commitsSinceLatestRelease,
+						})
+						if err != nil {
+							log.Printf("%s: nudged maintainers (release=%s commits=%d released_on=%s)",
+								repo,
+								latestRelease.GetTagName(),
+								commitsSinceLatestRelease,
+								latestRelease.GetCreatedAt(),
+							)
+						}
+						return err
 					} else {
-						log.Printf("%s would have been nudged for commits=%d", repo, commitsSinceLatestRelease)
-					}
-				} else if commitsSinceLatestRelease >= 1 && latestRelease.GetCreatedAt().Unix() <= twoMonthsAgoUnix {
-					if perform {
-						return fileIssue(context, repo, latestRelease, "The last release was over 2 months ago and there are unreleased commits on master.")
-					} else {
-						log.Printf("%s would have been nudged for date=%s commits=%d", repo, latestRelease.GetCreatedAt(), commitsSinceLatestRelease)
+						log.Printf("%s is in need of a nudge (release=%s commits=%d released_on=%s)",
+							repo,
+							latestRelease.GetTagName(),
+							commitsSinceLatestRelease,
+							latestRelease.GetCreatedAt(),
+						)
 					}
 				} else {
-					log.Printf("%s is not in need of a release", repo)
+					log.Printf("%s is NOT in need of a nudge: (release=%s commits=%d released_on=%s)",
+						repo,
+						latestRelease.GetTagName(),
+						commitsSinceLatestRelease,
+						latestRelease.GetCreatedAt(),
+					)
 				}
 
 				return nil
@@ -112,29 +150,49 @@ func main() {
 	})
 }
 
-func fileIssue(context *ctx.Context, repo jekyll.Repository, latestRelease *github.RepositoryRelease, reason string) error {
-	// TODO: does one already exist?
+func fileIssue(context *ctx.Context, issueInfo templateInfo) error {
+	if issue := getReleaseNudgeIssue(context, issueInfo.Repo); issue != nil {
+		return fmt.Errorf("%s: issue already exists: %s", issueInfo.Repo, issue.GetHTMLURL())
+	}
+
+	var body bytes.Buffer
+	if err := issueBodyTemplate.Execute(&body, issueInfo); err != nil {
+		return fmt.Errorf("%s: error executing template: %+v", issueInfo.Repo, err)
+	}
+
 	issue, _, err := context.GitHub.Issues.Create(
 		context.Context(),
-		repo.Owner(), repo.Name(),
+		issueInfo.Repo.Owner(), issueInfo.Repo.Name(),
 		&github.IssueRequest{
-			Title:  github.String("Time for a new release!"),
+			Title:  &issueTitle,
 			Labels: &issueLabels,
-			Body: github.String(strings.TrimSpace(fmt.Sprintf(`
-Hello, fine maintainers!
-
-You've made some wonderful progress! %s
-
-Would you mind shipping a new release soon so our users can enjoy the optimizations the community has made on master?
-
-Thanks! :revolving_hearts: :sparkles:
-`, reason))),
+			Body:   github.String(body.String()),
 		},
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: error filing issue: %+v", issueInfo.Repo, err)
 	}
 
-	log.Printf("%s filed %s", repo, issue.HTMLURL)
+	log.Printf("%s filed %s", issueInfo.Repo, issue.GetHTMLURL())
+	return nil
+}
+
+func getReleaseNudgeIssue(context *ctx.Context, repo jekyll.Repository) *github.Issue {
+	query := githubsearch.IssueSearchParameters{
+		Type:       githubsearch.Issue,
+		Scope:      githubsearch.TitleScope,
+		Author:     context.CurrentlyAuthedGitHubUser().GetLogin(),
+		State:      githubsearch.Open,
+		Repository: &githubsearch.RepositoryName{Owner: repo.Owner(), Name: repo.Name()},
+		Query:      issueTitle,
+	}
+	issues, err := search.GitHubIssues(context, query)
+	if err != nil {
+		log.Printf("%s: error searching %s: %+v", repo, query, err)
+		return nil
+	}
+	if len(issues) > 0 {
+		return &(issues[0])
+	}
 	return nil
 }
