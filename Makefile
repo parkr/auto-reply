@@ -13,7 +13,7 @@ deps:
 	go get github.com/tools/godep
 
 .PHONY: $(BINARIES)
-$(BINARIES): clean
+$(BINARIES): deps clean
 	godep go build -o ./$@ ./$(patsubst bin/%,cmd/%,$@)
 
 .PHONY: build
