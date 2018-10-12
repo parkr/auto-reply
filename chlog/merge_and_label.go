@@ -325,7 +325,7 @@ func deletableRef(pr *github.PullRequest, owner string) bool {
 
 func commitHistoryFile(context *ctx.Context, historySHA, owner, repo string, number int, newHistoryFileContents string) error {
 	repositoryContentsOptions := &github.RepositoryContentFileOptions{
-		Message: github.String(fmt.Sprintf("Update history to reflect merge of #%d [skip travis]", number)),
+		Message: github.String(fmt.Sprintf("Update history to reflect merge of #%d [skip ci]", number)),
 		Content: []byte(newHistoryFileContents),
 		SHA:     github.String(historySHA),
 		Committer: &github.CommitAuthor{
