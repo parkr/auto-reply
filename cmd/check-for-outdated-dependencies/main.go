@@ -3,26 +3,20 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"strings"
 
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/dependencies"
+	"github.com/parkr/auto-reply/sentry"
 )
 
 var defaultRepos = strings.Join([]string{
 	"jekyll/jekyll",
 }, ",")
 
-func main() {
-	var depType string
-	flag.StringVar(&depType, "type", "ruby", "The type of dependency we're checking (options: ruby)")
-	var reposString string
-	flag.StringVar(&reposString, "repos", defaultRepos, "Comma-separated list of repos to check, e.g. jekyll/jekyll,jekyll/jekyll-import")
-	var perform bool
-	flag.BoolVar(&perform, "f", false, "Whether to open issues (default: false, which is a dry-run)")
-	flag.Parse()
-
+func process(reposString string, perform bool) error {
 	context := ctx.NewDefaultContext()
 
 	for _, repo := range strings.Split(reposString, ",") {
@@ -47,6 +41,7 @@ func main() {
 				issue, err := dependencies.FileGitHubIssueForDependency(context, repoOwner, repoName, dependency)
 				if err != nil {
 					log.Printf("%s/%s: error creating issue for %s: %v", repoOwner, repoName, dependency.GetName(), err)
+					return err
 				} else {
 					log.Printf("%s/%s: issue for %s filed: %s", repoOwner, repoName, dependency.GetName(), *issue.HTMLURL)
 				}
@@ -56,4 +51,31 @@ func main() {
 			}
 		}
 	}
+
+	return nil
+}
+
+func main() {
+	var depType string
+	flag.StringVar(&depType, "type", "ruby", "The type of dependency we're checking (options: ruby)")
+	var reposString string
+	flag.StringVar(&reposString, "repos", defaultRepos, "Comma-separated list of repos to check, e.g. jekyll/jekyll,jekyll/jekyll-import")
+	var perform bool
+	flag.BoolVar(&perform, "f", false, "Whether to open issues (default: false, which is a dry-run)")
+	flag.Parse()
+
+	log.SetPrefix("check-for-outdated-dependencies: ")
+
+	sentryClient, err := sentry.NewClient(map[string]string{
+		"app":         "check-for-outdated-dependencies",
+		"depType":     depType,
+		"reposString": reposString,
+		"perform":     fmt.Sprintf("%t", perform),
+	})
+	if err != nil {
+		panic(err)
+	}
+	sentryClient.Recover(func() error {
+		return process(reposString, perform)
+	})
 }

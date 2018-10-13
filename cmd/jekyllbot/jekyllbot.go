@@ -2,12 +2,14 @@
 package main
 
 import (
+	_ "expvar"
 	"flag"
 	"log"
 	"net/http"
 
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/jekyll"
+	"github.com/parkr/auto-reply/sentry"
 )
 
 var context *ctx.Context
@@ -24,7 +26,9 @@ func main() {
 	}))
 
 	jekyllOrgHandler := jekyll.NewJekyllOrgHandler(context)
-	http.Handle("/_github/jekyll", jekyllOrgHandler)
+	http.Handle("/_github/jekyll", sentry.NewHTTPHandler(jekyllOrgHandler, map[string]string{
+		"app": "jekyllbot",
+	}))
 
 	log.Printf("Listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

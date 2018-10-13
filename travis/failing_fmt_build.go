@@ -11,6 +11,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/search"
+	"github.com/parkr/githubapi/githubsearch"
 )
 
 var (
@@ -86,11 +87,15 @@ func FailingFmtBuildHandler(context *ctx.Context, payload interface{}) error {
 		log.Printf("FailingFmtBuildHandler: job %d response: %+v %+v", jobID, resp, job)
 		if job.Job.State == "failed" && job.Job.Config.Env == "TEST_SUITE=fmt" {
 			// Winner! Open an issue if there isn't already one.
-			query := fmt.Sprintf(
-				"repo:%s/%s is:open in:title fmt build is failing on master",
-				context.Repo.Owner,
-				context.Repo.Name,
-			)
+			query := githubsearch.IssueSearchParameters{
+				Repository: &githubsearch.RepositoryName{
+					Owner: context.Repo.Owner,
+					Name:  context.Repo.Name,
+				},
+				State: githubsearch.Open,
+				Scope: githubsearch.TitleScope,
+				Query: "fmt is failing on master",
+			}
 			issues, err := search.GitHubIssues(context, query)
 			if err != nil {
 				return context.NewError("FailingFmtBuildHandler: couldn't run query %q: %+v", query, err)

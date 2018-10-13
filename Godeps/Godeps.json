@@ -12,9 +12,18 @@
 			"Rev": "c74bd0589c83817c93e4eff39ccae69d6c46df9b"
 		},
 		{
+			"ImportPath": "github.com/certifi/gocertifi",
+			"Comment": "2017.11.05",
+			"Rev": "a4ab0227d360091084658029ec8ae45f989fba3e"
+		},
+		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Comment": "v1.1.0-6-gadab964",
 			"Rev": "adab96458c51a58dc1783b3335dcce5461522e75"
+		},
+		{
+			"ImportPath": "github.com/getsentry/raven-go",
+			"Rev": "c9de0b92586aaba092c2a231cb7384354b178544"
 		},
 		{
 			"ImportPath": "github.com/golang/groupcache/lru",
@@ -22,7 +31,7 @@
 		},
 		{
 			"ImportPath": "github.com/google/go-github/github",
-			"Rev": "78072f320213a7e011b5fb2700bcb9eb90efec37"
+			"Rev": "a89ea1cdf79929726a9416663609269ada774da0"
 		},
 		{
 			"ImportPath": "github.com/google/go-querystring/query",
@@ -30,7 +39,15 @@
 		},
 		{
 			"ImportPath": "github.com/hashicorp/go-version",
-			"Rev": "fc61389e27c71d120f87031ca8c88a3428f372dd"
+			"Rev": "4fe82ae3040f80a03d04d2cccb5606a626b8e1ee"
+		},
+		{
+			"ImportPath": "github.com/heroku/x/hmetrics",
+			"Rev": "705849e307dd75c91728463dea5bfd08ef493e64"
+		},
+		{
+			"ImportPath": "github.com/heroku/x/hmetrics/onload",
+			"Rev": "705849e307dd75c91728463dea5bfd08ef493e64"
 		},
 		{
 			"ImportPath": "github.com/jekyll/dashboard",
@@ -43,6 +60,15 @@
 		{
 			"ImportPath": "github.com/parkr/changelog",
 			"Rev": "cef0141074f9b8cc85a225bb4edca5278114e997"
+		},
+		{
+			"ImportPath": "github.com/parkr/githubapi/githubsearch",
+			"Rev": "a4a24abadc26d281479efda344a2131f350f16f8"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-7-gf15c970",
+			"Rev": "f15c970de5b76fac0b59abb32d62c17cc7bed265"
 		},
 		{
 			"ImportPath": "github.com/pmezard/go-difflib/difflib",

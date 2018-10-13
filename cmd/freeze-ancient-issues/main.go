@@ -2,6 +2,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/freeze"
+	"github.com/parkr/auto-reply/sentry"
 )
 
 type repository struct {
@@ -21,21 +23,21 @@ type repository struct {
 
 var (
 	defaultRepos = []repository{
-		repository{"jekyll", "jekyll"},
-		repository{"jekyll", "jekyll-admin"},
-		repository{"jekyll", "jekyll-import"},
-		repository{"jekyll", "github-metadata"},
-		repository{"jekyll", "jekyll-redirect-from"},
-		repository{"jekyll", "jekyll-feed"},
-		repository{"jekyll", "jekyll-compose"},
-		repository{"jekyll", "jekyll-watch"},
-		repository{"jekyll", "jekyll-seo-tag"},
-		repository{"jekyll", "jekyll-sitemap"},
-		repository{"jekyll", "jekyll-sass-converter"},
-		repository{"jekyll", "jemoji"},
-		repository{"jekyll", "jekyll-gist"},
-		repository{"jekyll", "jekyll-coffeescript"},
-		repository{"jekyll", "plugins"},
+		{"jekyll", "jekyll"},
+		{"jekyll", "jekyll-admin"},
+		{"jekyll", "jekyll-import"},
+		{"jekyll", "github-metadata"},
+		{"jekyll", "jekyll-redirect-from"},
+		{"jekyll", "jekyll-feed"},
+		{"jekyll", "jekyll-compose"},
+		{"jekyll", "jekyll-watch"},
+		{"jekyll", "jekyll-seo-tag"},
+		{"jekyll", "jekyll-sitemap"},
+		{"jekyll", "jekyll-sass-converter"},
+		{"jekyll", "jemoji"},
+		{"jekyll", "jekyll-gist"},
+		{"jekyll", "jekyll-coffeescript"},
+		{"jekyll", "plugins"},
 	}
 
 	sleepBetweenFreezes = 150 * time.Millisecond
@@ -53,31 +55,46 @@ func main() {
 		repos = defaultRepos
 	}
 
-	context := ctx.NewDefaultContext()
-	if context.GitHub == nil {
-		log.Fatalln("cannot proceed without github client")
-	}
+	log.SetPrefix("freeze-ancient-issues: ")
 
-	// Support running on just a list of issues. Either a URL or a `owner/name#number` syntax.
-	if flag.NArg() > 0 {
-		if err := processSingleIssues(context, actuallyDoIt, flag.Args()...); err != nil {
-			log.Fatalf("error: %#v", err)
+	sentryClient, err := sentry.NewClient(map[string]string{
+		"app":          "freeze-ancient-issues",
+		"inputRepos":   inputRepos,
+		"actuallyDoIt": fmt.Sprintf("%t", actuallyDoIt),
+	})
+	if err != nil {
+		panic(err)
+	}
+	sentryClient.Recover(func() error {
+		context := ctx.NewDefaultContext()
+		if context.GitHub == nil {
+			return errors.New("cannot proceed without github client")
 		}
-		return
-	}
 
-	var wg sync.WaitGroup
-	for _, repo := range repos {
-		wg.Add(1)
-		go func(context *ctx.Context, repo repository, actuallyDoIt bool) {
-			defer wg.Done()
-			if err := processRepo(context, repo.Owner, repo.Name, actuallyDoIt); err != nil {
-				log.Printf("%s/%s: error: %#v", repo.Owner, repo.Name, err)
-			}
-		}(context, repo, actuallyDoIt)
-	}
+		// Support running on just a list of issues. Either a URL or a `owner/name#number` syntax.
+		if flag.NArg() > 0 {
+			return processSingleIssues(context, actuallyDoIt, flag.Args()...)
+		}
 
-	wg.Wait()
+		var wg sync.WaitGroup
+		for _, repo := range repos {
+			wg.Add(1)
+			go func(context *ctx.Context, repo repository, actuallyDoIt bool) {
+				defer wg.Done()
+				if err := processRepo(context, repo.Owner, repo.Name, actuallyDoIt); err != nil {
+					log.Printf("%s/%s: error: %#v", repo.Owner, repo.Name, err)
+					sentryClient.GetSentry().CaptureErrorAndWait(err, map[string]string{
+						"method": "processRepo",
+						"repo":   repo.Owner + "/" + repo.Name,
+					})
+				}
+			}(context, repo, actuallyDoIt)
+		}
+
+		// TODO: use errgroup and return the error from wg.Wait()
+		wg.Wait()
+		return nil
+	})
 }
 
 func extractIssueInfo(issueName string) (owner, repo string, number int) {

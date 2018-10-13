@@ -92,7 +92,7 @@ func (h *GlobalHandler) HandlePayload(w http.ResponseWriter, r *http.Request, pa
 }
 
 func (h *GlobalHandler) FireHandlers(handlers []EventHandler, eventType string, payload []byte) int {
-	h.Context.IncrStat("handler." + eventType, nil)
+	h.Context.IncrStat("handler."+eventType, nil)
 	event, err := github.ParseWebHook(eventType, payload)
 	if err != nil {
 		h.Context.NewError("FireHandlers: couldn't parse webhook: %+v", err)

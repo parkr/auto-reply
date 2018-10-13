@@ -46,11 +46,26 @@ var PendingRebaseNeedsWorkPRUnlabeler = func(context *ctx.Context, payload inter
 }
 
 func isMergeable(context *ctx.Context, owner, repo string, number int) bool {
+	if context == nil {
+		panic("context cannot be nil!")
+	}
+
 	pr, res, err := context.GitHub.PullRequests.Get(context.Context(), owner, repo, number)
 	err = common.ErrorFromResponse(res, err)
 	if err != nil {
 		log.Printf("couldn't determine mergeability of %s/%s#%d: %v", owner, repo, number, err)
 		return false
 	}
+
+	if pr == nil {
+		log.Printf("isMergeable: %s/%s#%d appears not to exist", owner, repo, number)
+		return false
+	}
+
+	if pr.Mergeable == nil {
+		log.Printf("isMergeable: %s/%s#%d mergability is not populated in the API response", owner, repo, number)
+		return false
+	}
+
 	return *pr.Mergeable
 }

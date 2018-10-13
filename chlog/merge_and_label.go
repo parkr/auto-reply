@@ -28,49 +28,49 @@ var (
 	mergeOptions       = &github.PullRequestOptions{MergeMethod: "squash"}
 
 	categories = []changelogCategory{
-		changelogCategory{
+		{
 			Prefix:  "major",
 			Slug:    "major-enhancements",
 			Section: "Major Enhancements",
 			Labels:  []string{"feature"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "minor",
 			Slug:    "minor-enhancements",
 			Section: "Minor Enhancements",
 			Labels:  []string{"enhancement"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "bug",
 			Slug:    "bug-fixes",
 			Section: "Bug Fixes",
 			Labels:  []string{"bug", "fix"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "fix",
 			Slug:    "fix",
 			Section: "Bug Fixes",
 			Labels:  []string{"bug", "fix"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "dev",
 			Slug:    "development-fixes",
 			Section: "Development Fixes",
 			Labels:  []string{"internal", "fix"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "doc",
 			Slug:    "documentation",
 			Section: "Documentation",
 			Labels:  []string{"documentation"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "port",
 			Slug:    "forward-ports",
 			Section: "Forward Ports",
 			Labels:  []string{"forward-port"},
 		},
-		changelogCategory{
+		{
 			Prefix:  "site",
 			Slug:    "site-enhancements",
 			Section: "Site Enhancements",
