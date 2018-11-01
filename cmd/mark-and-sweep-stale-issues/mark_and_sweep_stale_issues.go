@@ -43,6 +43,7 @@ var (
 		{"jekyll", "jekyll-feed"},
 		{"jekyll", "jekyll-compose"},
 		{"jekyll", "jekyll-commonmark"},
+    {"jekyll", "jekyll-docs"},
 		{"jekyll", "jekyll-watch"},
 		{"jekyll", "jekyll-seo-tag"},
 		{"jekyll", "jekyll-sitemap"},
@@ -50,6 +51,7 @@ var (
 		{"jekyll", "jemoji"},
 		{"jekyll", "jekyll-gist"},
 		{"jekyll", "jekyll-coffeescript"},
+    {"jekyll", "minima"},
 		{"jekyll", "plugins"},
 	}
 
