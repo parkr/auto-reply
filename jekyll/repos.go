@@ -50,7 +50,6 @@ type Repository interface {
 var DefaultRepos = []Repository{
 	JekyllRepository{name: "github-metadata"},
 	JekyllRepository{name: "jekyll"},
-	JekyllRepository{name: "jekyll-admin"},
 	JekyllRepository{name: "jekyll-coffeescript"},
 	JekyllRepository{name: "jekyll-compose"},
 	JekyllRepository{name: "jekyll-feed"},
