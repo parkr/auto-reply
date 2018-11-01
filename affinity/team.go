@@ -73,7 +73,7 @@ func (t Team) RandomCaptainLogins(num int) []string {
 	}
 
 	selections := []string{}
-	for login, _ := range selectionmap {
+	for login := range selectionmap {
 		selections = append(selections, login)
 	}
 	return selections

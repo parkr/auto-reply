@@ -1,20 +1,34 @@
+ROOT_PKG=github.com/parkr/auto-reply
+BINARIES = bin/check-for-outdated-dependencies \
+    bin/jekyllbot \
+    bin/mark-and-sweep-stale-issues \
+    bin/nudge-maintainers-to-release \
+    bin/unearth \
+    bin/unify-labels
+
 .PHONY: all
-all: deps build test
+all: deps fmt build test
 
 .PHONY: deps
 deps:
 	go get github.com/tools/godep
 
+.PHONY: fmt
+fmt:
+	git ls-files | grep -v '^vendor' | grep '\.go$$' | xargs gofmt -s -l -w | sed -e 's/^/Fixed /'
+	go list $(ROOT_PKG)/... | xargs go fix
+	go list $(ROOT_PKG)/... | xargs go vet
+
+.PHONY: $(BINARIES)
+$(BINARIES): deps clean
+	godep go build -o ./$@ ./$(patsubst bin/%,cmd/%,$@)
+
 .PHONY: build
-build:
-	godep go build -o ./bin/jekyllbot ./cmd/jekyllbot
-	godep go build -o ./bin/unearth ./cmd/unearth
-	godep go build -o ./bin/mark-and-sweep-stale-issues ./cmd/mark-and-sweep-stale-issues
-	godep go build -o ./bin/unify-labels ./cmd/unify-labels
-	godep go build -o ./bin/check-for-outdated-dependencies ./cmd/check-for-outdated-dependencies
+build: clean $(BINARIES)
+	ls -lh bin/
 
 .PHONY: test
-test:
+test: deps
 	godep go test github.com/parkr/auto-reply/...
 
 .PHONY: server
@@ -31,4 +45,4 @@ mark-and-sweep: build
 
 .PHONY: clean
 clean:
-	rm -r bin
+	rm -rf bin

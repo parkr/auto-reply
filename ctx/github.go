@@ -11,16 +11,20 @@ import (
 const githubAccessTokenEnvVar = "GITHUB_ACCESS_TOKEN"
 
 func (c *Context) GitHubAuthedAs(login string) bool {
+	return c.CurrentlyAuthedGitHubUser().GetLogin() == login
+}
+
+func (c *Context) CurrentlyAuthedGitHubUser() *github.User {
 	if c.currentlyAuthedGitHubUser == nil {
 		currentlyAuthedUser, _, err := c.GitHub.Users.Get(c.Context(), "")
 		if err != nil {
 			c.Log("couldn't fetch currently-auth'd user: %v", err)
-			return false
+			return nil
 		}
 		c.currentlyAuthedGitHubUser = currentlyAuthedUser
 	}
 
-	return *c.currentlyAuthedGitHubUser.Login == login
+	return c.currentlyAuthedGitHubUser
 }
 
 func GitHubToken() string {

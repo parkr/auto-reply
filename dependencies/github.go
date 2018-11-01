@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-github/github"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/search"
+	"github.com/parkr/githubapi/githubsearch"
 )
 
 func containsSubstring(s, substring string) bool {
@@ -14,9 +15,15 @@ func containsSubstring(s, substring string) bool {
 }
 
 func GitHubUpdateIssueForDependency(context *ctx.Context, repoOwner, repoName string, dependency Dependency) *github.Issue {
-	query := fmt.Sprintf(
-		"repo:%s/%s update %s v%s is:open in:title",
-		repoOwner, repoName, dependency.GetName(), dependency.GetLatestVersion(context))
+	query := githubsearch.IssueSearchParameters{
+		Repository: &githubsearch.RepositoryName{
+			Owner: repoOwner,
+			Name:  repoName,
+		},
+		State: githubsearch.Open,
+		Scope: githubsearch.TitleScope,
+		Query: fmt.Sprintf("update %s v%s", dependency.GetName(), dependency.GetLatestVersion(context)),
+	}
 
 	issues, err := search.GitHubIssues(context, query)
 	if err != nil {
