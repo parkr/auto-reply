@@ -66,7 +66,7 @@ This issue has been automatically marked as stale because it has not been commen
 
 The resources of the Jekyll team are limited, and so we are asking for your help.
 
-If this is a **bug** and you can still reproduce this error on the <code>3.3-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
+If this is a **bug** and you can still reproduce this error on the latest <code>3.x-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
 
 If this is a **feature request**, please consider building it first as a plugin. Jekyll 3 introduced [hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be built as a plugin, then please provide more information about why in order to keep this issue open.
 
