@@ -35,23 +35,24 @@ var (
 
 	// All the repos to apply apply these to.
 	defaultRepos = []repo{
-		repo{"jekyll", "jekyll"},
-		repo{"jekyll", "jekyll-admin"},
-		repo{"jekyll", "jekyll-import"},
-		repo{"jekyll", "github-metadata"},
-		repo{"jekyll", "jekyll-redirect-from"},
-		repo{"jekyll", "jekyll-feed"},
-		repo{"jekyll", "jekyll-compose"},
-		repo{"jekyll", "jekyll-docs"},
-		repo{"jekyll", "jekyll-watch"},
-		repo{"jekyll", "jekyll-seo-tag"},
-		repo{"jekyll", "jekyll-sitemap"},
-		repo{"jekyll", "jekyll-sass-converter"},
-		repo{"jekyll", "jemoji"},
-		repo{"jekyll", "jekyll-gist"},
-		repo{"jekyll", "jekyll-coffeescript"},
-		repo{"jekyll", "minima"},
-		repo{"jekyll", "plugins"},
+		{"jekyll", "jekyll"},
+		{"jekyll", "jekyll-admin"},
+		{"jekyll", "jekyll-import"},
+		{"jekyll", "github-metadata"},
+		{"jekyll", "jekyll-redirect-from"},
+		{"jekyll", "jekyll-feed"},
+		{"jekyll", "jekyll-compose"},
+		{"jekyll", "jekyll-commonmark"},
+    {"jekyll", "jekyll-docs"},
+		{"jekyll", "jekyll-watch"},
+		{"jekyll", "jekyll-seo-tag"},
+		{"jekyll", "jekyll-sitemap"},
+		{"jekyll", "jekyll-sass-converter"},
+		{"jekyll", "jemoji"},
+		{"jekyll", "jekyll-gist"},
+		{"jekyll", "jekyll-coffeescript"},
+    {"jekyll", "minima"},
+		{"jekyll", "plugins"},
 	}
 
 	twoMonthsAgo = time.Now().AddDate(0, -2, 0)
@@ -69,7 +70,7 @@ This issue has been automatically marked as stale because it has not been commen
 
 The resources of the Jekyll team are limited, and so we are asking for your help.
 
-If this is a **bug** and you can still reproduce this error on the <code>3.3-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
+If this is a **bug** and you can still reproduce this error on the latest <code>3.x-stable</code> or <code>master</code> branch, please reply with all of the information you have about it in order to keep the issue open.
 
 If this is a **feature request**, please consider building it first as a plugin. Jekyll 3 introduced [hooks](http://jekyllrb.com/docs/plugins/#hooks) which provide convenient access points throughout the Jekyll build pipeline whereby most needs can be fulfilled. If this is something that cannot be built as a plugin, then please provide more information about why in order to keep this issue open.
 
@@ -96,7 +97,7 @@ func main() {
 	var actuallyDoIt bool
 	flag.BoolVar(&actuallyDoIt, "f", false, "Whether to actually mark the issues or close them.")
 	var inputRepos string
-	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-admin'.")
+	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-import'.")
 	flag.Parse()
 
 	if ctx.NewDefaultContext().GitHub == nil {

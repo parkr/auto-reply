@@ -80,9 +80,9 @@ func newLgtmHandler() *lgtm.Handler {
 	handler := &lgtm.Handler{}
 
 	handler.AddRepo("jekyll", "jekyll", 2)
-	handler.AddRepo("jekyll", "jekyll-admin", 1)
 	handler.AddRepo("jekyll", "jekyll-coffeescript", 2)
 	handler.AddRepo("jekyll", "jekyll-compose", 1)
+	handler.AddRepo("jekyll", "jekyll-commonmark", 1)
 	handler.AddRepo("jekyll", "jekyll-docs", 1)
 	handler.AddRepo("jekyll", "jekyll-feed", 1)
 	handler.AddRepo("jekyll", "jekyll-gist", 2)

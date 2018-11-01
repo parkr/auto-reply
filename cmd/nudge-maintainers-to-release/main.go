@@ -49,7 +49,7 @@ func main() {
 	var perform bool
 	flag.BoolVar(&perform, "f", false, "Whether to actually file issues.")
 	var inputRepos string
-	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-admin'.")
+	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-import'.")
 	flag.Parse()
 
 	// Get latest 10 releases.

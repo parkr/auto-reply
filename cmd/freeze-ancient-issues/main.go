@@ -24,7 +24,6 @@ type repository struct {
 var (
 	defaultRepos = []repository{
 		{"jekyll", "jekyll"},
-		{"jekyll", "jekyll-admin"},
 		{"jekyll", "jekyll-import"},
 		{"jekyll", "github-metadata"},
 		{"jekyll", "jekyll-redirect-from"},
@@ -47,7 +46,7 @@ func main() {
 	var actuallyDoIt bool
 	flag.BoolVar(&actuallyDoIt, "f", false, "Whether to actually mark the issues or close them.")
 	var inputRepos string
-	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-admin'.")
+	flag.StringVar(&inputRepos, "repos", "", "Specify a list of comma-separated repo name/owner pairs, e.g. 'jekyll/jekyll-import'.")
 	flag.Parse()
 
 	var repos []repository
