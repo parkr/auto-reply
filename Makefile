@@ -9,6 +9,9 @@ BINARIES = bin/check-for-outdated-dependencies \
 .PHONY: all
 all: deps fmt build test
 
+.PHONY: cibuild
+cibuild: fmt build test
+
 .PHONY: deps
 deps:
 	which dep
