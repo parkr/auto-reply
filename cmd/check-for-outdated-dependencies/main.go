@@ -14,6 +14,7 @@ import (
 
 var defaultRepos = strings.Join([]string{
 	"jekyll/jekyll",
+	"jekyll/jekyll-watch",
 }, ",")
 
 func process(reposString string, perform bool) error {
