@@ -9,10 +9,10 @@ import (
 )
 
 func TestErrorFromResponse(t *testing.T) {
-	transportErr := errors.New("something terrible happened!")
+	transportErr := errors.New("Something terrible happened")
 	resError := errors.New("unexpected error code: 404")
 	httpRes := &http.Response{StatusCode: http.StatusNotFound}
-	res := &github.Response{httpRes, 0, 0, 0, 0, github.Rate{}}
+	res := &github.Response{Response: httpRes}
 
 	err := ErrorFromResponse(res, transportErr)
 	if err != transportErr {

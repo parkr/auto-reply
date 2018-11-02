@@ -11,7 +11,7 @@ type templateInfo struct {
 var (
 	indexTmpl = template.Must(template.New("index.html").Parse(`
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -23,6 +23,18 @@ var (
   .markdown-body {
       width: 95%;
       margin: 0 auto;
+  }
+  .status-good, .travis-status-passed {
+      background-color: rgba(0, 255, 0, 0.1);
+  }
+  .status-tbd, .travis-status-pending {
+      background-color: rgba(255, 255, 0, 0.1);
+  }
+  .status-bad, .travis-status-failed {
+      background-color: rgba(255, 0, 0, 0.1);
+  }
+  .status-unknown, .travis-status-errored {
+      background-color: rgba(0, 0, 0, 0.1);
   }
   </style>
   <script type="application/javascript">
@@ -67,10 +79,25 @@ var (
         travisA.title = info.travis.nwo + " on TravisCI";
         travisA.innerText = info.travis.branch.state;
         travisTD.appendChild(travisA);
+        travisTD.classList.add("travis-status-"+info.travis.branch.state);
     } else {
         travisTD.innerText = "no info";
     }
     tr.appendChild(travisTD);
+
+    // AppVeyor
+    var appVeyorTD = document.createElement("td");
+    if (info.app_veyor) {
+        var appVeyorA = document.createElement("a");
+        appVeyorA.href = info.app_veyor.build.html_url;
+        appVeyorA.title = info.app_veyor.nwo + " on AppVeyorCI";
+        appVeyorA.innerText = info.app_veyor.build.status;
+        appVeyorTD.appendChild(appVeyorA);
+        appVeyorTD.classList.add("app_veyor-status-"+info.app_veyor.build.status);
+    } else {
+        appVeyorTD.innerText = "no info";
+    }
+    tr.appendChild(appVeyorTD);
 
     // Downloads
     var downloadsTD = document.createElement("td");
@@ -89,11 +116,6 @@ var (
         }
         return;
     }
-
-    // Commits
-    var commitsTD = document.createElement("td");
-    commitsTD.innerText = info.github.commits_this_week;
-    tr.appendChild(commitsTD);
 
     // Pull Requests
     var pullrequestsTD = document.createElement("td");
@@ -138,6 +160,16 @@ var (
     } else {
         unreleasedcommitsTD.innerText = info.github.commits_since_latest_release;
     }
+
+    // Start warning us when we get more than 50 commits since the latest release.
+    if (info.github.commits_since_latest_release < 10) {
+        unreleasedcommitsTD.classList.add("status-good");
+    } else if (info.github.commits_since_latest_release < 30) {
+        unreleasedcommitsTD.classList.add("status-tbd");
+    } else {
+        unreleasedcommitsTD.classList.add("status-bad");
+    }
+
     tr.appendChild(unreleasedcommitsTD);
   }
 
@@ -159,8 +191,8 @@ var (
       <th>Repo</th>
       <th>Gem</th>
       <th>Travis</th>
+      <th>AppVeyor</th>
       <th>Downloads</th>
-      <th>Commits</th>
       <th>Pull Requests</th>
       <th>Issues</th>
       <th>Unreleased commits</th>

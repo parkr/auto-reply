@@ -2,9 +2,7 @@ package dashboard
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/jekyll/dashboard/triage"
@@ -44,17 +42,11 @@ func index(w http.ResponseWriter, r *http.Request) {
 	indexTmpl.Execute(w, templateInfo{Projects: getProjects()})
 }
 
-func Listen() {
-	var port int
-	flag.IntVar(&port, "port", defaultPort, "The port the server should listen on.")
-	flag.Parse()
-
+func Listen(bindAddr string) error {
 	http.HandleFunc("/reset.json", reset)
 	http.HandleFunc("/show.json", show)
 	http.Handle("/triage", triage.New(githubClient, []string{"documentation", "bug", "enhancement"}))
 	http.HandleFunc("/", index)
 
-	bind := fmt.Sprintf(":%d", port)
-	log.Printf("Starting server on %s...", bind)
-	log.Fatal(http.ListenAndServe(bind, nil))
+	return http.ListenAndServe(bindAddr, nil)
 }

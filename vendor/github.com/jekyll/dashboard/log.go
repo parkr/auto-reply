@@ -1,6 +1,6 @@
-package dashboard
+//+build heroku
 
-// +build heroku
+package dashboard
 
 import "log"
 

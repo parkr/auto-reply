@@ -2,19 +2,126 @@ package dashboard
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
-	"strings"
+	"sync"
+	"time"
 
 	gh "github.com/google/go-github/github"
 	"golang.org/x/oauth2"
 )
 
 const accessTokenEnvVar = "GITHUB_ACCESS_TOKEN"
+const graphqlQuery = `
+{
+  nodes(ids: %q) {
+    ... on Repository {
+      id
+      owner {
+        login
+      }
+      name
+      pullRequests(states: [OPEN]) {
+        totalCount
+      }
+      issues(states: [OPEN]) {
+        totalCount
+      }
+      releases(first: 5, orderBy: {field: CREATED_AT, direction: DESC}) {
+        nodes {
+          tag {
+            name
+            target {
+              __typename
+              ... on Commit {
+                history {
+                  totalCount
+                }
+              }
+              ... on Tag {
+                target {
+                  ... on Commit {
+                    history {
+                      totalCount
+                    }
+                  }
+                }
+              }
+            }
+          }
+          publishedAt
+          isPrerelease
+        }
+      }
+      defaultBranchRef {
+        target {
+          ... on Commit {
+            history {
+              totalCount
+            }
+          }
+        }
+      }
+    }
+  }
+}
+`
 
+type githubGraphQLResults struct {
+	once    sync.Once
+	fetched bool
+
+	Data struct {
+		Nodes []struct {
+			GlobalRelayID string `json:"id"`
+			Owner         struct {
+				Login string `json:"login"`
+			} `json:"owner"`
+			Name         string `json:"name"`
+			PullRequests struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"pullRequests"`
+			Issues struct {
+				TotalCount int `json:"totalCount"`
+			} `json:"issues"`
+			Releases struct {
+				Nodes []struct {
+					Tag struct {
+						Name   string `json:"name"`
+						Target struct {
+							TypeName string `json:"__typename"`
+							Target   struct {
+								History struct {
+									TotalCount int `json:"totalCount"`
+								} `json:"history"`
+							} `json:"target"`
+							History struct {
+								TotalCount int `json:"totalCount"`
+							} `json:"history"`
+						} `json:"target"`
+					} `json:"tag"`
+					PublishedAt  time.Time `json:"publishedAt"`
+					IsPreRelease bool      `json:"isPrerelease"`
+				} `json:"nodes"`
+			} `json:"releases"`
+			DefaultBranchRef struct {
+				Target struct {
+					History struct {
+						TotalCount int `json:"totalCount"`
+					} `json:"history"`
+				} `json:"target"`
+			} `json:"defaultBranchRef"`
+		} `json:"nodes"`
+	} `json:"data"`
+}
+
+var githubGraphQLData = &githubGraphQLResults{}
 var githubClient *gh.Client
 
 type GitHub struct {
+	Owner                     string `json:"owner"`
+	Name                      string `json:"name"`
 	CommitsThisWeek           int    `json:"commits_this_week"`
 	OpenPRs                   int    `json:"open_prs"`
 	OpenIssues                int    `json:"open_issues"`
@@ -40,88 +147,100 @@ func newGitHubClient() *gh.Client {
 		))
 	} else {
 		log.Printf("%s required for GitHub", accessTokenEnvVar)
-		return nil
+		return gh.NewClient(nil)
 	}
 }
 
-func github(nwo string) chan *GitHub {
+func grabGraphQLDataFromGitHub() {
+	githubGraphQLData.once.Do(func() {
+		ids := []string{}
+		for _, project := range defaultProjects {
+			ids = append(ids, project.GlobalRelayID)
+		}
+
+		err := doGraphql(githubClient, fmt.Sprintf(graphqlQuery, ids), githubGraphQLData)
+		if err != nil {
+			log.Printf("error fetching graphql: %+v", err)
+		}
+	})
+}
+
+func github(globalRelayID string) chan *GitHub {
 	githubChan := make(chan *GitHub, 1)
 
 	go func() {
-		if nwo == "" || githubClient == nil {
+		if globalRelayID == "" || githubClient == nil {
 			githubChan <- nil
 			close(githubChan)
 			return
 		}
-		pieces := strings.Split(nwo, "/")
-		owner := pieces[0]
-		repo := pieces[1]
 
-		commits, tag := commitsSinceLatestRelease(owner, repo)
-		openIssueAndPRCount := openIssues(owner, repo)
-		openPRCount := openPRs(nwo)
-		githubChan <- &GitHub{
-			CommitsThisWeek:           commitsThisWeek(owner, repo),
-			OpenPRs:                   openPRCount,
-			OpenIssues:                openIssueAndPRCount - openPRCount,
-			CommitsSinceLatestRelease: commits,
-			LatestReleaseTag:          tag,
-		}
+		githubChan <- loadGitHubFromGraphQL(globalRelayID)
 		close(githubChan)
 	}()
 
 	return githubChan
 }
 
-func openIssues(owner, repo string) int {
-	repoData, _, err := githubClient.Repositories.Get(context.Background(), owner, repo)
-	if err != nil {
-		log.Printf("error fetching repo %s/%s: %v", owner, repo, err)
-		return -1
+func loadGitHubFromGraphQL(globalRelayID string) *GitHub {
+	githubData := &GitHub{}
+
+	grabGraphQLDataFromGitHub()
+
+	for _, githubProject := range githubGraphQLData.Data.Nodes {
+		if githubProject.GlobalRelayID == globalRelayID {
+			githubData.Owner = githubProject.Owner.Login
+			githubData.Name = githubProject.Name
+			githubData.OpenPRs = githubProject.PullRequests.TotalCount
+			githubData.OpenIssues = githubProject.Issues.TotalCount
+			for _, release := range githubProject.Releases.Nodes {
+				if !release.IsPreRelease {
+					githubData.LatestReleaseTag = release.Tag.Name
+					if release.Tag.Target.TypeName == "Commit" {
+						githubData.CommitsSinceLatestRelease = githubProject.DefaultBranchRef.Target.History.TotalCount - release.Tag.Target.History.TotalCount
+					} else {
+						githubData.CommitsSinceLatestRelease = githubProject.DefaultBranchRef.Target.History.TotalCount - release.Tag.Target.Target.History.TotalCount
+					}
+					break
+				}
+			}
+			break
+		}
 	}
-	return *repoData.OpenIssuesCount
+
+	return githubData
 }
 
-func openPRs(nwo string) int {
-	result, _, err := githubClient.Search.Issues(
-		context.Background(),
-		"state:open type:pr repo:"+nwo,
-		&gh.SearchOptions{Sort: "created", Order: "asc"},
-	)
-	if err != nil {
-		log.Printf("error searching for pr's for %s: %v", nwo, err)
-		return -1
+func prefillAllProjectsFromGitHub() {
+	grabGraphQLDataFromGitHub()
+	var wg sync.WaitGroup
+	for _, project := range getProjects() {
+		wg.Add(1)
+		project := project
+		go func() {
+			project.fetchGitHubData()
+			wg.Done()
+		}()
 	}
-	return *result.Total
+	wg.Wait()
 }
 
-func commitsThisWeek(owner, repo string) int {
-	activities, _, err := githubClient.Repositories.ListCommitActivity(context.Background(), owner, repo)
+func commitsSinceLatestRelease(owner, repo, latestReleaseTagName string) int {
+	var comparison *gh.CommitsComparison
+	var err error
+	logHTTP("GET", fmt.Sprintf(
+		"https://api.github.com/repos/%s/%s/compare/%s...master",
+		owner, repo, latestReleaseTagName,
+	), func() {
+		comparison, _, err = githubClient.Repositories.CompareCommits(
+			context.Background(),
+			owner, repo,
+			latestReleaseTagName, "master",
+		)
+	})
 	if err != nil {
-		log.Printf("error fetching commits this week for %s/%s: %v", owner, repo, err)
+		log.Printf("error fetching commit comparison for %s...master for %s/%s: %v", latestReleaseTagName, owner, repo, err)
 		return -1
 	}
-	if len(activities) < 1 {
-		log.Printf("error fetching commits this week for %s/%s: no results", owner, repo)
-		return -1
-	}
-	return *activities[len(activities)-1].Total
-}
-
-func commitsSinceLatestRelease(owner, repo string) (int, string) {
-	release, _, err := githubClient.Repositories.GetLatestRelease(context.Background(), owner, repo)
-	if err != nil {
-		log.Printf("error fetching commits since latest release for %s/%s: %v", owner, repo, err)
-		return -1, ""
-	}
-	comparison, _, err := githubClient.Repositories.CompareCommits(
-		context.Background(),
-		owner, repo,
-		*release.TagName, "master",
-	)
-	if err != nil {
-		log.Printf("error fetching commit comparison for %s...master for %s/%s: %v", *release.TagName, owner, repo, err)
-		return -1, *release.TagName
-	}
-	return *comparison.TotalCommits, *release.TagName
+	return *comparison.TotalCommits
 }

@@ -1,5 +1,5 @@
 sudo: false
-script: make -j10
+script: make -j10 cibuild
 language: go
 go:
   - 1.9

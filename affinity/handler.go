@@ -42,7 +42,7 @@ func (h *Handler) GetTeams() []Team {
 	return h.teams
 }
 
-func (h *Handler) AddTeam(context *ctx.Context, teamID int) error {
+func (h *Handler) AddTeam(context *ctx.Context, teamID int64) error {
 	if h.teams == nil {
 		h.teams = []Team{}
 	}
@@ -60,7 +60,7 @@ func (h *Handler) AddTeam(context *ctx.Context, teamID int) error {
 	return nil
 }
 
-func (h *Handler) GetTeam(teamID int) (Team, error) {
+func (h *Handler) GetTeam(teamID int64) (Team, error) {
 	for _, team := range h.teams {
 		if team.ID == teamID {
 			return team, nil
