@@ -15,7 +15,7 @@ var pretendTemplateInfo = templateInfo{
 			Label: "documentation",
 			Issues: Issues{
 				github.Issue{
-					ID:      github.Int(100000),
+					ID:      github.Int64(100000),
 					Number:  github.Int(125),
 					State:   github.String("open"),
 					Locked:  github.Bool(true),

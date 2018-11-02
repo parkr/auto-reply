@@ -1,1 +1,1 @@
-web: dashboard -port=$PORT
+web: dashboard -http=:$PORT

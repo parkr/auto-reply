@@ -46,7 +46,7 @@ func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, 
 }
 
 func Freeze(context *ctx.Context, owner, repo string, issueNum int) error {
-	_, err := context.GitHub.Issues.Lock(context.Context(), owner, repo, issueNum)
+	_, err := context.GitHub.Issues.Lock(context.Context(), owner, repo, issueNum, nil)
 	if err != nil {
 		return err
 	}

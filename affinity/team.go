@@ -9,7 +9,7 @@ import (
 	"github.com/parkr/auto-reply/ctx"
 )
 
-func NewTeam(context *ctx.Context, teamId int) (Team, error) {
+func NewTeam(context *ctx.Context, teamId int64) (Team, error) {
 	team := Team{ID: teamId}
 	if err := team.fetchMetadata(context); err != nil {
 		return Team{}, err
@@ -23,7 +23,7 @@ func NewTeam(context *ctx.Context, teamId int) (Team, error) {
 
 type Team struct {
 	// The team ID.
-	ID int
+	ID int64
 
 	// The org the team belongs to
 	Org string
@@ -108,10 +108,10 @@ func (t Team) RandomCaptainLoginsExcluding(excludedLogin string, count int) []st
 }
 
 func (t *Team) fetchCaptains(context *ctx.Context) error {
-	users, _, err := context.GitHub.Organizations.ListTeamMembers(
+	users, _, err := context.GitHub.Teams.ListTeamMembers(
 		context.Context(),
 		t.ID,
-		&github.OrganizationListTeamMembersOptions{
+		&github.TeamListTeamMembersOptions{
 			Role:        "maintainer",
 			ListOptions: github.ListOptions{Page: 0, PerPage: 100},
 		},
@@ -130,7 +130,7 @@ func (t *Team) fetchCaptains(context *ctx.Context) error {
 }
 
 func (t *Team) fetchMetadata(context *ctx.Context) error {
-	team, _, err := context.GitHub.Organizations.GetTeam(context.Context(), t.ID)
+	team, _, err := context.GitHub.Teams.GetTeam(context.Context(), t.ID)
 	if err != nil {
 		return err
 	}

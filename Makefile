@@ -11,7 +11,7 @@ all: deps fmt build test
 
 .PHONY: deps
 deps:
-	go get github.com/tools/godep
+	which dep
 
 .PHONY: fmt
 fmt:
@@ -21,7 +21,7 @@ fmt:
 
 .PHONY: $(BINARIES)
 $(BINARIES): deps clean
-	godep go build -o ./$@ ./$(patsubst bin/%,cmd/%,$@)
+	go build -o ./$@ ./$(patsubst bin/%,cmd/%,$@)
 
 .PHONY: build
 build: clean $(BINARIES)
@@ -29,7 +29,7 @@ build: clean $(BINARIES)
 
 .PHONY: test
 test: deps
-	godep go test github.com/parkr/auto-reply/...
+	go test github.com/parkr/auto-reply/...
 
 .PHONY: server
 server: build

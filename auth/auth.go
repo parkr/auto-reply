@@ -42,10 +42,10 @@ func UserIsOrgOwner(context *ctx.Context, org, login string) bool {
 	return false
 }
 
-func (auth authenticator) isTeamMember(teamId int, login string) bool {
+func (auth authenticator) isTeamMember(teamId int64, login string) bool {
 	cacheKey := auth.cacheKeyIsTeamMember(teamId, login)
 	if _, ok := teamMembershipCache[cacheKey]; !ok {
-		newOk, _, err := auth.context.GitHub.Organizations.IsTeamMember(
+		newOk, _, err := auth.context.GitHub.Teams.IsTeamMember(
 			auth.context.Context(), teamId, login)
 		if err != nil {
 			log.Printf("ERROR performing IsTeamMember(%d, \"%s\"): %v", teamId, login, err)
@@ -56,10 +56,10 @@ func (auth authenticator) isTeamMember(teamId int, login string) bool {
 	return teamMembershipCache[cacheKey]
 }
 
-func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool {
+func (auth authenticator) teamHasPushAccess(teamId int64, owner, repo string) bool {
 	cacheKey := auth.cacheKeyTeamHashPushAccess(teamId, owner, repo)
 	if _, ok := teamHasPushAccessCache[cacheKey]; !ok {
-		repository, _, err := auth.context.GitHub.Organizations.IsTeamRepo(
+		repository, _, err := auth.context.GitHub.Teams.IsTeamRepo(
 			auth.context.Context(), teamId, owner, repo)
 		if err != nil {
 			log.Printf("ERROR performing IsTeamRepo(%d, \"%s\", \"%s\"): %v", teamId, owner, repo, err)
@@ -76,7 +76,7 @@ func (auth authenticator) teamHasPushAccess(teamId int, owner, repo string) bool
 
 func (auth authenticator) teamsForOrg(org string) []*github.Team {
 	if _, ok := teamsCache[org]; !ok {
-		teamz, _, err := auth.context.GitHub.Organizations.ListTeams(
+		teamz, _, err := auth.context.GitHub.Teams.ListTeams(
 			auth.context.Context(),
 			org,
 			&github.ListOptions{Page: 0, PerPage: 100},
@@ -106,10 +106,10 @@ func (auth authenticator) ownersForOrg(org string) []*github.User {
 	return orgOwnersCache[org]
 }
 
-func (auth authenticator) cacheKeyIsTeamMember(teamId int, login string) string {
+func (auth authenticator) cacheKeyIsTeamMember(teamId int64, login string) string {
 	return fmt.Sprintf("%d_%s", teamId, login)
 }
 
-func (auth authenticator) cacheKeyTeamHashPushAccess(teamId int, owner, repo string) string {
+func (auth authenticator) cacheKeyTeamHashPushAccess(teamId int64, owner, repo string) string {
 	return fmt.Sprintf("%d_%s_%s", teamId, owner, repo)
 }
