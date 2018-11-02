@@ -27,7 +27,7 @@ func TestFindAffinityTeam(t *testing.T) {
 
 	examples := []struct {
 		body           string
-		matchingTeamID int
+		matchingTeamID int64
 	}{
 		{exampleLongComment, 456},
 		{"@jekyll/documentation @jekyll/build", 456},
