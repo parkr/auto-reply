@@ -14,7 +14,7 @@ cibuild: fmt build test
 
 .PHONY: deps
 deps:
-	which dep
+	dep ensure
 
 .PHONY: fmt
 fmt:
@@ -23,7 +23,7 @@ fmt:
 	go list $(ROOT_PKG)/... | xargs go vet
 
 .PHONY: $(BINARIES)
-$(BINARIES): deps clean
+$(BINARIES): clean
 	go build -o ./$@ ./$(patsubst bin/%,cmd/%,$@)
 
 .PHONY: build
@@ -31,7 +31,7 @@ build: clean $(BINARIES)
 	ls -lh bin/
 
 .PHONY: test
-test: deps
+test:
 	go test github.com/parkr/auto-reply/...
 
 .PHONY: server
