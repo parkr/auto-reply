@@ -36,3 +36,8 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[metadata.heroku]
+  root-package = "github.com/parkr/auto-reply"
+  go-version = "1.11.1"
+  install = [ "./..." ]
