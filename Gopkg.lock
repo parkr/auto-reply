@@ -96,7 +96,7 @@
   revision = "a67d1fab179421d6446586aedec5f09a0f50d83f"
 
 [[projects]]
-  branch = "master"
+  branch = "main"
   digest = "1:f9c334d01a6f42ba699d5a07362501bb6e57c49a32738a28a5c86c8e14001ba0"
   name = "github.com/parkr/changelog"
   packages = ["."]
@@ -104,12 +104,12 @@
   revision = "cef0141074f9b8cc85a225bb4edca5278114e997"
 
 [[projects]]
-  branch = "master"
+  branch = "main"
   digest = "1:0e9177e1f2799e9fafdb8ba0663f36c0c6248b4497d2f30d82c7013e73a269d7"
   name = "github.com/parkr/githubapi"
   packages = ["githubsearch"]
   pruneopts = "UT"
-  revision = "a4a24abadc26d281479efda344a2131f350f16f8"
+  revision = "99ee55fce6df514c850482ea1d2b96392b5544ae"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"

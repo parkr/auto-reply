@@ -26,11 +26,11 @@
 
 
 [[constraint]]
-  branch = "master"
+  branch = "main"
   name = "github.com/parkr/changelog"
 
 [[constraint]]
-  branch = "master"
+  branch = "main"
   name = "github.com/parkr/githubapi"
 
 [prune]
