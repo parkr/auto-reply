@@ -30,6 +30,7 @@ var (
 	nonStaleableLabels = []string{
 		"has-pull-request",
 		"pinned",
+		"release",
 		"security",
 	}
 
