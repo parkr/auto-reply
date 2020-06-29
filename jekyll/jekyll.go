@@ -100,7 +100,7 @@ func newLgtmHandler() *lgtm.Handler {
 	handler.AddRepo("jekyll", "jemoji", 1)
 	handler.AddRepo("jekyll", "mercenary", 1)
 	handler.AddRepo("jekyll", "minima", 1)
-	handler.AddRepo("jekyll", "plugins", 1)
+	handler.AddRepo("jekyll", "directory", 1)
 
 	return handler
 }

@@ -36,7 +36,7 @@ var (
 		{"jekyll", "jemoji"},
 		{"jekyll", "jekyll-gist"},
 		{"jekyll", "jekyll-coffeescript"},
-		{"jekyll", "plugins"},
+		{"jekyll", "directory"},
 	}
 
 	sleepBetweenFreezes = 150 * time.Millisecond
