@@ -6,7 +6,7 @@ require (
 	github.com/DataDog/datadog-go v0.0.0-20180330214955-e67964b4021a
 	github.com/certifi/gocertifi v0.0.0-20180118203423-deb3ae2ef261 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/getsentry/raven-go v0.1.0
+	github.com/getsentry/raven-go v0.2.0
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
