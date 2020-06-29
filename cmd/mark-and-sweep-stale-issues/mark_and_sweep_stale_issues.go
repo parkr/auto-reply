@@ -53,7 +53,7 @@ var (
 		{"jekyll", "jekyll-gist"},
 		{"jekyll", "jekyll-coffeescript"},
 		{"jekyll", "minima"},
-		{"jekyll", "plugins"},
+		{"jekyll", "directory"},
 	}
 
 	twoMonthsAgo = time.Now().AddDate(0, -2, 0)

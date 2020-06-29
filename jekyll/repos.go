@@ -62,5 +62,5 @@ var DefaultRepos = []Repository{
 	JekyllRepository{name: "jekyll-watch"},
 	JekyllRepository{name: "jemoji"},
 	JekyllRepository{name: "minima"},
-	JekyllRepository{name: "plugins"},
+	JekyllRepository{name: "directory"},
 }
