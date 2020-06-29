@@ -15,7 +15,7 @@ cibuild: fmt build test
 
 .PHONY: fmt
 fmt:
-	git ls-files | grep -v '^vendor' | grep '\.go$$' | xargs gofmt -s -l -w | sed -e 's/^/Fixed /'
+	find . | grep -v '^vendor' | grep '\.go$$' | xargs gofmt -s -l -w | sed -e 's/^/Fixed /'
 	go list $(ROOT_PKG)/... | xargs go fix
 	go list $(ROOT_PKG)/... | xargs go vet
 

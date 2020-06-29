@@ -4,7 +4,7 @@ RUN set -ex \
   && apt-get update -y \
   && apt-get upgrade -y \
   && apt-get install make
-COPY go.* /app/auto-reply
+COPY go.* /app/auto-reply/
 RUN go mod download
 COPY . .
 RUN make -j10 cibuild

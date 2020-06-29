@@ -1,6 +1,6 @@
 module github.com/parkr/auto-reply
 
-go 1.13
+go 1.14
 
 require (
 	github.com/DataDog/datadog-go v0.0.0-20180330214955-e67964b4021a
