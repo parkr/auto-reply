@@ -1,3 +1,4 @@
+REV:=$(shell git rev-parse HEAD)
 ROOT_PKG=github.com/parkr/auto-reply
 BINARIES = bin/check-for-outdated-dependencies \
     bin/jekyllbot \
@@ -7,18 +8,14 @@ BINARIES = bin/check-for-outdated-dependencies \
     bin/unify-labels
 
 .PHONY: all
-all: deps fmt build test
+all: fmt build test
 
 .PHONY: cibuild
 cibuild: fmt build test
 
-.PHONY: deps
-deps:
-	dep ensure
-
 .PHONY: fmt
 fmt:
-	git ls-files | grep -v '^vendor' | grep '\.go$$' | xargs gofmt -s -l -w | sed -e 's/^/Fixed /'
+	find . | grep -v '^vendor' | grep '\.go$$' | xargs gofmt -s -l -w | sed -e 's/^/Fixed /'
 	go list $(ROOT_PKG)/... | xargs go fix
 	go list $(ROOT_PKG)/... | xargs go vet
 
@@ -49,3 +46,7 @@ mark-and-sweep: build
 .PHONY: clean
 clean:
 	rm -rf bin
+
+.PHONY: docker-build
+docker-build:
+	docker build -t auto-reply:$(REV) .
