@@ -3,7 +3,7 @@ package affinity
 import (
 	"fmt"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 	"github.com/parkr/auto-reply/ctx"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 )
 
 func SliceLookup(data []string) map[string]bool {
