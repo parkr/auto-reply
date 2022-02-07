@@ -17,7 +17,7 @@ func GitHubIssues(context *ctx.Context, query githubsearch.IssueSearchParameters
 		}
 
 		for _, issue := range result.Issues {
-			issues = append(issues, issue)
+			issues = append(issues, *issue)
 		}
 
 		if resp.NextPage == 0 {

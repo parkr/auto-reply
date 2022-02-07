@@ -34,7 +34,9 @@ func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, 
 			return issues, nil
 		}
 
-		issues = append(issues, result.Issues...)
+		for _, issue := range result.Issues {
+			issues = append(issues, *issue)
+		}
 
 		if resp.NextPage == 0 {
 			break

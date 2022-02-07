@@ -70,7 +70,7 @@ func (auth authenticator) teamHasPushAccess(teamId int64, owner, repo string) bo
 		}
 		teamHasPushAccessCache[cacheKey] = repository
 	}
-	permissions := *teamHasPushAccessCache[cacheKey].Permissions
+	permissions := teamHasPushAccessCache[cacheKey].Permissions
 	return permissions["push"] || permissions["admin"]
 }
 

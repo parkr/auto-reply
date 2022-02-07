@@ -127,7 +127,7 @@ func main() {
 
 	context := ctx.NewDefaultContext()
 
-	log.SetPrefix("freeze-ancient-issues: ")
+	log.SetPrefix("unify-lables: ")
 
 	sentryClient, err := sentry.NewClient(map[string]string{
 		"app":     "unify-labels",
