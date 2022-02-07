@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 	"github.com/parkr/auto-reply/ctx"
 )
 
@@ -34,7 +34,9 @@ func AllTooOldIssues(context *ctx.Context, owner, repo string) ([]github.Issue, 
 			return issues, nil
 		}
 
-		issues = append(issues, result.Issues...)
+		for _, issue := range result.Issues {
+			issues = append(issues, *issue)
+		}
 
 		if resp.NextPage == 0 {
 			break

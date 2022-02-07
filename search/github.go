@@ -1,7 +1,7 @@
 package search
 
 import (
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/githubapi/githubsearch"
 )
@@ -17,7 +17,7 @@ func GitHubIssues(context *ctx.Context, query githubsearch.IssueSearchParameters
 		}
 
 		for _, issue := range result.Issues {
-			issues = append(issues, issue)
+			issues = append(issues, *issue)
 		}
 
 		if resp.NextPage == 0 {

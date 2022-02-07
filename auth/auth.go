@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 	"github.com/parkr/auto-reply/ctx"
 )
 
@@ -70,7 +70,7 @@ func (auth authenticator) teamHasPushAccess(teamId int64, owner, repo string) bo
 		}
 		teamHasPushAccessCache[cacheKey] = repository
 	}
-	permissions := *teamHasPushAccessCache[cacheKey].Permissions
+	permissions := teamHasPushAccessCache[cacheKey].Permissions
 	return permissions["push"] || permissions["admin"]
 }
 

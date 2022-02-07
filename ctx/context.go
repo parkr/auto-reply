@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/DataDog/datadog-go/statsd"
-	"github.com/google/go-github/github"
+	"github.com/DataDog/datadog-go/v5/statsd"
+	"github.com/google/go-github/v42/github"
 )
 
 type Context struct {

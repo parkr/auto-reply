@@ -7,7 +7,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 	"github.com/parkr/auto-reply/ctx"
 	"github.com/parkr/auto-reply/freeze"
 	"github.com/parkr/auto-reply/sentry"
@@ -127,7 +127,7 @@ func main() {
 
 	context := ctx.NewDefaultContext()
 
-	log.SetPrefix("freeze-ancient-issues: ")
+	log.SetPrefix("unify-lables: ")
 
 	sentryClient, err := sentry.NewClient(map[string]string{
 		"app":     "unify-labels",

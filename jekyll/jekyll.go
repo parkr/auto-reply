@@ -13,7 +13,7 @@ import (
 	"github.com/parkr/auto-reply/lgtm"
 	"github.com/parkr/auto-reply/travis"
 
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v42/github"
 	"github.com/parkr/auto-reply/jekyll/deprecate"
 	"github.com/parkr/auto-reply/jekyll/issuecomment"
 )

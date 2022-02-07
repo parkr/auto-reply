@@ -3,7 +3,7 @@ package ctx
 import (
 	"log"
 
-	"github.com/DataDog/datadog-go/statsd"
+	"github.com/DataDog/datadog-go/v5/statsd"
 )
 
 var (
@@ -13,12 +13,14 @@ var (
 )
 
 func NewStatsd() *statsd.Client {
-	client, err := statsd.New(hostport)
+	client, err := statsd.New(
+		hostport,
+		statsd.WithNamespace(namespace),
+	)
 	if err != nil {
 		log.Fatal(err)
 		return nil
 	}
-	client.Namespace = namespace
 	return client
 }
 
@@ -28,6 +30,6 @@ func (c *Context) IncrStat(name string, tags []string) {
 
 func (c *Context) CountStat(name string, value int64, tags []string) {
 	if c.Statsd != nil {
-		c.Statsd.Count(name, value, tags, countRate)
+		_ = c.Statsd.Count(name, value, tags, countRate)
 	}
 }
