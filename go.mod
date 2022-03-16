@@ -16,7 +16,7 @@ require (
 	github.com/parkr/changelog v0.0.0-20160308230713-cef0141074f9
 	github.com/parkr/githubapi v0.0.0-20171101210150-a4a24abadc26
 	github.com/pkg/errors v0.8.0 // indirect
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	golang.org/x/net v0.0.0-20181102091132-c10e9556a7bc // indirect
 	golang.org/x/oauth2 v0.0.0-20181102170140-232e45548389
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
