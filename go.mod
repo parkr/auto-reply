@@ -10,7 +10,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff
 	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/hashicorp/go-version v1.4.0
+	github.com/hashicorp/go-version v1.5.0
 	github.com/heroku/x v0.0.0-20181101225318-084eff478eb7
 	github.com/jekyll/dashboard v0.0.0-20181102184910-a67d1fab1794
 	github.com/parkr/changelog v0.0.0-20160308230713-cef0141074f9
