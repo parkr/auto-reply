@@ -5,7 +5,6 @@ go 1.14
 require (
 	github.com/DataDog/datadog-go v0.0.0-20180330214955-e67964b4021a
 	github.com/certifi/gocertifi v0.0.0-20180118203423-deb3ae2ef261 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/getsentry/raven-go v0.2.0
 	github.com/golang/groupcache v0.0.0-20181024230925-c65c006176ff
 	github.com/google/go-github v17.0.0+incompatible
@@ -16,7 +15,7 @@ require (
 	github.com/parkr/changelog v0.0.0-20160308230713-cef0141074f9
 	github.com/parkr/githubapi v0.0.0-20171101210150-a4a24abadc26
 	github.com/pkg/errors v0.8.0 // indirect
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.7.3
 	golang.org/x/net v0.0.0-20181102091132-c10e9556a7bc // indirect
 	golang.org/x/oauth2 v0.0.0-20181102170140-232e45548389
 	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f
