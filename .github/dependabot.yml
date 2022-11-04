@@ -8,3 +8,19 @@ updates:
   open-pull-requests-limit: 99
   reviewers:
   - parkr
+- package-ecosystem: docker
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "11:00"
+  open-pull-requests-limit: 99
+  reviewers:
+  - parkr
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "11:00"
+  open-pull-requests-limit: 99
+  reviewers:
+  - parkr
