@@ -44,10 +44,9 @@ func issuesForQuery(query string) {
 	haltIfError(err)
 	fmt.Printf("Query '%s' found %d issues:\n", query, *result.Total)
 	for _, issue := range result.Issues {
-		fmt.Printf("%-20s %-4d %s | %s\n",
-			repoNameFromURL(*issue.HTMLURL),
-			*issue.Number,
+		fmt.Printf("%s | %-45s | %s\n",
 			issue.CreatedAt.Format("2006-01-02"),
+			*issue.HTMLURL,
 			*issue.Title,
 		)
 	}
